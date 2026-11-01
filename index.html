@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IXL Team Hours Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="app-brand">
+          <div class="brand-avatar">IXL</div>
+          <div class="brand-info">
+            <h2>Team Hours Tracker</h2>
+            <span class="brand-caption">Project Allocation Platform</span>
+          </div>
+        </div>
+
+        <!-- Connection Beacon (Requirement 5) -->
+        <div class="status-beacon" id="connectionBadge" title="Server Connection Status">
+          <span class="beacon-dot beacon-green" id="connectionLamp"></span>
+          <span class="beacon-text" id="connectionText">Synced</span>
+        </div>
+
+        <!-- Mode Badge (Requirement 6) -->
+        <div class="view-tag" id="modeBadge">
+          <span id="modeIcon">✏️</span>
+          <span id="modeText">Edit Mode</span>
+        </div>
+      </div>
+
+      <!-- User Identity Pill (Requirement 7) -->
+      <div class="header-center">
+        <div class="user-identity-card" id="userIdentityCard">
+          <span class="user-label">Logged in as:</span>
+          <button class="user-picker-btn" id="userPickerBtn" title="Click to switch your name">
+            <span class="user-avatar-circle" id="userAvatarInitials">?</span>
+            <strong id="currentUserNameDisplay">Select Your Name</strong>
+            <span class="chevron">▾</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Month Navigation -->
+        <div class="period-navigator">
+          <button class="nav-arrow-btn" id="prevMonthBtn" title="Previous Month">‹</button>
+          <select id="monthSelect" class="period-select">
+            <option value="2026-11" selected>November 2026 (Start)</option>
+            <option value="2026-12">December 2026</option>
+            <option value="2027-01">January 2027</option>
+            <option value="2027-02">February 2027</option>
+            <option value="2027-03">March 2027</option>
+            <option value="2027-04">April 2027</option>
+            <option value="2027-05">May 2027</option>
+            <option value="2027-06">June 2027</option>
+            <option value="2027-07">July 2027</option>
+            <option value="2027-08">August 2027</option>
+            <option value="2027-09">September 2027</option>
+            <option value="2027-10">October 2027</option>
+            <option value="2027-11">November 2027</option>
+            <option value="2027-12">December 2027</option>
+          </select>
+          <button class="nav-arrow-btn" id="nextMonthBtn" title="Next Month">›</button>
+          <button class="today-shortcut-btn" id="jumpTodayBtn">Today</button>
+        </div>
+
+        <!-- Action Tools -->
+        <div class="action-toolbar">
+          <!-- Theme Selector (Light / Dark / Auto by day time) -->
+          <div class="theme-control">
+            <select id="themeSelect" class="theme-select" title="Theme mode">
+              <option value="auto">🌗 Auto (Day/Night)</option>
+              <option value="light">☀️ Light</option>
+              <option value="dark">🌙 Dark</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-sm" id="topbarBulkFillBtn" title="Bulk fill date range for an employee">⚡ Bulk Fill</button>
+          <button class="btn btn-ghost" id="openAnalyticsBtn">📊 Analytics</button>
+          <button class="btn btn-ghost" id="openProjectsBtn">📁 Projects</button>
+          <button class="btn btn-ghost" id="openTeamBtn">👥 Team</button>
+          <button class="btn btn-ghost" id="copyViewLinkBtn" title="Copy View-Only Link">🔗 View Link</button>
+          <button class="btn btn-admin" id="adminToggleBtn">🔒 Admin Unlock</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- View-Only Alert Banner -->
+    <div id="viewModeBanner" class="mode-alert-banner hidden">
+      <span>👁️ <strong>View-Only Mode:</strong> You are viewing the live schedule. Editing is disabled.</span>
+      <a href="?" class="banner-link">Switch to Edit Mode</a>
+    </div>
+
+    <!-- Active User Permissions Alert (Requirement 7) -->
+    <div id="userPermissionBanner" class="user-permission-banner hidden">
+      <span>ℹ️ You are editing as <strong id="permBannerName"></strong>. You can only edit days in your own schedule row.</span>
+    </div>
+
+    <!-- Control Strip & Legend -->
+    <div class="control-strip">
+      <div class="legend-pills">
+        <span class="legend-heading">Legend:</span>
+        <span class="pill pill-proj">Project</span>
+        <span class="pill pill-tender">Tender</span>
+        <span class="pill pill-training">Training / Academy</span>
+        <span class="pill pill-support">Different Team Support</span>
+        <span class="pill pill-off">Day OFF</span>
+        <!-- Requirement 9: Missing Day Highlight -->
+        <span class="pill pill-missing">⚠️ Unfilled Workday</span>
+      </div>
+
+      <div class="strip-stats">
+        <div class="stat-bubble">
+          <span class="stat-bubble-label">Active Team:</span>
+          <strong id="statActiveEmployees">27</strong>
+        </div>
+        <div class="stat-bubble">
+          <span class="stat-bubble-label">Month Hours:</span>
+          <strong id="statCurrentMonthHours">0h</strong>
+        </div>
+        <div class="stat-bubble warning">
+          <span class="stat-bubble-label">Unfilled:</span>
+          <strong id="statUnfilledDays">0 days</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Schedule Canvas -->
+    <main class="schedule-canvas">
+      <div class="schedule-card">
+        <div class="table-scroll-area">
+          <table class="schedule-table" id="scheduleTable">
+            <thead id="scheduleHead">
+              <!-- Dynamically populated -->
+            </thead>
+            <tbody id="scheduleBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- User Identification Modal (Requirement 7) -->
+  <div id="userSelectModal" class="modal hidden">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Identify Yourself</h3>
+          <p class="modal-subtitle">Choose your name to start logging and managing your hours.</p>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="searchUserPickerInput" class="form-control" placeholder="Search your name...">
+        <div class="user-select-grid" id="userSelectGrid">
+          <!-- Populated dynamically with alphabetically sorted employee cards -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cell Assignment Popover -->
+  <div id="cellPopover" class="popover-panel hidden">
+    <div class="popover-titlebar">
+      <div>
+        <h4 id="popoverTitle">Assign Project</h4>
+        <span class="popover-subtitle" id="popoverSubtitle"></span>
+      </div>
+      <button class="btn-icon-close" id="closePopoverBtn">&times;</button>
+    </div>
+    <div class="popover-content">
+      <div class="quick-pill-row">
+        <button class="btn-quick-pill off" data-val="Day OFF">Day OFF</button>
+        <!-- Requirement 2: Different Team Support is fully counted -->
+        <button class="btn-quick-pill sup" data-val="Different Team Support">Different Team Support</button>
+        <button class="btn-quick-pill proj" data-val="NO PROJECT">NO PROJECT</button>
+        <button class="btn-quick-pill clear" data-val="">Clear</button>
+      </div>
+
+      <input type="text" id="projectSearchInput" class="form-control form-control-sm" placeholder="Search project or tender...">
+      
+      <div class="project-pill-list" id="popoverProjectList">
+        <!-- Alphabetically sorted projects list -->
+      </div>
+
+      <div class="popover-row">
+        <div class="hours-input-wrapper">
+          <label>Hours:</label>
+          <input type="number" id="popoverHoursInput" class="form-control form-control-sm text-center" min="0" max="24" step="0.5" value="8">
+        </div>
+        <button class="btn btn-primary btn-sm" id="applyCellBtn">Save Day</button>
+      </div>
+
+      <div class="popover-footer-action">
+        <button class="link-btn" id="openBulkFillBtn">⚡ Bulk fill range (Monday - Friday)...</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Bulk Fill Modal (With Holidays considered as Day OFF) -->
+  <div id="bulkFillModal" class="modal hidden">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>⚡ Bulk Fill Schedule</h3>
+          <p class="modal-subtitle">Automatically fill a date range for a team member.</p>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Employee Selector -->
+        <div class="form-group">
+          <label class="form-label">Team Member:</label>
+          <select id="bulkEmployeeSelect" class="form-select">
+            <!-- Dynamically populated -->
+          </select>
+          <small class="form-help" id="bulkEmployeeOfficeHint"></small>
+        </div>
+
+        <!-- Date Range -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Start Date:</label>
+            <input type="date" id="bulkFromDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date:</label>
+            <input type="date" id="bulkToDate" class="form-control">
+          </div>
+        </div>
+
+        <!-- Project Selection -->
+        <div class="form-group">
+          <label class="form-label">Project / Allocation for Workdays:</label>
+          <select id="bulkProjectSelect" class="form-select">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <!-- Daily Hours -->
+        <div class="form-group">
+          <label class="form-label">Hours per Workday:</label>
+          <input type="number" id="bulkHoursInput" class="form-control" value="8" min="0" max="24" step="0.5">
+        </div>
+
+        <!-- Holidays Handling: Consider as DAY OFF -->
+        <div class="form-group" style="background:#f8fafc; border:1px solid var(--border-light); padding:12px; border-radius:8px;">
+          <label class="form-label" style="font-weight:700; margin-bottom:8px;">Weekend &amp; Holiday Treatment:</label>
+          
+          <!-- Default: Set holidays as Day OFF -->
+          <label class="choice-card selected" id="holidayDayOffLabel" style="margin-bottom:8px; padding:10px;">
+            <input type="radio" name="bulkHolidayOption" id="bulkHolidayDayOff" value="dayoff" checked>
+            <div class="choice-text">
+              <strong>Set Holidays as "Day OFF" (Default &amp; Recommended)</strong>
+              <p id="holidayDayOffDetail">Fills workdays with your project, and automatically sets all holidays as <strong>Day OFF</strong> (Cairo: Friday &amp; Saturday, Istanbul: Saturday &amp; Sunday).</p>
+            </div>
+          </label>
+
+          <!-- Include: Work on holidays -->
+          <label class="choice-card" id="holidayIncludeLabel" style="margin-bottom:8px; padding:10px;">
+            <input type="radio" name="bulkHolidayOption" id="bulkHolidayInclude" value="include">
+            <div class="choice-text">
+              <strong>Work on Holidays (Assign project to all days)</strong>
+              <p>Assigns the selected project across every calendar day without holidays.</p>
+            </div>
+          </label>
+
+          <!-- Skip: Leave blank -->
+          <label class="choice-card" id="holidaySkipLabel" style="padding:10px;">
+            <input type="radio" name="bulkHolidayOption" id="bulkHolidaySkip" value="skip">
+            <div class="choice-text">
+              <strong>Skip Holidays (Leave blank / untouched)</strong>
+              <p>Leaves holiday dates empty without changing existing values.</p>
+            </div>
+          </label>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancel</button>
+        <button class="btn btn-primary" id="confirmBulkFillBtn">⚡ Fill Dates Automatically</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects Management Modal (Requirements 2, 4, 8, 9) -->
+  <div id="projectsModal" class="modal hidden">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Project &amp; WBS Management</h3>
+          <p class="modal-subtitle">Configure projects, WBS codes, and baseline historical hours.</p>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Requirement 4: Adding project with already assigned hours -->
+        <div class="admin-action-box" id="addProjectBox">
+          <div class="box-header">
+            <h4>Add New Project / Tender</h4>
+            <span class="admin-badge">Admin Required</span>
+          </div>
+          <div class="form-grid-4">
+            <div class="form-group span-2">
+              <label class="form-label">Project Name:</label>
+              <input type="text" id="newProjName" class="form-control" placeholder="e.g. Project - Cairo Metro Line 4">
+            </div>
+            <div class="form-group">
+              <label class="form-label">WBS Code (optional):</label>
+              <input type="text" id="newProjWbs" class="form-control" placeholder="e.g. WBS-2026">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category:</label>
+              <select id="newProjCategory" class="form-select">
+                <option value="Project">Project</option>
+                <option value="Tender">Tender</option>
+                <option value="Training">Training / Academy</option>
+                <option value="Support">Different Team Support</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Requirement 4: Option to start with 0 hours or already used amount -->
+          <div class="form-grid-2" style="margin-top: 8px;">
+            <div class="form-group">
+              <label class="form-label">Initial Baseline Hours (Already spent before 1/11):</label>
+              <input type="number" id="newProjInitialHours" class="form-control" value="0" min="0" step="1" placeholder="0">
+              <small class="form-help">Enter existing hours already consumed, or leave 0 to start fresh.</small>
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn btn-primary" id="saveNewProjectBtn">+ Create Project</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Table (Requirement 8: Alphabetically sorted) -->
+        <div class="data-table-wrapper">
+          <div class="table-toolbar">
+            <input type="text" id="filterProjectTableInput" class="form-control form-control-sm" placeholder="Filter projects...">
+            <span id="projCountBadge" class="table-counter"></span>
+          </div>
+          <table class="data-table" id="projectsListTable">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Project Name (Alphabetical)</th>
+                <th>WBS Code</th>
+                <!-- Requirement 4 & 9: Baseline + Tracked hours -->
+                <th>Baseline (Pre-1/11)</th>
+                <th>Tracked (Post-1/11)</th>
+                <th>Total Hours</th>
+                <th>Admin Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projectsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requirement 9: Adjust Project Hours Modal (Admin Only) -->
+  <div id="adjustHoursModal" class="modal hidden">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3>Adjust Project Baseline Hours</h3>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-sm">Adjust baseline hours for <strong id="adjustProjectName"></strong>:</p>
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">Total Baseline Hours:</label>
+          <input type="number" id="adjustHoursInput" class="form-control" min="0" step="1">
+          <small class="form-help">This value is added to any hours logged since 1/11/2026.</small>
+        </div>
+        <input type="hidden" id="adjustProjectId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancel</button>
+        <button class="btn btn-primary" id="saveAdjustedHoursBtn">Save Baseline Hours</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Management Modal (Requirements 3, 4, 6, 7, 8) -->
+  <div id="teamModal" class="modal hidden">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Team Members &amp; Office Allocation</h3>
+          <p class="modal-subtitle">Manage engineers, office sections, and daily default hours.</p>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Requirement 3 & 6: Add Member Form (Admin protected) -->
+        <div class="admin-action-box" id="addMemberBox">
+          <div class="box-header">
+            <h4>Add New Team Member</h4>
+            <span class="admin-badge">Admin Required</span>
+          </div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Full Name:</label>
+              <input type="text" id="newMemberName" class="form-control" placeholder="e.g. Sarah KHALED">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Section / Office:</label>
+              <select id="newMemberSection" class="form-select">
+                <!-- Populated dynamically with sections -->
+              </select>
+            </div>
+            <div class="form-group">
+              <!-- Requirement 8: Custom default daily hours -->
+              <label class="form-label">Default Daily Hours:</label>
+              <input type="number" id="newMemberHours" class="form-control" value="8" min="1" max="24" step="0.5">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="saveNewMemberBtn" style="margin-top: 8px;">+ Add Member</button>
+        </div>
+
+        <!-- Team Table (Requirement 8: Alphabetical sorting) -->
+        <div class="data-table-wrapper">
+          <div class="table-toolbar">
+            <input type="text" id="filterTeamTableInput" class="form-control form-control-sm" placeholder="Filter team members...">
+            <label class="form-checkbox">
+              <input type="checkbox" id="showInactiveMembersCheckbox"> Show deactivated members
+            </label>
+          </div>
+          <table class="data-table" id="teamListTable">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Name (Alphabetical)</th>
+                <!-- Requirement 7: Move employee between sections -->
+                <th>Office Section</th>
+                <!-- Requirement 8: Custom default hours/day -->
+                <th>Default Daily Hrs</th>
+                <th>Admin Actions</th>
+              </tr>
+            </thead>
+            <tbody id="teamTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Removal Modal (Requirement 4: Deactivate default vs Purge) -->
+  <div id="removeMemberModal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="text-danger">Remove Team Member</h3>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Please select how to handle <strong id="removeMemberTargetName"></strong>:</p>
+        
+        <div class="choice-cards">
+          <!-- Choice 1 (Default): Deactivate & keep hours -->
+          <label class="choice-card selected" id="optDeactivateLabel">
+            <input type="radio" name="removalType" id="removalTypeDeactivate" value="deactivate" checked>
+            <div class="choice-text">
+              <strong>Deactivate member (Default &amp; Recommended)</strong>
+              <p>Hides the employee from the active schedule grid for future entries, but <em>preserves all their recorded project hours</em> in historical analytics.</p>
+            </div>
+          </label>
+
+          <!-- Choice 2: Permanent Purge -->
+          <label class="choice-card danger" id="optPurgeLabel">
+            <input type="radio" name="removalType" id="removalTypePurge" value="purge">
+            <div class="choice-text">
+              <strong class="text-danger">Permanently purge member &amp; ALL their hours</strong>
+              <p>Permanently deletes the employee and completely wipes out all their historical hour allocations. This cannot be undone.</p>
+            </div>
+          </label>
+        </div>
+        <input type="hidden" id="removeTargetEmpId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancel</button>
+        <button class="btn btn-danger" id="confirmRemovalBtn">Confirm Removal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics / Project Hours Breakdown Modal -->
+  <div id="analyticsModal" class="modal hidden">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Project Hours Breakdown (<span id="analyticsMonthLabel"></span>)</h3>
+          <p class="modal-subtitle">Summary of baseline hours, monthly logged days, and total combined hours per project.</p>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="data-table" id="analyticsProjectTable">
+          <thead>
+            <tr>
+              <th>Project Name (Alphabetical)</th>
+              <th>Category</th>
+              <th>WBS Code</th>
+              <th>Baseline Hours</th>
+              <th>Logged Days</th>
+              <th>Logged Hours</th>
+              <th>Total Combined Hours</th>
+            </tr>
+          </thead>
+          <tbody id="analyticsProjectBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requirement 3: Admin Password Modal (Secret PIN IXL2026, no default visible) -->
+  <div id="adminPinModal" class="modal hidden">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3>Admin Authentication</h3>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-sm">Please enter the Admin Password to unlock management actions:</p>
+        <div class="form-group" style="margin-top: 14px;">
+          <input type="password" id="adminPinInput" class="form-control text-center" placeholder="••••••••" autofocus>
+          <span id="pinErrorMsg" class="text-danger text-sm hidden" style="margin-top:4px; display:block;">Incorrect password. Try again.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancel</button>
+        <button class="btn btn-primary" id="submitPinBtn">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-popup hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
