@@ -52,14 +52,14 @@ for ($i=0; $i -lt $db.employees.Count - 1; $i++) {
     }
 }
 Assert-Test "1.5 Employees list is strictly sorted alphabetically (A-Z)" ($employeesSorted) "Sorted: $employeesSorted"
-Assert-Test "1.6 'Different Team Support' is in projects list" (($db.projects | Where-Object { $_.name -eq 'Different Team Support' }) -ne $null) "Support project found"
+Assert-Test "1.6 'Different Team Support' is in projects list" ($null -ne ($db.projects | Where-Object { $_.name -eq 'Different Team Support' })) "Support project found"
 
 # -------------------------------------------------------------
 # TEST GROUP 2: Office Holiday & Weekend Rules
 # -------------------------------------------------------------
 Write-Host "`n>>> GROUP 2: Office Holiday Logic (Cairo vs. Istanbul)" -ForegroundColor Yellow
 
-function Check-Weekend($dow, $location) {
+function Test-Weekend($dow, $location) {
     if ($location -and $location.ToLower().Contains("istanbul")) {
         return ($dow -eq 0 -or $dow -eq 6)
     }
@@ -67,10 +67,10 @@ function Check-Weekend($dow, $location) {
 }
 
 # Cairo checks
-$thursCairo = Check-Weekend 4 "Cairo"
-$friCairo = Check-Weekend 5 "Cairo"
-$satCairo = Check-Weekend 6 "Cairo"
-$sunCairo = Check-Weekend 0 "Cairo"
+$thursCairo = Test-Weekend 4 "Cairo"
+$friCairo = Test-Weekend 5 "Cairo"
+$satCairo = Test-Weekend 6 "Cairo"
+$sunCairo = Test-Weekend 0 "Cairo"
 
 Assert-Test "2.1 Cairo Office: Friday is Holiday" ($friCairo -eq $true) "Friday (dow=5) -> Holiday"
 Assert-Test "2.2 Cairo Office: Saturday is Holiday" ($satCairo -eq $true) "Saturday (dow=6) -> Holiday"
@@ -78,10 +78,10 @@ Assert-Test "2.3 Cairo Office: Thursday is NOT Holiday (Workday)" ($thursCairo -
 Assert-Test "2.4 Cairo Office: Sunday is NOT Holiday (Workday)" ($sunCairo -eq $false) "Sunday (dow=0) -> Workday"
 
 # Istanbul checks
-$friIst = Check-Weekend 5 "Istanbul"
-$satIst = Check-Weekend 6 "Istanbul"
-$sunIst = Check-Weekend 0 "Istanbul"
-$monIst = Check-Weekend 1 "Istanbul"
+$friIst = Test-Weekend 5 "Istanbul"
+$satIst = Test-Weekend 6 "Istanbul"
+$sunIst = Test-Weekend 0 "Istanbul"
+$monIst = Test-Weekend 1 "Istanbul"
 
 Assert-Test "2.5 Istanbul Office: Saturday is Holiday" ($satIst -eq $true) "Saturday (dow=6) -> Holiday"
 Assert-Test "2.6 Istanbul Office: Sunday is Holiday" ($sunIst -eq $true) "Sunday (dow=0) -> Holiday"
@@ -105,7 +105,7 @@ $cairoWorkdays = @()
 while ($curStr -le $toStr) {
     $generatedDays += $curStr
     $dow = [int]$curDt.DayOfWeek
-    $isHoli = Check-Weekend $dow "Cairo"
+    $isHoli = Test-Weekend $dow "Cairo"
     if ($isHoli) { $cairoHolidays += $curStr }
     else { $cairoWorkdays += $curStr }
     
