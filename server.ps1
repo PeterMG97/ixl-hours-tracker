@@ -71,7 +71,6 @@ while ($listener.IsListening) {
             continue
         }
 
-        $rawUrl = $request.RawUrl
         $path = $request.Url.AbsolutePath
         $method = $request.HttpMethod
 
