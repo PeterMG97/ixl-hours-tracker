@@ -21,7 +21,7 @@
     sections: [],
     employees: [],
     projects: [],
-    statuses: ["Day OFF", "NO PROJECT", "NO STATUS", "Different Team Support"],
+    statuses: ["Day OFF", "NO PROJECT", "NO STATUS"],
     allocations: {}, // "empId_YYYY-MM-DD" -> { project: string, hours: number }
     currentMonth: "2026-11", // Fresh start month
     todayStr: "2026-11-01",
@@ -105,6 +105,20 @@
     submitPinBtn: document.getElementById('submitPinBtn'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
 
+    // NO PROJECT Days Manager
+    openNoProjectDaysBtn: document.getElementById('openNoProjectDaysBtn'),
+    noProjectCountBadge: document.getElementById('noProjectCountBadge'),
+    noProjectModal: document.getElementById('noProjectModal'),
+    noProjectEmpNameDisplay: document.getElementById('noProjectEmpNameDisplay'),
+    noProjectMonthDisplay: document.getElementById('noProjectMonthDisplay'),
+    noProjectEmpSelect: document.getElementById('noProjectEmpSelect'),
+    noProjectBatchBox: document.getElementById('noProjectBatchBox'),
+    noProjectBatchSelect: document.getElementById('noProjectBatchSelect'),
+    noProjectBatchApplyBtn: document.getElementById('noProjectBatchApplyBtn'),
+    noProjectTableWrap: document.getElementById('noProjectTableWrap'),
+    noProjectTableBody: document.getElementById('noProjectTableBody'),
+    noProjectEmptyState: document.getElementById('noProjectEmptyState'),
+
     // Theme & Toast
     themeSelect: document.getElementById('themeSelect'),
     toast: document.getElementById('toast'),
@@ -177,7 +191,7 @@
     state.sections = data.sections || [];
     state.employees = data.employees || [];
     state.projects = data.projects || [];
-    state.statuses = data.statuses || ["Day OFF", "NO PROJECT", "NO STATUS", "Different Team Support"];
+    state.statuses = data.statuses || ["Day OFF", "NO PROJECT", "NO STATUS"];
     state.allocations = data.allocations || {};
     state.adminPin = data.adminPin || "IXL2026";
 
@@ -482,6 +496,14 @@
 
         totalMonthHours += empMonthHours;
 
+        let empNoProjCount = 0;
+        days.forEach(d => {
+          const key = `${emp.id}_${d.dateStr}`;
+          if (state.allocations[key] && state.allocations[key].project === 'NO PROJECT') {
+            empNoProjCount++;
+          }
+        });
+
         bodyHtml += `
           <tr class="user-row ${isSelf ? 'active-user-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" data-emp-id="${emp.id}">
             <td class="col-user">
@@ -489,7 +511,10 @@
                 <div class="user-mini-avatar">${getInitials(emp.name)}</div>
                 <div>
                   <strong style="display:block; font-size:11px;">${emp.name}</strong>
-                  <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
+                    ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit ${empNoProjCount} NO PROJECT days">⚠️ ${empNoProjCount} NO PROJ</button>` : ''}
+                  </div>
                 </div>
               </div>
             </td>
@@ -506,6 +531,8 @@
     el.statCurrentMonthHours.textContent = `${totalMonthHours}h`;
     el.statUnfilledDays.textContent = `${totalUnfilledDays} days`;
 
+    updateNoProjectTopBarBadge(days);
+
     if (!state.isViewOnly) {
       attachCellEvents();
     }
@@ -516,6 +543,14 @@
   // -------------------------------------------------------------
 
   function attachCellEvents() {
+    el.scheduleBody.querySelectorAll('.emp-no-proj-badge').forEach(badge => {
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const empId = badge.getAttribute('data-emp-id');
+        openNoProjectModal(empId);
+      });
+    });
+
     el.scheduleBody.querySelectorAll('.task-chip').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -688,8 +723,6 @@
     // Projects list
     el.bulkProjectSelect.innerHTML = `
       <option value="Day OFF">Day OFF</option>
-      <!-- Requirement 2: Different Team Support is counted -->
-      <option value="Different Team Support">Different Team Support</option>
       <option value="NO PROJECT">NO PROJECT</option>
       <option value="">-- Clear / Erase Allocations --</option>
       <optgroup label="Projects & Tenders (Alphabetical)">
@@ -809,6 +842,259 @@
     } else {
       showToast(`Filled ${filledWorkdaysCount} workdays for ${emp.name} (left ${holidaysSkippedCount} holidays untouched).`);
     }
+  });
+
+  // -------------------------------------------------------------
+  // NO PROJECT Days Management (Request 2)
+  // -------------------------------------------------------------
+
+  function updateNoProjectTopBarBadge(days) {
+    if (!el.openNoProjectDaysBtn) return;
+
+    if (state.currentUserId) {
+      let myNoProjCount = 0;
+      days.forEach(d => {
+        const key = `${state.currentUserId}_${d.dateStr}`;
+        if (state.allocations[key] && state.allocations[key].project === 'NO PROJECT') {
+          myNoProjCount++;
+        }
+      });
+
+      el.openNoProjectDaysBtn.classList.remove('hidden');
+      if (myNoProjCount > 0) {
+        el.openNoProjectDaysBtn.classList.remove('clean');
+        el.openNoProjectDaysBtn.innerHTML = `
+          <span class="alert-icon">⚠️</span>
+          <span class="alert-label">NO PROJECT:</span>
+          <span class="alert-badge">${myNoProjCount}</span>
+        `;
+      } else {
+        el.openNoProjectDaysBtn.classList.add('clean');
+        el.openNoProjectDaysBtn.innerHTML = `
+          <span class="alert-icon">✓</span>
+          <span class="alert-label">0 NO PROJECT Days</span>
+        `;
+      }
+    } else if (state.isAdmin) {
+      let totalNoProj = 0;
+      state.employees.filter(e => e.active !== false).forEach(e => {
+        days.forEach(d => {
+          const key = `${e.id}_${d.dateStr}`;
+          if (state.allocations[key] && state.allocations[key].project === 'NO PROJECT') totalNoProj++;
+        });
+      });
+      el.openNoProjectDaysBtn.classList.remove('hidden');
+      el.openNoProjectDaysBtn.classList.toggle('clean', totalNoProj === 0);
+      el.openNoProjectDaysBtn.innerHTML = `
+        <span class="alert-icon">${totalNoProj > 0 ? '⚠️' : '✓'}</span>
+        <span class="alert-label">Team NO PROJ:</span>
+        <span class="alert-badge">${totalNoProj}</span>
+      `;
+    } else {
+      el.openNoProjectDaysBtn.classList.add('hidden');
+    }
+  }
+
+  if (el.openNoProjectDaysBtn) {
+    el.openNoProjectDaysBtn.addEventListener('click', () => {
+      openNoProjectModal(state.currentUserId);
+    });
+  }
+
+  function openNoProjectModal(targetEmpId) {
+    if (!state.currentUserId && !state.isAdmin) {
+      showToast('Please identify yourself first from the top bar.', 'warning');
+      openUserSelectModal();
+      return;
+    }
+
+    const activeEmps = state.employees.filter(e => e.active !== false);
+    activeEmps.sort((a,b) => a.name.localeCompare(b.name));
+
+    el.noProjectEmpSelect.innerHTML = activeEmps.map(e => `
+      <option value="${e.id}">${e.name}</option>
+    `).join('');
+
+    let chosenId = targetEmpId;
+    if (!chosenId) {
+      chosenId = state.currentUserId || (activeEmps[0] ? activeEmps[0].id : null);
+    }
+    if (chosenId) {
+      el.noProjectEmpSelect.value = chosenId;
+    }
+
+    // Permission enforcement: non-admins can only view their own
+    if (!state.isAdmin) {
+      if (state.currentUserId) {
+        el.noProjectEmpSelect.value = state.currentUserId;
+        el.noProjectEmpSelect.disabled = true;
+      }
+    } else {
+      el.noProjectEmpSelect.disabled = false;
+    }
+
+    // Populate Batch Project Dropdown
+    const activeProjects = state.projects.filter(p => p.active !== false);
+    activeProjects.sort((a,b) => a.name.localeCompare(b.name));
+
+    el.noProjectBatchSelect.innerHTML = `
+      <option value="">-- Choose Project to Apply to All --</option>
+      <option value="Day OFF">Day OFF</option>
+      <optgroup label="Projects & Tenders (Alphabetical)">
+        ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+      </optgroup>
+    `;
+
+    renderNoProjectTable();
+    openModal(el.noProjectModal);
+  }
+
+  function renderNoProjectTable() {
+    const empId = el.noProjectEmpSelect.value;
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+
+    const sec = state.sections.find(s => s.id === emp.sectionId) || {};
+    const loc = (sec.location || '').toLowerCase();
+    const isIstanbul = loc.includes('istanbul');
+
+    el.noProjectEmpNameDisplay.textContent = emp.name;
+    const [y, m] = state.currentMonth.split('-').map(Number);
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    el.noProjectMonthDisplay.textContent = `${monthNames[m - 1]} ${y}`;
+
+    const days = getDaysInMonth(state.currentMonth);
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    const noProjDates = [];
+    days.forEach(d => {
+      const key = `${emp.id}_${d.dateStr}`;
+      const alloc = state.allocations[key];
+      if (alloc && alloc.project === 'NO PROJECT') {
+        noProjDates.push({
+          dateStr: d.dateStr,
+          dow: d.dow,
+          allocHours: alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8)
+        });
+      }
+    });
+
+    if (noProjDates.length === 0) {
+      el.noProjectTableWrap.classList.add('hidden');
+      el.noProjectBatchBox.classList.add('hidden');
+      el.noProjectEmptyState.classList.remove('hidden');
+      return;
+    }
+
+    el.noProjectTableWrap.classList.remove('hidden');
+    el.noProjectBatchBox.classList.remove('hidden');
+    el.noProjectEmptyState.classList.add('hidden');
+
+    const activeProjects = state.projects.filter(p => p.active !== false);
+    activeProjects.sort((a,b) => a.name.localeCompare(b.name));
+
+    const projectOptionsHtml = `
+      <option value="">-- Choose Project --</option>
+      <option value="Day OFF">Day OFF</option>
+      <optgroup label="Projects & Tenders">
+        ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+      </optgroup>
+    `;
+
+    el.noProjectTableBody.innerHTML = noProjDates.map(item => {
+      const isWk = isWeekendForLocation(item.dow, sec.location);
+      const scheduleTag = isWk 
+        ? `<span class="badge" style="background:#f1f5f9; color:#64748b;">${isIstanbul ? 'Istanbul Weekend' : 'Cairo Weekend'}</span>`
+        : `<span class="badge" style="background:#eff6ff; color:#1d4ed8;">${isIstanbul ? 'Istanbul Workday' : 'Cairo Workday'}</span>`;
+
+      return `
+        <tr data-date="${item.dateStr}">
+          <td><strong>${item.dateStr}</strong></td>
+          <td>${dayNames[item.dow]}</td>
+          <td>${scheduleTag}</td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-center row-hours-input" min="0" max="24" step="0.5" value="${item.allocHours}">
+          </td>
+          <td>
+            <select class="form-control form-control-sm row-project-select">
+              ${projectOptionsHtml}
+            </select>
+          </td>
+          <td style="text-align: center;">
+            <button class="btn btn-primary btn-sm btn-save-row" data-date="${item.dateStr}">Save</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Attach row save listeners
+    el.noProjectTableBody.querySelectorAll('.btn-save-row').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dateStr = btn.getAttribute('data-date');
+        const tr = btn.closest('tr');
+        const projSelect = tr.querySelector('.row-project-select');
+        const hoursInput = tr.querySelector('.row-hours-input');
+        const chosenProj = projSelect.value;
+        const chosenHours = Number(hoursInput.value) || 8;
+
+        if (!chosenProj) {
+          showToast('Please select a project to assign.', 'warning');
+          return;
+        }
+
+        const key = `${emp.id}_${dateStr}`;
+        state.allocations[key] = {
+          project: chosenProj,
+          hours: chosenHours
+        };
+
+        syncToServer();
+        renderSchedule();
+        renderNoProjectTable();
+        showToast(`Saved ${dateStr} as ${chosenProj}`);
+      });
+    });
+  }
+
+  el.noProjectBatchApplyBtn.addEventListener('click', () => {
+    const chosenProj = el.noProjectBatchSelect.value;
+    if (!chosenProj) {
+      showToast('Please choose a project from the dropdown to apply.', 'warning');
+      return;
+    }
+
+    const empId = el.noProjectEmpSelect.value;
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+
+    const days = getDaysInMonth(state.currentMonth);
+    let updatedCount = 0;
+
+    days.forEach(d => {
+      const key = `${emp.id}_${d.dateStr}`;
+      const alloc = state.allocations[key];
+      if (alloc && alloc.project === 'NO PROJECT') {
+        const curHours = alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8);
+        state.allocations[key] = {
+          project: chosenProj,
+          hours: curHours
+        };
+        updatedCount++;
+      }
+    });
+
+    if (updatedCount > 0) {
+      syncToServer();
+      renderSchedule();
+      renderNoProjectTable();
+      showToast(`All ${updatedCount} NO PROJECT days updated to "${chosenProj}"!`);
+    } else {
+      showToast('No "NO PROJECT" days found to update.', 'info');
+    }
+  });
+
+  el.noProjectEmpSelect.addEventListener('change', () => {
+    renderNoProjectTable();
   });
 
   // -------------------------------------------------------------

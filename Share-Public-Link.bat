@@ -13,3 +13,4 @@ echo Your public link will appear below (https://....trycloudflare.com)
 echo.
 "%~dp0cloudflared.exe" tunnel --protocol http2 --url http://localhost:8080
 pause
+

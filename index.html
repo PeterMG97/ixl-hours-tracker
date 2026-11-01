@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <!-- User Identity Pill (Requirement 7) -->
+      <!-- User Identity Pill & NO PROJECT Alert (Requirement 7 & 14) -->
       <div class="header-center">
         <div class="user-identity-card" id="userIdentityCard">
           <span class="user-label">Logged in as:</span>
@@ -46,6 +46,11 @@
             <span class="chevron">▾</span>
           </button>
         </div>
+        <button class="btn-no-proj-alert hidden" id="openNoProjectDaysBtn" title="View & edit your NO PROJECT days">
+          <span class="alert-icon">⚠️</span>
+          <span class="alert-label">NO PROJECT:</span>
+          <span class="alert-badge" id="noProjectCountBadge">0</span>
+        </button>
       </div>
 
       <div class="header-right">
@@ -185,8 +190,6 @@
     <div class="popover-content">
       <div class="quick-pill-row">
         <button class="btn-quick-pill off" data-val="Day OFF">Day OFF</button>
-        <!-- Requirement 2: Different Team Support is fully counted -->
-        <button class="btn-quick-pill sup" data-val="Different Team Support">Different Team Support</button>
         <button class="btn-quick-pill proj" data-val="NO PROJECT">NO PROJECT</button>
         <button class="btn-quick-pill clear" data-val="">Clear</button>
       </div>
@@ -294,6 +297,65 @@
       <div class="modal-footer">
         <button class="btn btn-secondary modal-close">Cancel</button>
         <button class="btn btn-primary" id="confirmBulkFillBtn">⚡ Fill Dates Automatically</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NO PROJECT Days Manager Modal -->
+  <div id="noProjectModal" class="modal hidden">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>⚠️ Manage "NO PROJECT" Days</h3>
+          <p class="modal-subtitle">Review and assign projects to all unallocated dates for <strong id="noProjectEmpNameDisplay"></strong> (<span id="noProjectMonthDisplay"></span>).</p>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Toolbar with Member Selector (for Admin) & Quick Batch Assign -->
+        <div class="no-proj-toolbar">
+          <div class="no-proj-toolbar-left" id="noProjectEmpPickerGroup">
+            <label class="form-label text-sm">Team Member:</label>
+            <select id="noProjectEmpSelect" class="form-control form-control-sm" style="min-width: 220px;"></select>
+          </div>
+          
+          <div class="no-proj-batch-box" id="noProjectBatchBox">
+            <span class="text-sm font-medium">Batch Assign All:</span>
+            <select id="noProjectBatchSelect" class="form-control form-control-sm" style="min-width: 240px;"></select>
+            <button class="btn btn-primary btn-sm" id="noProjectBatchApplyBtn">Apply to All Days</button>
+          </div>
+        </div>
+
+        <!-- Table of NO PROJECT dates -->
+        <div class="no-proj-table-wrap" id="noProjectTableWrap">
+          <table class="data-table" id="noProjectTable">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Date</th>
+                <th style="width: 110px;">Day</th>
+                <th style="width: 150px;">Office Schedule</th>
+                <th style="width: 90px;">Hours</th>
+                <th>Assign Project</th>
+                <th style="width: 100px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="noProjectTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state when 0 NO PROJECT days -->
+        <div id="noProjectEmptyState" class="empty-state-card hidden">
+          <div class="empty-state-icon">🎉</div>
+          <h4>All Caught Up!</h4>
+          <p>No days are currently marked as "NO PROJECT" for this team member in the selected month.</p>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Done</button>
       </div>
     </div>
   </div>
