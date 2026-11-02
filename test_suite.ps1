@@ -243,6 +243,8 @@ $matchingSpecialColors = ($cssContent.Contains('--badge-sup-bg: #dcfce7')) -and 
 Assert-Test "6.26 Training, Academy, and Support share matching green highlight and font styling" $matchingSpecialColors "Green highlight & text unified across themes"
 $employeeContribs = ($htmlContent.Contains('id="employeeContributionsModal"')) -and ($jsContent.Contains('openEmployeeContributions')) -and ($jsContent.Contains('renderEmployeeContributions')) -and ($jsContent.Contains('data-emp-id'))
 Assert-Test "6.27 Double-clicking employee name opens monthly contributions page" $employeeContribs "Employee monthly contributions modal and double-click interaction verified"
+$topBtn3LinesAndNoDocked = ($htmlContent.Contains('class="hamburger-icon"')) -and (-not $htmlContent.Contains('Settings &amp; Tools</span>')) -and (-not $htmlContent.Contains('id="dockedSettingsBtn"')) -and (-not $cssContent.Contains('.docked-settings-pill'))
+Assert-Test "6.28 Settings & Tools shown as 3 horizontal lines and docked right setting tab removed" $topBtn3LinesAndNoDocked "3 horizontal lines icon and no docked settings tab"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

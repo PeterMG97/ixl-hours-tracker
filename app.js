@@ -238,7 +238,6 @@
 
     // Settings & Tools Drawer
     toggleSettingsSidebarBtn: document.getElementById('toggleSettingsSidebarBtn'),
-    dockedSettingsBtn: document.getElementById('dockedSettingsBtn'),
     closeSettingsSidebarBtn: document.getElementById('closeSettingsSidebarBtn'),
     collapseSettingsBtn: document.getElementById('collapseSettingsBtn'),
     settingsSidebar: document.getElementById('settingsSidebar'),
@@ -2751,10 +2750,6 @@
 
   if (el.toggleSettingsSidebarBtn) {
     el.toggleSettingsSidebarBtn.addEventListener('click', () => toggleSettingsDrawer());
-  }
-
-  if (el.dockedSettingsBtn) {
-    el.dockedSettingsBtn.addEventListener('click', () => toggleSettingsDrawer(true));
   }
 
   if (el.closeSettingsSidebarBtn) {
