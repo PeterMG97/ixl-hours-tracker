@@ -190,7 +190,12 @@
     adminPinInput: document.getElementById('adminPinInput'),
     submitPinBtn: document.getElementById('submitPinBtn'),
     forgotPinBtn: document.getElementById('forgotPinBtn'),
+    forgotPinRecoveryBox: document.getElementById('forgotPinRecoveryBox'),
+    revealedAdminPin: document.getElementById('revealedAdminPin'),
+    copyAdminPinBtn: document.getElementById('copyAdminPinBtn'),
+    autoFillPinBtn: document.getElementById('autoFillPinBtn'),
     forgotPinSuccessMsg: document.getElementById('forgotPinSuccessMsg'),
+    forgotPinDeniedMsg: document.getElementById('forgotPinDeniedMsg'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
 
     // Employee Monthly Contributions Modal
@@ -2258,7 +2263,8 @@
     } else {
       el.adminPinInput.value = '';
       el.pinErrorMsg.classList.add('hidden');
-      if (el.forgotPinSuccessMsg) el.forgotPinSuccessMsg.classList.add('hidden');
+      if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
+      if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.add('hidden');
       openModal(el.adminPinModal);
       setTimeout(() => el.adminPinInput.focus(), 100);
     }
@@ -2313,57 +2319,59 @@
     }
     el.adminPinInput.value = '';
     el.pinErrorMsg.classList.add('hidden');
-    if (el.forgotPinSuccessMsg) el.forgotPinSuccessMsg.classList.add('hidden');
+    if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
+    if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.add('hidden');
     openModal(el.adminPinModal);
     return false;
   }
 
   if (el.forgotPinBtn) {
     el.forgotPinBtn.addEventListener('click', async () => {
-      const origText = el.forgotPinBtn.textContent;
-      el.forgotPinBtn.textContent = 'Sending password directly...';
-      el.forgotPinBtn.disabled = true;
+      // Permission check: strictly Peter MOUNIR
+      if (!isCurrentUserPeter()) {
+        if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.remove('hidden');
+        if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
+        showToast('Admin password recovery is only available to Peter MOUNIR.', 'warning');
+        return;
+      }
 
+      if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.add('hidden');
       const adminPin = state.adminPin || 'IXL2026';
 
-      // 1. Dispatch through local server API (handles background Outlook COM and web dispatch)
+      if (el.revealedAdminPin) el.revealedAdminPin.textContent = adminPin;
+      if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.remove('hidden');
+
+      // Also attempt background server dispatch via Outlook COM or mailer if server is running
       try {
-        await fetch('/api/forgot-password', {
+        fetch('/api/forgot-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'petermounir461@gmail.com' })
-        });
-      } catch (err) {
-        console.warn('Backend forgot-password endpoint call failed:', err);
-      }
+        }).catch(() => {});
+      } catch (err) {}
 
-      // 2. Direct browser-level web mail dispatch to petermounir461@gmail.com
-      try {
-        await fetch('https://formsubmit.co/ajax/petermounir461@gmail.com', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            _subject: 'IXL Tracker - Admin Password Recovery',
-            name: 'IXL Admin Security',
-            email: 'petermounir461@gmail.com',
-            message: `Hello Peter,\n\nYour Admin Password for IXL Team Hours Tracker is: ${adminPin}\n\nAuthorized Admin: Peter MOUNIR\nSystem: IXL Team Hours Tracker\nTimestamp: ${new Date().toLocaleString()}`
-          })
-        });
-      } catch (clientErr) {
-        // Silently handled
-      }
+      showToast('Admin password retrieved for Peter MOUNIR.');
+    });
+  }
 
-      el.forgotPinBtn.textContent = origText;
-      el.forgotPinBtn.disabled = false;
+  if (el.copyAdminPinBtn) {
+    el.copyAdminPinBtn.addEventListener('click', () => {
+      const pin = (el.revealedAdminPin ? el.revealedAdminPin.textContent : '') || state.adminPin || 'IXL2026';
+      navigator.clipboard.writeText(pin).then(() => {
+        el.copyAdminPinBtn.textContent = 'Copied!';
+        setTimeout(() => { if (el.copyAdminPinBtn) el.copyAdminPinBtn.textContent = 'Copy'; }, 2000);
+        showToast('Admin password copied to clipboard: ' + pin);
+      }).catch(() => {
+        showToast('Admin password: ' + pin);
+      });
+    });
+  }
 
-      if (el.forgotPinSuccessMsg) {
-        el.forgotPinSuccessMsg.textContent = 'Password sent directly to petermounir461@gmail.com';
-        el.forgotPinSuccessMsg.classList.remove('hidden');
-      }
-      showToast('Password sent directly to petermounir461@gmail.com');
+  if (el.autoFillPinBtn) {
+    el.autoFillPinBtn.addEventListener('click', () => {
+      const pin = state.adminPin || 'IXL2026';
+      el.adminPinInput.value = pin;
+      el.submitPinBtn.click();
     });
   }
 

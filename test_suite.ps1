@@ -245,6 +245,8 @@ $employeeContribs = ($htmlContent.Contains('id="employeeContributionsModal"')) -
 Assert-Test "6.27 Double-clicking employee name opens monthly contributions page" $employeeContribs "Employee monthly contributions modal and double-click interaction verified"
 $topBtn3LinesAndNoDocked = ($htmlContent.Contains('class="hamburger-icon"')) -and (-not $htmlContent.Contains('Settings &amp; Tools</span>')) -and (-not $htmlContent.Contains('id="dockedSettingsBtn"')) -and (-not $cssContent.Contains('.docked-settings-pill'))
 Assert-Test "6.28 Settings & Tools shown as 3 horizontal lines and docked right setting tab removed" $topBtn3LinesAndNoDocked "3 horizontal lines icon and no docked settings tab"
+$recoveryBoxVerified = ($htmlContent.Contains('id="forgotPinRecoveryBox"')) -and ($htmlContent.Contains('id="autoFillPinBtn"')) -and ($jsContent.Contains('autoFillPinBtn')) -and ($jsContent.Contains('copyAdminPinBtn'))
+Assert-Test "6.29 Admin password instant verified recovery and auto-fill for Peter MOUNIR" $recoveryBoxVerified "Instant recovery box and auto-fill verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

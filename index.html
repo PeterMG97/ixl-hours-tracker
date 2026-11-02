@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=2.6">
+  <link rel="stylesheet" href="styles.css?v=2.7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -646,7 +646,26 @@
         </div>
         <div style="margin-top: 12px; text-align: center;">
           <button type="button" class="btn-link text-sm" id="forgotPinBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px; padding:4px;">Forgot Admin Password?</button>
-          <div id="forgotPinSuccessMsg" class="text-success text-sm hidden" style="margin-top: 8px; font-weight: 500;">Password sent directly to petermounir461@gmail.com</div>
+
+          <div id="forgotPinRecoveryBox" class="hidden" style="margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-light); text-align: left;">
+            <div id="forgotPinSuccessMsg" class="text-xs" style="color: var(--text-muted); margin-bottom: 6px;">
+              Admin password for <strong style="color: var(--primary);">Peter MOUNIR</strong>:
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-card, #ffffff); padding:6px 10px; border-radius:6px; border:1px solid var(--border-medium); margin-bottom:8px;">
+              <code id="revealedAdminPin" style="font-size:15px; font-weight:700; color:var(--primary); letter-spacing:1.5px;">IXL2026</code>
+              <button type="button" class="btn btn-sm btn-secondary" id="copyAdminPinBtn" style="padding:2px 8px; font-size:10px;">Copy</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn btn-sm btn-primary" id="autoFillPinBtn" style="flex:1; padding:6px; font-size:11px;">Auto-fill &amp; Unlock</button>
+            </div>
+            <div id="forgotPinEmailNotice" class="text-xs text-muted" style="margin-top:6px; font-size:10px; text-align:center;">
+              Authorized recipient: petermounir461@gmail.com
+            </div>
+          </div>
+
+          <div id="forgotPinDeniedMsg" class="text-danger text-sm hidden" style="margin-top: 8px; font-weight: 500;">
+            Admin password recovery is only available to Peter MOUNIR.
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -877,6 +896,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=2.6"></script>
+  <script src="app.js?v=2.7"></script>
 </body>
 </html>
