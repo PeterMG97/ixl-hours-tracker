@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=2.1">
+  <link rel="stylesheet" href="styles.css?v=2.2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -179,6 +179,22 @@
 
       <input type="text" id="projectSearchInput" class="form-control form-control-sm" placeholder="Search project or tender...">
       
+      <!-- Category Filter List (Requirement 2) -->
+      <div class="popover-category-filter">
+        <select id="popoverCategorySelect" class="form-select form-control-sm popover-category-select" title="Choose category">
+          <option value="all">📂 All Categories</option>
+          <option value="Project">🏗️ Project</option>
+          <option value="Tender">📋 Tender</option>
+          <option value="Special">⭐ Special (Academy / Different Team Support)</option>
+        </select>
+        <div class="popover-category-pills" id="popoverCategoryPills">
+          <button type="button" class="category-pill active" data-category="all">All</button>
+          <button type="button" class="category-pill" data-category="Project">Project</button>
+          <button type="button" class="category-pill" data-category="Tender">Tender</button>
+          <button type="button" class="category-pill" data-category="Special">Special</button>
+        </div>
+      </div>
+
       <div class="project-pill-list" id="popoverProjectList">
         <!-- Alphabetically sorted projects list -->
       </div>
@@ -780,6 +796,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=2.1"></script>
+  <script src="app.js?v=2.2"></script>
 </body>
 </html>

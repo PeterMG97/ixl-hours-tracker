@@ -53,6 +53,8 @@ for ($i=0; $i -lt $db.employees.Count - 1; $i++) {
 }
 Assert-Test "1.5 Employees list is strictly sorted alphabetically (A-Z)" ($employeesSorted) "Sorted: $employeesSorted"
 Assert-Test "1.6 'Different Team Support' is in projects list" ($null -ne ($db.projects | Where-Object { $_.name -eq 'Different Team Support' })) "Support project found"
+$gpCount = ($db.projects | Where-Object { $_.name.StartsWith('GP - ') }).Count
+Assert-Test "1.7 All 'GP -' projects converted to start with 'Project -'" ($gpCount -eq 0) "GP projects count: $gpCount"
 
 # -------------------------------------------------------------
 # TEST GROUP 2: Office Holiday & Weekend Rules
@@ -227,6 +229,7 @@ Assert-Test "6.18 WBS Code editable by everyone in projects list" ($htmlContent.
 Assert-Test "6.19 Dark theme configured as default" ($htmlContent.Contains('data-theme="dark"') -and $htmlContent.Contains('value="dark" selected') -and $jsContent.Contains("getStoredItem('ixl_theme_mode') || 'dark'")) "Dark theme default verified"
 Assert-Test "6.20 Delete project triggers confirmation warning modal" ($htmlContent.Contains('id="deleteProjectModal"') -and $jsContent.Contains('openDeleteProjectModal') -and $jsContent.Contains('confirmDeleteProjectBtn')) "Delete project warning confirmation modal verified"
 Assert-Test "6.21 User selection cards and team list rows have high-contrast styling across themes" ($cssContent.Contains('[data-theme="dark"] .user-select-card.active-selected') -and $cssContent.Contains('.team-table-row.is-current-user-row') -and $jsContent.Contains('is-current-user-row')) "High contrast card & team row styles verified"
+Assert-Test "6.22 Cell popover contains category list and pills (Project, Tender, Special)" ($htmlContent.Contains('id="popoverCategorySelect"') -and $htmlContent.Contains('id="popoverCategoryPills"') -and $jsContent.Contains('isProjectMatchingCategory') -and $cssContent.Contains('.popover-category-select')) "Category list selector verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

@@ -102,6 +102,7 @@
     selectedCells: new Set(),
     selectedEmpId: null,
     isMultiEditing: false,
+    popoverCategory: 'all',
     isConnected: true,
     collapsedSections: (() => {
       try {
@@ -148,6 +149,8 @@
     popoverSubtitle: document.getElementById('popoverSubtitle'),
     closePopoverBtn: document.getElementById('closePopoverBtn'),
     projectSearchInput: document.getElementById('projectSearchInput'),
+    popoverCategorySelect: document.getElementById('popoverCategorySelect'),
+    popoverCategoryPills: document.getElementById('popoverCategoryPills'),
     popoverProjectList: document.getElementById('popoverProjectList'),
     popoverHoursInput: document.getElementById('popoverHoursInput'),
     applyCellBtn: document.getElementById('applyCellBtn'),
@@ -296,11 +299,24 @@
     state.allocations = data.allocations || {};
     state.adminPin = data.adminPin || "IXL2026";
 
-    sortAllData();
-
     state.projects.forEach(p => {
+      if (p.name.startsWith('GP - ')) {
+        p.name = 'Project - ' + p.name.substring(5);
+        p.name = p.name.replace(' - LOT1 - ', ' - Lot1 - ').replace(' - LOT2 - ', ' - Lot2 - ');
+        p.category = 'Project';
+      }
       if (p.initialHours === undefined) p.initialHours = 0;
     });
+
+    Object.keys(state.allocations).forEach(k => {
+      const a = state.allocations[k];
+      if (a && a.project && a.project.startsWith('GP - ')) {
+        a.project = 'Project - ' + a.project.substring(5);
+        a.project = a.project.replace(' - LOT1 - ', ' - Lot1 - ').replace(' - LOT2 - ', ' - Lot2 - ');
+      }
+    });
+
+    sortAllData();
 
     resolveStoredUser();
 
@@ -1152,6 +1168,7 @@
       : `${dates.slice(0, 3).join(', ')} +${dates.length - 3} more`;
     el.popoverHoursInput.value = emp.defaultHoursPerDay || 8;
     el.projectSearchInput.value = '';
+    setPopoverCategory('all', false);
 
     renderPopoverProjectList('');
 
@@ -1207,6 +1224,7 @@
     el.popoverSubtitle.textContent = dateStr;
     el.popoverHoursInput.value = alloc && alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8);
     el.projectSearchInput.value = '';
+    setPopoverCategory('all', false);
 
     renderPopoverProjectList('');
 
@@ -1225,14 +1243,49 @@
     el.projectSearchInput.focus();
   }
 
+  function isProjectMatchingCategory(p, cat) {
+    if (!cat || cat === 'all') return true;
+    const name = p.name;
+    const pCat = p.category || '';
+
+    if (cat === 'Special') {
+      return pCat === 'Special' || pCat === 'Training' || pCat === 'Support' ||
+             name.startsWith('Academy') || name.startsWith('Training') || name.includes('Different Team Support');
+    }
+    if (cat === 'Tender') {
+      return name.startsWith('Tender') || pCat === 'Tender';
+    }
+    if (cat === 'Project') {
+      const isSpecial = (pCat === 'Training' || pCat === 'Support' || name.startsWith('Academy') || name.startsWith('Training') || name.includes('Different Team Support'));
+      const isTender = (name.startsWith('Tender') || pCat === 'Tender');
+      return !isSpecial && !isTender;
+    }
+    return true;
+  }
+
   function renderPopoverProjectList(query) {
-    const q = query.toLowerCase();
-    const filtered = state.projects.filter(p => 
-      p.active !== false && 
-      (p.name.toLowerCase().includes(q) || (p.wbs && p.wbs.toLowerCase().includes(q)))
-    );
+    const q = (query || '').toLowerCase();
+    const cat = state.popoverCategory || 'all';
+
+    const filtered = state.projects.filter(p => {
+      if (p.active === false) return false;
+      if (!isProjectMatchingCategory(p, cat)) return false;
+      if (q && !(p.name.toLowerCase().includes(q) || (p.wbs && p.wbs.toLowerCase().includes(q)))) {
+        return false;
+      }
+      return true;
+    });
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+    if (filtered.length === 0) {
+      el.popoverProjectList.innerHTML = `
+        <div style="padding:14px; text-align:center; color:var(--text-muted); font-size:11px;">
+          No matching ${cat !== 'all' ? cat : 'project'}s found.
+        </div>
+      `;
+      return;
+    }
 
     el.popoverProjectList.innerHTML = filtered.map(p => `
       <div class="proj-item" data-val="${p.name}">
@@ -1244,6 +1297,33 @@
     el.popoverProjectList.querySelectorAll('.proj-item').forEach(item => {
       item.addEventListener('click', () => {
         saveCellAssignment(item.getAttribute('data-val'));
+      });
+    });
+  }
+
+  function setPopoverCategory(cat, rerender = true) {
+    state.popoverCategory = cat || 'all';
+    if (el.popoverCategorySelect) el.popoverCategorySelect.value = state.popoverCategory;
+    if (el.popoverCategoryPills) {
+      el.popoverCategoryPills.querySelectorAll('.category-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-category') === state.popoverCategory);
+      });
+    }
+    if (rerender) {
+      renderPopoverProjectList(el.projectSearchInput ? el.projectSearchInput.value : '');
+    }
+  }
+
+  if (el.popoverCategorySelect) {
+    el.popoverCategorySelect.addEventListener('change', () => {
+      setPopoverCategory(el.popoverCategorySelect.value);
+    });
+  }
+
+  if (el.popoverCategoryPills) {
+    el.popoverCategoryPills.querySelectorAll('.category-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setPopoverCategory(btn.getAttribute('data-category'));
       });
     });
   }

@@ -1639,6 +1639,80 @@ body.view-only .task-chip {
 .btn-quick-pill.sup { background: var(--badge-sup-bg); color: var(--badge-sup-text); }
 .btn-quick-pill.clear { background: #fee2e2; color: #991b1b; }
 
+.popover-category-filter {
+  margin: 6px 0 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.popover-category-select {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background-color: #f8fafc;
+  border: 1px solid var(--border-medium);
+  cursor: pointer;
+}
+
+.popover-category-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.category-pill {
+  flex: 1;
+  padding: 4px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: #f8fafc;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.category-pill:hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+  border-color: var(--border-medium);
+}
+
+.category-pill.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="dark"] .popover-category-select {
+  background: #1e293b;
+  border-color: var(--border-medium);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .category-pill {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .category-pill:hover {
+  background: #283548;
+  color: #f8fafc;
+  border-color: var(--border-medium);
+}
+
+[data-theme="dark"] .category-pill.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
 .project-pill-list {
   max-height: 180px;
   overflow-y: auto;
