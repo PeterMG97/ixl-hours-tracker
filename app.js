@@ -16,6 +16,74 @@
 (function () {
   'use strict';
 
+  // Device Persistence Helpers (LocalStorage + 1-Year Cookie fallback)
+  function getStoredItem(key) {
+    try {
+      const val = localStorage.getItem(key);
+      if (val !== null && val !== undefined && val !== '') return val;
+    } catch (e) {}
+    try {
+      const match = document.cookie.match(new RegExp('(?:^|; )' + key + '=([^;]*)'));
+      if (match) return decodeURIComponent(match[1]);
+    } catch (e) {}
+    return null;
+  }
+
+  function setStoredItem(key, val) {
+    try {
+      localStorage.setItem(key, val);
+    } catch (e) {}
+    try {
+      // 1-year persistent cookie, SameSite=Lax, path=/
+      const maxAge = 60 * 60 * 24 * 365;
+      document.cookie = `${key}=${encodeURIComponent(val)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+    } catch (e) {}
+  }
+
+  function removeStoredItem(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {}
+    try {
+      document.cookie = `${key}=; max-age=0; path=/; SameSite=Lax`;
+    } catch (e) {}
+  }
+
+  function persistUserIdentity(empId, empName) {
+    if (empId) {
+      setStoredItem('ixl_current_user_id', empId);
+    } else {
+      removeStoredItem('ixl_current_user_id');
+    }
+    if (empName) {
+      setStoredItem('ixl_current_user_name', empName);
+    } else {
+      removeStoredItem('ixl_current_user_name');
+    }
+  }
+
+  function resolveStoredUser() {
+    const savedId = getStoredItem('ixl_current_user_id');
+    const savedName = getStoredItem('ixl_current_user_name');
+
+    let matchedEmp = null;
+    if (savedId) {
+      matchedEmp = state.employees.find(e => e.id === savedId);
+    }
+    if (!matchedEmp && savedName) {
+      const sName = savedName.trim().toLowerCase();
+      matchedEmp = state.employees.find(e => e.name && e.name.trim().toLowerCase() === sName);
+    }
+
+    if (matchedEmp) {
+      state.currentUserId = matchedEmp.id;
+      persistUserIdentity(matchedEmp.id, matchedEmp.name);
+    } else if (savedId) {
+      state.currentUserId = savedId;
+    }
+    return matchedEmp;
+  }
+
   // Application State
   const state = {
     sections: [],
@@ -25,8 +93,8 @@
     allocations: {}, // "empId_YYYY-MM-DD" -> { project: string, hours: number }
     currentMonth: "2026-11", // Fresh start month
     todayStr: "2026-11-01",
-    currentUserId: localStorage.getItem('ixl_current_user_id') || null,
-    isAdmin: localStorage.getItem('ixl_is_admin') === 'true',
+    currentUserId: getStoredItem('ixl_current_user_id') || null,
+    isAdmin: getStoredItem('ixl_is_admin') === 'true',
     adminPin: "IXL2026",
     isViewOnly: false,
     selectedCell: null,
@@ -37,7 +105,7 @@
     isConnected: true,
     collapsedSections: (() => {
       try {
-        const raw = localStorage.getItem('ixl_collapsed_sections');
+        const raw = getStoredItem('ixl_collapsed_sections');
         return new Set(raw ? JSON.parse(raw) : []);
       } catch (e) {
         return new Set();
@@ -233,6 +301,8 @@
       if (p.initialHours === undefined) p.initialHours = 0;
     });
 
+    resolveStoredUser();
+
     updateAdminUI();
     updateUserDisplay();
     renderSchedule();
@@ -374,13 +444,13 @@
     el.userSelectGrid.querySelectorAll('.user-select-card').forEach(card => {
       card.addEventListener('click', () => {
         const empId = card.getAttribute('data-emp-id');
+        const emp = state.employees.find(e => e.id === empId);
         state.currentUserId = empId;
-        localStorage.setItem('ixl_current_user_id', empId);
+        persistUserIdentity(empId, emp ? emp.name : '');
         updateUserDisplay();
         closeModal(el.userSelectModal);
         renderSchedule();
-        const emp = state.employees.find(e => e.id === empId);
-        showToast(`Logged in as ${emp.name}`);
+        if (emp) showToast(`Logged in as ${emp.name}`);
       });
     });
   }
@@ -1974,7 +2044,7 @@
   function toggleAdminMode() {
     if (state.isAdmin) {
       state.isAdmin = false;
-      localStorage.removeItem('ixl_is_admin');
+      removeStoredItem('ixl_is_admin');
       updateAdminUI();
       updateUserDisplay();
       renderSchedule();
@@ -1994,7 +2064,7 @@
     const pin = el.adminPinInput.value.trim();
     if (pin === "IXL2026") {
       state.isAdmin = true;
-      localStorage.setItem('ixl_is_admin', 'true');
+      setStoredItem('ixl_is_admin', 'true');
       updateAdminUI();
       closeModal(el.adminPinModal);
       updateUserDisplay();
