@@ -211,6 +211,7 @@ Assert-Test "6.9 app.js implements openNoProjectModal & batch assign" ($jsConten
 Assert-Test "6.10 index.html contains collapsible Settings & Tools drawer" ($htmlContent.Contains('id="settingsSidebar"') -and $htmlContent.Contains('id="toggleSettingsSidebarBtn"')) "Collapsible drawer found"
 Assert-Test "6.11 app.js implements group expand/shrink (toggleSectionCollapse)" ($jsContent.Contains('toggleSectionCollapse') -and $jsContent.Contains('expandAllSections')) "Expand/Shrink logic found"
 Assert-Test "6.12 styles.css defines collapsed row and group headers" ($cssContent.Contains('is-collapsed-row') -and $cssContent.Contains('group-header-row')) "Collapsed styles found"
+Assert-Test "6.13 Top bar contains Quick Admin toggle (topbarAdminBtn) and persistent admin state" ($htmlContent.Contains('id="topbarAdminBtn"') -and $jsContent.Contains('ixl_is_admin')) "Top bar admin button & persistence found"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

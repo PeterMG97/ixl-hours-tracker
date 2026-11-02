@@ -26,10 +26,11 @@
     currentMonth: "2026-11", // Fresh start month
     todayStr: "2026-11-01",
     currentUserId: localStorage.getItem('ixl_current_user_id') || null,
-    isAdmin: false,
+    isAdmin: localStorage.getItem('ixl_is_admin') === 'true',
     adminPin: "IXL2026",
     isViewOnly: false,
     selectedCell: null,
+    pendingAdminCell: null,
     isConnected: true,
     collapsedSections: (() => {
       try {
@@ -109,6 +110,9 @@
 
     // Admin Elements
     adminToggleBtn: document.getElementById('adminToggleBtn'),
+    topbarAdminBtn: document.getElementById('topbarAdminBtn'),
+    topbarAdminIcon: document.getElementById('topbarAdminIcon'),
+    topbarAdminText: document.getElementById('topbarAdminText'),
     adminPinInput: document.getElementById('adminPinInput'),
     submitPinBtn: document.getElementById('submitPinBtn'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
@@ -222,6 +226,7 @@
       if (p.initialHours === undefined) p.initialHours = 0;
     });
 
+    updateAdminUI();
     updateUserDisplay();
     renderSchedule();
     populateSectionDropdowns();
@@ -298,18 +303,30 @@
     if (!state.currentUserId) {
       el.currentUserNameDisplay.textContent = 'Select Your Name';
       el.userAvatarInitials.textContent = '?';
-      el.userPermissionBanner.classList.add('hidden');
+      if (state.isAdmin) {
+        el.userPermissionBanner.classList.remove('hidden');
+        el.userPermissionBanner.classList.add('admin-active-banner');
+        el.userPermissionBanner.innerHTML = `<span>🛡️ <strong>Admin Mode Active:</strong> You have full permission to edit and allocate hours for <em>any employee</em> on any day.</span>`;
+      } else {
+        el.userPermissionBanner.classList.remove('admin-active-banner');
+        el.userPermissionBanner.classList.add('hidden');
+      }
       return;
     }
     const currentEmp = state.employees.find(e => e.id === state.currentUserId);
     if (currentEmp) {
       el.currentUserNameDisplay.textContent = currentEmp.name;
       el.userAvatarInitials.textContent = getInitials(currentEmp.name);
-      el.permBannerName.textContent = currentEmp.name;
-      if (!state.isAdmin) {
+      if (el.permBannerName) el.permBannerName.textContent = currentEmp.name;
+      
+      if (state.isAdmin) {
         el.userPermissionBanner.classList.remove('hidden');
+        el.userPermissionBanner.classList.add('admin-active-banner');
+        el.userPermissionBanner.innerHTML = `<span>🛡️ <strong>Admin Mode Active:</strong> You are signed in as <strong>${currentEmp.name}</strong> with full admin permission to edit all cells for all employees.</span>`;
       } else {
-        el.userPermissionBanner.classList.add('hidden');
+        el.userPermissionBanner.classList.remove('admin-active-banner');
+        el.userPermissionBanner.classList.remove('hidden');
+        el.userPermissionBanner.innerHTML = `<span>ℹ️ You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row. (Click another employee's cell or 'Admin Unlock' above to edit anyone).</span>`;
       }
     }
   }
@@ -867,24 +884,34 @@
       });
     });
 
-    el.scheduleBody.querySelectorAll('.task-chip').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const empId = btn.getAttribute('data-emp-id');
-        const dateStr = btn.getAttribute('data-date');
+    el.scheduleBody.querySelectorAll('td.col-slot').forEach(slot => {
+      slot.addEventListener('click', (e) => {
+        if (state.isViewOnly) return;
+        const empId = slot.getAttribute('data-emp-id');
+        const dateStr = slot.getAttribute('data-date');
+        if (!empId || !dateStr) return;
 
-        if (!state.isAdmin && state.currentUserId !== empId) {
-          const currentEmp = state.employees.find(x => x.id === state.currentUserId);
-          if (!state.currentUserId) {
-            showToast('Please identify yourself first from the top bar.', 'warning');
-            openUserSelectModal();
-          } else {
-            showToast(`Editing locked: You are signed in as ${currentEmp ? currentEmp.name : 'another user'}. You can only edit your own row.`, 'warning');
-          }
+        const targetBtn = slot.querySelector('.task-chip') || slot;
+
+        // Admin can edit ANY cell for ANY employee without restriction!
+        if (state.isAdmin) {
+          openCellPopover(empId, dateStr, targetBtn);
           return;
         }
 
-        openCellPopover(empId, dateStr, btn);
+        // If logged-in user clicks their own row, they can edit directly
+        if (state.currentUserId === empId) {
+          openCellPopover(empId, dateStr, targetBtn);
+          return;
+        }
+
+        // Non-admin clicking another employee's cell: Prompt for Admin PIN immediately
+        const targetEmp = state.employees.find(x => x.id === empId);
+        state.pendingAdminCell = { empId, dateStr, element: targetBtn };
+        el.adminPinInput.value = '';
+        el.pinErrorMsg.classList.add('hidden');
+        openModal(el.adminPinModal);
+        showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
       });
     });
   }
@@ -1699,6 +1726,11 @@
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('unlocked');
       if (el.adminActiveDot) el.adminActiveDot.classList.remove('hidden');
       if (el.dockedAdminDot) el.dockedAdminDot.classList.remove('hidden');
+
+      if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('unlocked');
+      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '🛡️';
+      if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Active (All Rows Unlocked)';
+      if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Active: You can edit any cell for any employee. Click to lock.';
     } else {
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Unlock';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Unlock management actions';
@@ -1706,12 +1738,18 @@
       if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('unlocked');
       if (el.adminActiveDot) el.adminActiveDot.classList.add('hidden');
       if (el.dockedAdminDot) el.dockedAdminDot.classList.add('hidden');
+
+      if (el.topbarAdminBtn) el.topbarAdminBtn.classList.remove('unlocked');
+      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '🔒';
+      if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Unlock';
+      if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Mode: Click to enter PIN and edit all employees';
     }
   }
 
-  el.adminToggleBtn.addEventListener('click', () => {
+  function toggleAdminMode() {
     if (state.isAdmin) {
       state.isAdmin = false;
+      localStorage.removeItem('ixl_is_admin');
       updateAdminUI();
       updateUserDisplay();
       renderSchedule();
@@ -1720,21 +1758,43 @@
       el.adminPinInput.value = '';
       el.pinErrorMsg.classList.add('hidden');
       openModal(el.adminPinModal);
+      setTimeout(() => el.adminPinInput.focus(), 100);
     }
-  });
+  }
+
+  if (el.adminToggleBtn) el.adminToggleBtn.addEventListener('click', toggleAdminMode);
+  if (el.topbarAdminBtn) el.topbarAdminBtn.addEventListener('click', toggleAdminMode);
 
   el.submitPinBtn.addEventListener('click', () => {
     const pin = el.adminPinInput.value.trim();
     if (pin === "IXL2026") {
       state.isAdmin = true;
+      localStorage.setItem('ixl_is_admin', 'true');
       updateAdminUI();
       closeModal(el.adminPinModal);
       updateUserDisplay();
       renderSchedule();
-      showToast('Admin privileges unlocked!');
+      showToast('Admin privileges unlocked! You can now edit any cell for any employee.');
+
+      // If clicked a cell that prompted for Admin PIN, open it now!
+      if (state.pendingAdminCell) {
+        const { empId, dateStr, element } = state.pendingAdminCell;
+        state.pendingAdminCell = null;
+        setTimeout(() => {
+          const freshBtn = el.scheduleBody.querySelector(`button.task-chip[data-emp-id="${empId}"][data-date="${dateStr}"]`) || element;
+          if (freshBtn) openCellPopover(empId, dateStr, freshBtn);
+        }, 80);
+      }
     } else {
       el.pinErrorMsg.classList.remove('hidden');
       el.adminPinInput.focus();
+    }
+  });
+
+  el.adminPinInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      el.submitPinBtn.click();
     }
   });
 
