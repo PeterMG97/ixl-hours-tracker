@@ -609,15 +609,15 @@
   function renderSchedule() {
     const days = getDaysInMonth(state.currentMonth);
     el.monthSelect.value = state.currentMonth;
+    const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
 
     let headHtml = `
       <tr>
         <th class="col-user" rowspan="2">
           <div class="user-col-header-bar">
             <span>Team Member</span>
-            <div class="th-group-actions" title="Expand or shrink all team groups">
-              <button type="button" class="btn-group-action" id="thExpandAllGroups" title="Expand all sections">▾ All</button>
-              <button type="button" class="btn-group-action" id="thCollapseAllGroups" title="Shrink all sections">▸ All</button>
+            <div class="th-group-actions" title="Toggle expand/collapse all sections">
+              <button type="button" class="btn-group-action" id="thToggleAllGroups" title="${isAllCollapsed ? 'Expand all sections' : 'Collapse all sections'}">${isAllCollapsed ? '▸' : '▾'} All</button>
             </div>
           </div>
           <div class="col-resizer resizer-user" title="Drag to resize Employee column (Excel style)"></div>
@@ -820,11 +820,14 @@
       });
     });
 
-    // Header expand/collapse all buttons
-    const thExp = document.getElementById('thExpandAllGroups');
-    if (thExp) thExp.addEventListener('click', (e) => { e.stopPropagation(); expandAllSections(); });
-    const thCol = document.getElementById('thCollapseAllGroups');
-    if (thCol) thCol.addEventListener('click', (e) => { e.stopPropagation(); collapseAllSections(); });
+    // Header expand/collapse all toggle button
+    const thToggle = document.getElementById('thToggleAllGroups');
+    if (thToggle) {
+      thToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleAllSections();
+      });
+    }
 
     if (!state.isViewOnly) {
       attachCellEvents();
@@ -842,6 +845,23 @@
       localStorage.setItem('ixl_collapsed_sections', JSON.stringify(Array.from(state.collapsedSections)));
     } catch (e) {
       console.error('Failed to save collapsed sections', e);
+    }
+  }
+
+  function updateToggleAllButton() {
+    const thToggle = document.getElementById('thToggleAllGroups');
+    if (!thToggle) return;
+    const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
+    thToggle.textContent = `${isAllCollapsed ? '▸' : '▾'} All`;
+    thToggle.title = isAllCollapsed ? 'Expand all sections' : 'Collapse all sections';
+  }
+
+  function toggleAllSections() {
+    const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
+    if (isAllCollapsed) {
+      expandAllSections();
+    } else {
+      collapseAllSections();
     }
   }
 
@@ -870,6 +890,7 @@
     }
 
     renderSectionDrawerControls();
+    updateToggleAllButton();
   }
 
   function expandAllSections() {
@@ -882,6 +903,7 @@
       if (icon) icon.textContent = '▼';
     });
     renderSectionDrawerControls();
+    updateToggleAllButton();
     showToast('All team sections expanded');
   }
 
@@ -895,6 +917,7 @@
       if (icon) icon.textContent = '▶';
     });
     renderSectionDrawerControls();
+    updateToggleAllButton();
     showToast('All team sections shrunk');
   }
 
@@ -2956,6 +2979,9 @@
 
   const btnColAll = document.getElementById('btnCollapseAllSections');
   if (btnColAll) btnColAll.addEventListener('click', collapseAllSections);
+
+  const btnToggleAll = document.getElementById('btnToggleAllSections');
+  if (btnToggleAll) btnToggleAll.addEventListener('click', toggleAllSections);
 
   // -------------------------------------------------------------
   // Modal Utilities & Toast

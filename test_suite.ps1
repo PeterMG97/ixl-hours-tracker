@@ -257,6 +257,8 @@ $legendRemoved = (-not $htmlContent.Contains('class="legend-pills"')) -and (-not
 Assert-Test "6.33 Legend pills bar completely removed from DOM" $legendRemoved "Legend pills and heading verified removed from layout"
 $activeTeamOnlyInTeamPart = (-not $htmlContent.Contains('<span class="stat-bubble-label">Active Team:</span>')) -and ($htmlContent.Contains('id="teamModalActiveMembersCount"')) -and ($jsContent.Contains('teamModalActiveMembersCount'))
 Assert-Test "6.34 Active Team count included exclusively inside Team Members section and removed from control strip" $activeTeamOnlyInTeamPart "Active team count placed in team modal and removed from main stats bar"
+$singleToggleBtn = ($jsContent.Contains('id="thToggleAllGroups"')) -and ($jsContent.Contains('toggleAllSections')) -and (-not $jsContent.Contains('id="thExpandAllGroups"')) -and (-not $jsContent.Contains('id="thCollapseAllGroups"'))
+Assert-Test "6.35 Single toggle button for all sections in schedule table header" $singleToggleBtn "Two separate expand/collapse buttons replaced with a single toggleable button"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT
