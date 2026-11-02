@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=1.9">
+  <link rel="stylesheet" href="styles.css?v=2.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -448,6 +448,29 @@
     </div>
   </div>
 
+  <!-- Delete Project Confirmation Warning Modal -->
+  <div id="deleteProjectModal" class="modal hidden" style="z-index: 1100;">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3 class="text-danger">⚠️ Delete Project</h3>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 14px; margin-bottom: 12px; line-height: 1.5;">
+          Are you sure you want to delete <strong id="deleteProjectTargetName"></strong>?
+        </p>
+        <p class="text-sm" style="color: var(--text-muted); margin-bottom: 0;">
+          This action will remove the project from the active list.
+        </p>
+        <input type="hidden" id="deleteProjectTargetId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteProjectBtn">Yes, Delete Project</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Team Management Modal (Requirements 3, 4, 6, 7, 8) -->
   <div id="teamModal" class="modal hidden">
     <div class="modal-dialog modal-xl">
@@ -757,6 +780,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=1.9"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 </html>

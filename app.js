@@ -170,6 +170,7 @@
 
     // Modals
     projectsModal: document.getElementById('projectsModal'),
+    deleteProjectModal: document.getElementById('deleteProjectModal'),
     teamModal: document.getElementById('teamModal'),
     removeMemberModal: document.getElementById('removeMemberModal'),
     adjustHoursModal: document.getElementById('adjustHoursModal'),
@@ -1809,15 +1810,7 @@
       btn.addEventListener('click', () => {
         if (!requireAdmin()) return;
         const pId = btn.getAttribute('data-proj-id');
-        const proj = state.projects.find(p => p.id === pId);
-        if (confirm(`Are you sure you want to delete "${proj.name}"?`)) {
-          state.projects = state.projects.filter(p => p.id !== pId);
-          sortAllData();
-          renderProjectsModal();
-          renderSchedule();
-          syncToServer();
-          showToast(`Deleted ${proj.name}`);
-        }
+        openDeleteProjectModal(pId);
       });
     });
   }
@@ -1865,6 +1858,31 @@
     document.getElementById('adjustProjectId').value = pId;
     openModal(el.adjustHoursModal);
   }
+
+  function openDeleteProjectModal(pId) {
+    const proj = state.projects.find(p => p.id === pId);
+    if (!proj) return;
+    document.getElementById('deleteProjectTargetId').value = pId;
+    document.getElementById('deleteProjectTargetName').textContent = proj.name;
+    openModal(el.deleteProjectModal);
+  }
+
+  document.getElementById('confirmDeleteProjectBtn').addEventListener('click', () => {
+    if (!requireAdmin()) return;
+    const pId = document.getElementById('deleteProjectTargetId').value;
+    const proj = state.projects.find(p => p.id === pId);
+    if (!proj) {
+      closeModal(el.deleteProjectModal);
+      return;
+    }
+    state.projects = state.projects.filter(p => p.id !== pId);
+    sortAllData();
+    closeModal(el.deleteProjectModal);
+    renderProjectsModal();
+    renderSchedule();
+    syncToServer();
+    showToast(`Deleted ${proj.name}`);
+  });
 
   document.getElementById('saveAdjustedHoursBtn').addEventListener('click', () => {
     if (!requireAdmin()) return;
