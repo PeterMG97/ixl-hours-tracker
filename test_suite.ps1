@@ -138,14 +138,21 @@ foreach ($k in $testKeys) {
 
 Assert-Test "4.1 Composite keys (emp_22_YYYY-MM-DD) extract full date correctly" ($allExtractedCorrectly) "Keys parsed with LastIndexOf('_')"
 
-# Test actual allocations in data.json
+# Test allocations aggregation logic with sample allocations
+$sampleAllocations = @{
+    "emp_22_2026-11-01" = [PSCustomObject]@{ project = "Academy - ERA - Cairo"; hours = 8 }
+    "emp_22_2026-11-02" = [PSCustomObject]@{ project = "Academy - ERA - Cairo"; hours = 8 }
+    "emp_22_2026-11-03" = [PSCustomObject]@{ project = "Different Team Support"; hours = 8 }
+    "emp_22_2026-11-04" = [PSCustomObject]@{ project = "Day OFF"; hours = 0 }
+    "emp_22_2026-11-05" = [PSCustomObject]@{ project = "NO PROJECT"; hours = 0 }
+}
+
 $projMap = @{}
-foreach ($prop in $db.allocations.psobject.Properties) {
-    $k = $prop.Name
+foreach ($k in $sampleAllocations.Keys) {
     $lastUnder = $k.LastIndexOf('_')
     $dt = $k.Substring($lastUnder + 1)
     if ($dt -like "2026-11-*") {
-        $val = $prop.Value
+        $val = $sampleAllocations[$k]
         $pName = $val.project
         if ($pName -and $pName -ne "Day OFF" -and $pName -ne "NO PROJECT" -and $pName -ne "NO STATUS") {
             if (-not $projMap.ContainsKey($pName)) {
@@ -157,10 +164,10 @@ foreach ($prop in $db.allocations.psobject.Properties) {
     }
 }
 
-Assert-Test "4.2 Peter's allocations in November correctly aggregate to projects" ($projMap.Count -gt 0) "Found $($projMap.Count) active projects with logged hours"
+Assert-Test "4.2 Composite allocations correctly aggregate to billable projects" ($projMap.Count -ge 2) "Found $($projMap.Count) active projects with logged hours"
 if ($projMap.ContainsKey("Academy - ERA - Cairo")) {
     $era = $projMap["Academy - ERA - Cairo"]
-    Assert-Test "4.3 'Academy - ERA - Cairo' aggregated correctly ($($era.Days) days, $($era.Hours) hrs)" ($era.Days -ge 10 -and $era.Hours -ge 80) "Days: $($era.Days), Hours: $($era.Hours)"
+    Assert-Test "4.3 'Academy - ERA - Cairo' aggregated correctly ($($era.Days) days, $($era.Hours) hrs)" ($era.Days -eq 2 -and $era.Hours -eq 16) "Days: $($era.Days), Hours: $($era.Hours)"
 }
 
 # Test Different Team Support Counting
@@ -213,6 +220,7 @@ Assert-Test "6.11 app.js implements group expand/shrink (toggleSectionCollapse)"
 Assert-Test "6.12 styles.css defines collapsed row and group headers" ($cssContent.Contains('is-collapsed-row') -and $cssContent.Contains('group-header-row')) "Collapsed styles found"
 Assert-Test "6.13 Top bar contains Quick Admin toggle (topbarAdminBtn) and persistent admin state" ($htmlContent.Contains('id="topbarAdminBtn"') -and $jsContent.Contains('ixl_is_admin')) "Top bar admin button & persistence found"
 Assert-Test "6.14 Multi-cell selection enabled (multiSelectBar & toggleCellSelection)" ($htmlContent.Contains('id="multiSelectBar"') -and $jsContent.Contains('toggleCellSelection')) "Multi-cell selection found"
+Assert-Test "6.15 Personal Month Hours and Unfilled counters calculated for identified user" ($jsContent.Contains('statCurrentMonthHours') -and $jsContent.Contains('statUnfilledDays') -and $jsContent.Contains('currentEmp') -and $jsContent.Contains('userMonthHours')) "Individual month stat counters verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

@@ -489,9 +489,10 @@
     attachColumnResizers();
 
     let bodyHtml = '';
-    let totalMonthHours = 0;
-    let totalUnfilledDays = 0;
     let activeEmpCount = 0;
+    let userMonthHours = 0;
+    let userUnfilledDays = 0;
+    let userFound = false;
 
     state.sections.forEach(sec => {
       const secEmployees = state.employees.filter(e => e.sectionId === sec.id && e.active !== false);
@@ -500,14 +501,13 @@
       if (secEmployees.length === 0) return;
 
       const isCollapsed = state.collapsedSections.has(sec.id);
-      let secMonthHours = 0;
-      let secUnfilledDays = 0;
       let secRowsHtml = '';
 
       secEmployees.forEach(emp => {
         activeEmpCount++;
         const empHours = emp.defaultHoursPerDay || 8;
         let empMonthHours = 0;
+        let empUnfilledDays = 0;
 
         const isSelf = (state.currentUserId === emp.id);
         const canEditThisRow = !state.isViewOnly && (state.isAdmin || isSelf);
@@ -527,9 +527,9 @@
 
           const isWk = isWeekendForLocation(d.dow, sec.location);
 
-          // Count all unfilled workdays for the currently viewed month
+          // Count unfilled workdays for this employee in the currently viewed month
           if (!isWk && !hasVal) {
-            totalUnfilledDays++;
+            empUnfilledDays++;
           }
 
           // Visual highlight on past/today workdays that are still missing an allocation
@@ -557,8 +557,11 @@
           `;
         });
 
-        secMonthHours += empMonthHours;
-        totalMonthHours += empMonthHours;
+        if (isSelf) {
+          userFound = true;
+          userMonthHours = empMonthHours;
+          userUnfilledDays = empUnfilledDays;
+        }
 
         // Count ALL NO PROJECT days across all dates for this employee
         let empNoProjCount = 0;
@@ -609,8 +612,6 @@
     el.scheduleBody.innerHTML = bodyHtml;
 
     el.statActiveEmployees.textContent = activeEmpCount;
-    el.statCurrentMonthHours.textContent = `${totalMonthHours}h`;
-    el.statUnfilledDays.textContent = `${totalUnfilledDays} days`;
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const [y, m] = state.currentMonth.split('-').map(Number);
@@ -619,6 +620,45 @@
     if (labelHours) labelHours.textContent = `${mName} Hours:`;
     const labelUnfilled = document.getElementById('labelUnfilledDays');
     if (labelUnfilled) labelUnfilled.textContent = `${mName} Unfilled:`;
+
+    // Calculate Hours and Unfilled specifically for the identified user in the current month
+    const currentEmp = state.employees.find(e => e.id === state.currentUserId);
+    if (currentEmp) {
+      if (!userFound) {
+        // Fallback calculation in case user's section was not rendered or active
+        const userSec = state.sections.find(s => s.id === currentEmp.sectionId);
+        const userLoc = userSec ? userSec.location : 'Cairo';
+        const empHours = currentEmp.defaultHoursPerDay || 8;
+        userMonthHours = 0;
+        userUnfilledDays = 0;
+        days.forEach(d => {
+          const key = `${currentEmp.id}_${d.dateStr}`;
+          const alloc = state.allocations[key];
+          const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
+          const projectName = hasVal ? alloc.project.trim() : '';
+          const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empHours) : 0;
+
+          if (hasVal && projectName !== 'Day OFF' && projectName !== 'NO PROJECT' && projectName !== 'NO STATUS') {
+            userMonthHours += Number(hours);
+          }
+
+          const isWk = isWeekendForLocation(d.dow, userLoc);
+          if (!isWk && !hasVal) {
+            userUnfilledDays++;
+          }
+        });
+      }
+
+      el.statCurrentMonthHours.textContent = `${userMonthHours}h`;
+      el.statUnfilledDays.textContent = `${userUnfilledDays} days`;
+      el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
+      el.statUnfilledDays.title = `${currentEmp.name}: ${userUnfilledDays} unfilled workdays in ${mName}`;
+    } else {
+      el.statCurrentMonthHours.textContent = '—';
+      el.statUnfilledDays.textContent = '—';
+      el.statCurrentMonthHours.title = 'Select your name to view your hours';
+      el.statUnfilledDays.title = 'Select your name to view your unfilled workdays';
+    }
 
     // Attach group header click listeners (toggle expand/shrink)
     el.scheduleBody.querySelectorAll('.group-header-row').forEach(row => {
