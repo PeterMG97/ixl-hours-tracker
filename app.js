@@ -31,6 +31,10 @@
     isViewOnly: false,
     selectedCell: null,
     pendingAdminCell: null,
+    selectedCells: new Set(),
+    selectedEmpId: null,
+    isSelectMode: false,
+    isMultiEditing: false,
     isConnected: true,
     collapsedSections: (() => {
       try {
@@ -116,6 +120,17 @@
     adminPinInput: document.getElementById('adminPinInput'),
     submitPinBtn: document.getElementById('submitPinBtn'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
+
+    // Multi-Cell Selection Elements
+    btnToggleSelectMode: document.getElementById('btnToggleSelectMode'),
+    multiSelectBar: document.getElementById('multiSelectBar'),
+    multiSelectCount: document.getElementById('multiSelectCount'),
+    multiSelectEmpName: document.getElementById('multiSelectEmpName'),
+    multiEditAssignBtn: document.getElementById('multiEditAssignBtn'),
+    multiQuickOffBtn: document.getElementById('multiQuickOffBtn'),
+    multiQuickNoProjBtn: document.getElementById('multiQuickNoProjBtn'),
+    multiQuickClearBtn: document.getElementById('multiQuickClearBtn'),
+    multiSelectCancelBtn: document.getElementById('multiSelectCancelBtn'),
 
     // NO PROJECT Days Manager
     openNoProjectDaysBtn: document.getElementById('openNoProjectDaysBtn'),
@@ -531,8 +546,10 @@
           const badgeClass = getProjectBadgeClass(projectName);
           const shortLabel = getCompactLabel(projectName);
 
+          const isSelected = state.selectedCells.has(key);
+
           cellsHtml += `
-            <td class="col-slot ${isWk ? 'is-weekend' : ''} ${d.isToday ? 'is-today' : ''} ${isUnfilledPast ? 'slot-unfilled-alert' : ''}" 
+            <td class="col-slot ${isWk ? 'is-weekend' : ''} ${d.isToday ? 'is-today' : ''} ${isUnfilledPast ? 'slot-unfilled-alert' : ''} ${isSelected ? 'is-selected-cell' : ''}" 
                 data-emp-id="${emp.id}" 
                 data-date="${d.dateStr}">
               <button class="task-chip ${badgeClass}" 
@@ -883,28 +900,155 @@
         if (!empId || !dateStr) return;
 
         const targetBtn = slot.querySelector('.task-chip') || slot;
+        const key = `${empId}_${dateStr}`;
+        const isMulti = e.ctrlKey || e.metaKey || state.isSelectMode;
 
-        // Admin can edit ANY cell for ANY employee without restriction!
-        if (state.isAdmin) {
-          openCellPopover(empId, dateStr, targetBtn);
+        // Permission check: Admin or Self can edit/select
+        const canEditThisRow = state.isAdmin || (state.currentUserId === empId);
+
+        if (!canEditThisRow) {
+          const targetEmp = state.employees.find(x => x.id === empId);
+          if (isMulti) {
+            const currentEmp = state.employees.find(x => x.id === state.currentUserId);
+            showToast(`You can only select cells in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
+          } else {
+            state.pendingAdminCell = { empId, dateStr, element: targetBtn };
+            el.adminPinInput.value = '';
+            el.pinErrorMsg.classList.add('hidden');
+            openModal(el.adminPinModal);
+            showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
+          }
           return;
         }
 
-        // If logged-in user clicks their own row, they can edit directly
-        if (state.currentUserId === empId) {
-          openCellPopover(empId, dateStr, targetBtn);
+        if (isMulti) {
+          toggleCellSelection(empId, key, slot);
           return;
         }
 
-        // Non-admin clicking another employee's cell: Prompt for Admin PIN immediately
-        const targetEmp = state.employees.find(x => x.id === empId);
-        state.pendingAdminCell = { empId, dateStr, element: targetBtn };
-        el.adminPinInput.value = '';
-        el.pinErrorMsg.classList.add('hidden');
-        openModal(el.adminPinModal);
-        showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
+        // Normal click (not multi-select)
+        if (state.selectedCells.size > 0) {
+          if (state.selectedCells.has(key)) {
+            // Clicked an already selected cell: open multi-edit popover!
+            openMultiCellPopover(targetBtn);
+            return;
+          } else {
+            // Clicked a different cell: clear multi-selection and open this cell directly
+            clearSelection();
+          }
+        }
+
+        openCellPopover(empId, dateStr, targetBtn);
       });
     });
+  }
+
+  // -------------------------------------------------------------
+  // Multi-Cell Selection Management
+  // -------------------------------------------------------------
+
+  function toggleCellSelection(empId, key, slotEl) {
+    if (state.selectedCells.size > 0 && state.selectedEmpId !== empId) {
+      clearSelection();
+    }
+    state.selectedEmpId = empId;
+
+    if (state.selectedCells.has(key)) {
+      state.selectedCells.delete(key);
+      if (slotEl) slotEl.classList.remove('is-selected-cell');
+      if (state.selectedCells.size === 0) {
+        state.selectedEmpId = null;
+      }
+    } else {
+      state.selectedCells.add(key);
+      if (slotEl) slotEl.classList.add('is-selected-cell');
+    }
+
+    updateMultiSelectUI();
+  }
+
+  function clearSelection() {
+    state.selectedCells.clear();
+    state.selectedEmpId = null;
+    state.isMultiEditing = false;
+    document.querySelectorAll('.schedule-table td.is-selected-cell').forEach(td => {
+      td.classList.remove('is-selected-cell');
+    });
+    updateMultiSelectUI();
+  }
+
+  function updateMultiSelectUI() {
+    if (!el.multiSelectBar) return;
+    const count = state.selectedCells.size;
+    if (count === 0) {
+      el.multiSelectBar.classList.add('hidden');
+      return;
+    }
+
+    el.multiSelectBar.classList.remove('hidden');
+    el.multiSelectCount.textContent = `${count} cell${count > 1 ? 's' : ''} selected`;
+    const emp = state.employees.find(e => e.id === state.selectedEmpId);
+    el.multiSelectEmpName.textContent = emp ? `(${emp.name})` : '';
+  }
+
+  function openMultiCellPopover(targetBtn) {
+    if (state.selectedCells.size === 0) return;
+    const empId = state.selectedEmpId;
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+
+    state.isMultiEditing = true;
+    const dates = Array.from(state.selectedCells).map(k => k.split('_').slice(1).join('_')).sort();
+
+    el.popoverTitle.textContent = `Assign ${dates.length} Days for ${emp.name}`;
+    el.popoverSubtitle.textContent = dates.length <= 3 
+      ? dates.join(', ') 
+      : `${dates.slice(0, 3).join(', ')} +${dates.length - 3} more`;
+    el.popoverHoursInput.value = emp.defaultHoursPerDay || 8;
+    el.projectSearchInput.value = '';
+
+    renderPopoverProjectList('');
+
+    const anchorEl = targetBtn || el.multiEditAssignBtn;
+    const rect = anchorEl.getBoundingClientRect();
+    const popoverWidth = 320;
+    let left = rect.left + window.scrollX;
+    if (left + popoverWidth > window.innerWidth - 20) {
+      left = window.innerWidth - popoverWidth - 20;
+    }
+    let top = rect.top + window.scrollY - 370;
+    if (top < 10) top = rect.bottom + window.scrollY + 6;
+
+    el.cellPopover.style.left = `${left}px`;
+    el.cellPopover.style.top = `${top}px`;
+    el.cellPopover.classList.remove('hidden');
+
+    el.projectSearchInput.focus();
+  }
+
+  function batchApplyToSelectedCells(projectName, hours) {
+    if (state.selectedCells.size === 0) return;
+    const count = state.selectedCells.size;
+    const empId = state.selectedEmpId;
+    const emp = state.employees.find(e => e.id === empId);
+    const parsedHours = Number(hours) || 0;
+
+    state.selectedCells.forEach(key => {
+      if (!projectName || projectName.trim() === '') {
+        delete state.allocations[key];
+      } else {
+        state.allocations[key] = {
+          project: projectName.trim(),
+          hours: parsedHours
+        };
+      }
+    });
+
+    clearSelection();
+    closeCellPopover();
+    renderSchedule();
+    syncToServer();
+    showToast(`Updated ${count} cells for ${emp ? emp.name : 'employee'}`);
   }
 
   function openCellPopover(empId, dateStr, targetBtn) {
@@ -969,12 +1113,22 @@
   });
 
   el.applyCellBtn.addEventListener('click', () => {
+    if (state.isMultiEditing) {
+      saveCellAssignment('');
+      return;
+    }
+    if (!state.selectedCell) return;
     const key = `${state.selectedCell.empId}_${state.selectedCell.dateStr}`;
     const alloc = state.allocations[key];
     saveCellAssignment(alloc ? alloc.project : '');
   });
 
   function saveCellAssignment(projectName) {
+    if (state.isMultiEditing && state.selectedCells.size > 0) {
+      batchApplyToSelectedCells(projectName, el.popoverHoursInput.value);
+      return;
+    }
+
     if (!state.selectedCell) return;
     const { empId, dateStr } = state.selectedCell;
     const key = `${empId}_${dateStr}`;
@@ -998,14 +1152,70 @@
   function closeCellPopover() {
     el.cellPopover.classList.add('hidden');
     state.selectedCell = null;
+    state.isMultiEditing = false;
   }
   el.closePopoverBtn.addEventListener('click', closeCellPopover);
 
   document.addEventListener('click', (e) => {
-    if (!el.cellPopover.contains(e.target) && !e.target.classList.contains('task-chip')) {
+    if (
+      !el.cellPopover.contains(e.target) && 
+      !e.target.closest('.task-chip') && 
+      !e.target.closest('td.col-slot') && 
+      !e.target.closest('#multiSelectBar') && 
+      !e.target.closest('#btnToggleSelectMode')
+    ) {
       closeCellPopover();
     }
   });
+
+  // Wire Multi-Select UI buttons
+  if (el.btnToggleSelectMode) {
+    el.btnToggleSelectMode.addEventListener('click', () => {
+      state.isSelectMode = !state.isSelectMode;
+      el.btnToggleSelectMode.classList.toggle('active', state.isSelectMode);
+      document.body.classList.toggle('select-mode-active', state.isSelectMode);
+      const textEl = el.btnToggleSelectMode.querySelector('.select-mode-text');
+      if (textEl) {
+        textEl.textContent = state.isSelectMode ? 'Multi-Select ON' : 'Multi-Select';
+      }
+      if (state.isSelectMode) {
+        showToast('Select Mode ON: Click any cells in your row to select or unselect.');
+      } else {
+        showToast('Select Mode OFF');
+      }
+    });
+  }
+
+  if (el.multiEditAssignBtn) {
+    el.multiEditAssignBtn.addEventListener('click', () => {
+      openMultiCellPopover(el.multiEditAssignBtn);
+    });
+  }
+
+  if (el.multiQuickOffBtn) {
+    el.multiQuickOffBtn.addEventListener('click', () => {
+      batchApplyToSelectedCells('Day OFF', 0);
+    });
+  }
+
+  if (el.multiQuickNoProjBtn) {
+    el.multiQuickNoProjBtn.addEventListener('click', () => {
+      const emp = state.employees.find(e => e.id === state.selectedEmpId);
+      batchApplyToSelectedCells('NO PROJECT', emp ? (emp.defaultHoursPerDay || 8) : 8);
+    });
+  }
+
+  if (el.multiQuickClearBtn) {
+    el.multiQuickClearBtn.addEventListener('click', () => {
+      batchApplyToSelectedCells('', 0);
+    });
+  }
+
+  if (el.multiSelectCancelBtn) {
+    el.multiSelectCancelBtn.addEventListener('click', () => {
+      clearSelection();
+    });
+  }
 
   // -------------------------------------------------------------
   // Advanced Bulk Fill Modal (Start Date, End Date, Cairo vs Istanbul Holidays)
@@ -1986,6 +2196,7 @@
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeCellPopover();
+      clearSelection();
       toggleSettingsDrawer(false);
       document.querySelectorAll('.modal').forEach(m => closeModal(m));
     }

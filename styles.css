@@ -1239,6 +1239,131 @@ body.is-resizing-columns {
   display: none !important;
 }
 
+/* Multi-Cell Selection Styles */
+td.col-slot.is-selected-cell {
+  position: relative;
+  background-color: rgba(37, 99, 235, 0.22) !important;
+  outline: 2px solid var(--primary, #2563eb) !important;
+  outline-offset: -2px;
+  z-index: 15;
+}
+
+td.col-slot.is-selected-cell .task-chip {
+  box-shadow: 0 0 0 1.5px #2563eb;
+  font-weight: 700;
+}
+
+[data-theme="dark"] td.col-slot.is-selected-cell {
+  background-color: rgba(37, 99, 235, 0.38) !important;
+  outline-color: #60a5fa !important;
+}
+
+[data-theme="dark"] td.col-slot.is-selected-cell .task-chip {
+  box-shadow: 0 0 0 1.5px #60a5fa;
+}
+
+/* Floating Multi-Select Action Bar */
+.multi-select-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border: 1px solid var(--border-medium);
+  padding: 8px 16px;
+  border-radius: 30px;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.22), 0 6px 12px -4px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .multi-select-bar {
+  background: #1e293b;
+  border-color: var(--border-medium);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.6);
+}
+
+.multi-select-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-right: 1px solid var(--border-light);
+  padding-right: 12px;
+}
+
+.multi-select-count {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary);
+}
+
+.multi-select-emp {
+  font-size: 11px;
+  color: var(--text-muted);
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.multi-select-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Select Mode Toggle Button */
+.btn-select-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-select-mode:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-select-mode.active {
+  background: var(--primary);
+  border-color: var(--primary-hover);
+  color: white;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+[data-theme="dark"] .btn-select-mode {
+  background: #1e293b;
+  border-color: var(--border-light);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .btn-select-mode:hover {
+  background: rgba(37, 99, 235, 0.25);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .btn-select-mode.active {
+  background: var(--primary);
+  color: white;
+}
+
+body.select-mode-active td.col-slot {
+  cursor: pointer;
+}
+
 /* Table Header bar for Team Member Column */
 .user-col-header-bar {
   display: flex;
