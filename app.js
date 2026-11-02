@@ -543,6 +543,7 @@
     if (projectName === 'NO PROJECT') return 'NO PROJ';
     let clean = projectName
       .replace(/^Project - /, '')
+      .replace(/^GP - /, 'GP: ')
       .replace(/^Tender - /, 'T: ')
       .replace(/^Training - /, 'Tr: ')
       .replace(/^Academy - /, 'Acad: ');
