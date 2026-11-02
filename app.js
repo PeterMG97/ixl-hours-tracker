@@ -96,6 +96,7 @@
     currentUserId: getStoredItem('ixl_current_user_id') || null,
     isAdmin: getStoredItem('ixl_is_admin') === 'true',
     adminPin: "IXL2026",
+    adminRecoveryKey: "Peter2026",
     isViewOnly: false,
     selectedCell: null,
     pendingAdminCell: null,
@@ -191,10 +192,12 @@
     submitPinBtn: document.getElementById('submitPinBtn'),
     forgotPinBtn: document.getElementById('forgotPinBtn'),
     forgotPinRecoveryBox: document.getElementById('forgotPinRecoveryBox'),
-    revealedAdminPin: document.getElementById('revealedAdminPin'),
-    copyAdminPinBtn: document.getElementById('copyAdminPinBtn'),
-    autoFillPinBtn: document.getElementById('autoFillPinBtn'),
-    forgotPinSuccessMsg: document.getElementById('forgotPinSuccessMsg'),
+    recoveryKeyInput: document.getElementById('recoveryKeyInput'),
+    verifyRecoveryKeyBtn: document.getElementById('verifyRecoveryKeyBtn'),
+    recoveryKeyError: document.getElementById('recoveryKeyError'),
+    resetPinBox: document.getElementById('resetPinBox'),
+    newAdminPinInput: document.getElementById('newAdminPinInput'),
+    saveNewPinBtn: document.getElementById('saveNewPinBtn'),
     forgotPinDeniedMsg: document.getElementById('forgotPinDeniedMsg'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
 
@@ -323,6 +326,7 @@
     state.statuses = data.statuses || ["Day OFF", "NO PROJECT", "NO STATUS"];
     state.allocations = data.allocations || {};
     state.adminPin = data.adminPin || "IXL2026";
+    state.adminRecoveryKey = data.adminRecoveryKey || "Peter2026";
 
     state.projects.forEach(p => {
       if (p.name.startsWith('GP - ')) {
@@ -401,6 +405,7 @@
         statuses: state.statuses,
         allocations: state.allocations,
         adminPin: state.adminPin,
+        adminRecoveryKey: state.adminRecoveryKey,
         lastUpdated: new Date().toISOString()
       };
       const res = await fetch('/api/save', {
@@ -2264,6 +2269,8 @@
       el.adminPinInput.value = '';
       el.pinErrorMsg.classList.add('hidden');
       if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
+      if (el.resetPinBox) el.resetPinBox.classList.add('hidden');
+      if (el.recoveryKeyError) el.recoveryKeyError.classList.add('hidden');
       if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.add('hidden');
       openModal(el.adminPinModal);
       setTimeout(() => el.adminPinInput.focus(), 100);
@@ -2320,6 +2327,8 @@
     el.adminPinInput.value = '';
     el.pinErrorMsg.classList.add('hidden');
     if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
+    if (el.resetPinBox) el.resetPinBox.classList.add('hidden');
+    if (el.recoveryKeyError) el.recoveryKeyError.classList.add('hidden');
     if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.add('hidden');
     openModal(el.adminPinModal);
     return false;
@@ -2331,17 +2340,20 @@
       if (!isCurrentUserPeter()) {
         if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.remove('hidden');
         if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
-        showToast('Admin password recovery is only available to Peter MOUNIR.', 'warning');
+        showToast('Admin password recovery is strictly restricted to Peter MOUNIR.', 'warning');
         return;
       }
 
       if (el.forgotPinDeniedMsg) el.forgotPinDeniedMsg.classList.add('hidden');
-      const adminPin = state.adminPin || 'IXL2026';
-
-      if (el.revealedAdminPin) el.revealedAdminPin.textContent = adminPin;
       if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.remove('hidden');
+      if (el.resetPinBox) el.resetPinBox.classList.add('hidden');
+      if (el.recoveryKeyError) el.recoveryKeyError.classList.add('hidden');
+      if (el.recoveryKeyInput) {
+        el.recoveryKeyInput.value = '';
+        setTimeout(() => el.recoveryKeyInput.focus(), 100);
+      }
 
-      // Also attempt background server dispatch via Outlook COM or mailer if server is running
+      // Also trigger background server dispatch to petermounir461@gmail.com
       try {
         fetch('/api/forgot-password', {
           method: 'POST',
@@ -2350,28 +2362,73 @@
         }).catch(() => {});
       } catch (err) {}
 
-      showToast('Admin password retrieved for Peter MOUNIR.');
+      showToast('Recovery dispatch initiated to petermounir461@gmail.com');
     });
   }
 
-  if (el.copyAdminPinBtn) {
-    el.copyAdminPinBtn.addEventListener('click', () => {
-      const pin = (el.revealedAdminPin ? el.revealedAdminPin.textContent : '') || state.adminPin || 'IXL2026';
-      navigator.clipboard.writeText(pin).then(() => {
-        el.copyAdminPinBtn.textContent = 'Copied!';
-        setTimeout(() => { if (el.copyAdminPinBtn) el.copyAdminPinBtn.textContent = 'Copy'; }, 2000);
-        showToast('Admin password copied to clipboard: ' + pin);
-      }).catch(() => {
-        showToast('Admin password: ' + pin);
-      });
+  function handleVerifyRecoveryKey() {
+    if (!el.recoveryKeyInput) return;
+    const inputKey = el.recoveryKeyInput.value.trim();
+    const validKey = state.adminRecoveryKey || 'Peter2026';
+
+    if (inputKey === validKey) {
+      if (el.recoveryKeyError) el.recoveryKeyError.classList.add('hidden');
+      if (el.resetPinBox) el.resetPinBox.classList.remove('hidden');
+      if (el.newAdminPinInput) {
+        el.newAdminPinInput.value = '';
+        setTimeout(() => el.newAdminPinInput.focus(), 100);
+      }
+      showToast('Identity verified! You can now set your new Admin Password.');
+    } else {
+      if (el.recoveryKeyError) el.recoveryKeyError.classList.remove('hidden');
+      el.recoveryKeyInput.focus();
+      showToast('Invalid recovery key. Access denied.', 'danger');
+    }
+  }
+
+  if (el.verifyRecoveryKeyBtn) {
+    el.verifyRecoveryKeyBtn.addEventListener('click', handleVerifyRecoveryKey);
+  }
+
+  if (el.recoveryKeyInput) {
+    el.recoveryKeyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleVerifyRecoveryKey();
+      }
     });
   }
 
-  if (el.autoFillPinBtn) {
-    el.autoFillPinBtn.addEventListener('click', () => {
-      const pin = state.adminPin || 'IXL2026';
-      el.adminPinInput.value = pin;
-      el.submitPinBtn.click();
+  function handleSaveNewPin() {
+    if (!el.newAdminPinInput) return;
+    const newPin = el.newAdminPinInput.value.trim();
+    if (newPin.length < 4) {
+      showToast('Admin password must be at least 4 characters.', 'warning');
+      el.newAdminPinInput.focus();
+      return;
+    }
+
+    state.adminPin = newPin;
+    state.isAdmin = true;
+    setStoredItem('ixl_is_admin', 'true');
+    syncToServer();
+    updateAdminUI();
+    closeModal(el.adminPinModal);
+    updateUserDisplay();
+    renderSchedule();
+    showToast('Admin Password successfully updated and Admin mode unlocked!');
+  }
+
+  if (el.saveNewPinBtn) {
+    el.saveNewPinBtn.addEventListener('click', handleSaveNewPin);
+  }
+
+  if (el.newAdminPinInput) {
+    el.newAdminPinInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSaveNewPin();
+      }
     });
   }
 

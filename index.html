@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=2.7">
+  <link rel="stylesheet" href="styles.css?v=2.8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -647,19 +647,30 @@
         <div style="margin-top: 12px; text-align: center;">
           <button type="button" class="btn-link text-sm" id="forgotPinBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px; padding:4px;">Forgot Admin Password?</button>
 
+          <!-- Secure Password Recovery Challenge Box (Never reveals password on-screen) -->
           <div id="forgotPinRecoveryBox" class="hidden" style="margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-light); text-align: left;">
-            <div id="forgotPinSuccessMsg" class="text-xs" style="color: var(--text-muted); margin-bottom: 6px;">
-              Admin password for <strong style="color: var(--primary);">Peter MOUNIR</strong>:
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px; line-height:1.4;">
+              For security, the Admin Password is never displayed on screen. A recovery dispatch has been initiated to: <strong style="color:var(--text-primary);">petermounir461@gmail.com</strong>.
             </div>
-            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-card, #ffffff); padding:6px 10px; border-radius:6px; border:1px solid var(--border-medium); margin-bottom:8px;">
-              <code id="revealedAdminPin" style="font-size:15px; font-weight:700; color:var(--primary); letter-spacing:1.5px;">IXL2026</code>
-              <button type="button" class="btn btn-sm btn-secondary" id="copyAdminPinBtn" style="padding:2px 8px; font-size:10px;">Copy</button>
+
+            <div style="margin-top:10px; border-top:1px solid var(--border-subtle, #e2e8f0); padding-top:10px;">
+              <label style="font-size:11px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">
+                Verify with Peter MOUNIR's Secret Recovery Key:
+              </label>
+              <div style="display:flex; gap:6px;">
+                <input type="password" id="recoveryKeyInput" class="form-control form-control-sm" placeholder="Enter Secret Recovery Key" style="font-size:12px;">
+                <button type="button" class="btn btn-sm btn-primary" id="verifyRecoveryKeyBtn" style="white-space:nowrap; padding:4px 10px;">Verify</button>
+              </div>
+              <span id="recoveryKeyError" class="text-danger text-xs hidden" style="margin-top:4px; display:block;">Invalid recovery key. Access denied.</span>
             </div>
-            <div style="display:flex; gap:6px;">
-              <button type="button" class="btn btn-sm btn-primary" id="autoFillPinBtn" style="flex:1; padding:6px; font-size:11px;">Auto-fill &amp; Unlock</button>
-            </div>
-            <div id="forgotPinEmailNotice" class="text-xs text-muted" style="margin-top:6px; font-size:10px; text-align:center;">
-              Authorized recipient: petermounir461@gmail.com
+
+            <!-- Set New Password Box (Only visible after verified with secret recovery key) -->
+            <div id="resetPinBox" class="hidden" style="margin-top:10px; padding:10px; background:var(--bg-card, #ffffff); border-radius:6px; border:1px solid var(--border-medium);">
+              <span class="text-xs" style="color:var(--success, #16a34a); font-weight:600; display:block; margin-bottom:6px;">Identity Verified. Set New Admin Password:</span>
+              <div style="display:flex; gap:6px;">
+                <input type="password" id="newAdminPinInput" class="form-control form-control-sm" placeholder="New Password" style="font-size:12px;">
+                <button type="button" class="btn btn-sm btn-primary" id="saveNewPinBtn" style="white-space:nowrap; padding:4px 10px;">Save &amp; Unlock</button>
+              </div>
             </div>
           </div>
 
@@ -896,6 +907,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=2.7"></script>
+  <script src="app.js?v=2.8"></script>
 </body>
 </html>
