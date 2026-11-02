@@ -209,6 +209,8 @@ Assert-Test "6.7 Employee NO PROJECT badge renders on schedule row" ($jsContent.
 Assert-Test "6.8 index.html contains NO PROJECT manager modal" ($htmlContent.Contains('id="noProjectModal"')) "Manager modal found"
 Assert-Test "6.9 app.js implements openNoProjectModal & batch assign" ($jsContent.Contains('openNoProjectModal')) "Modal logic found"
 Assert-Test "6.10 index.html contains collapsible Settings & Tools drawer" ($htmlContent.Contains('id="settingsSidebar"') -and $htmlContent.Contains('id="toggleSettingsSidebarBtn"')) "Collapsible drawer found"
+Assert-Test "6.11 app.js implements group expand/shrink (toggleSectionCollapse)" ($jsContent.Contains('toggleSectionCollapse') -and $jsContent.Contains('expandAllSections')) "Expand/Shrink logic found"
+Assert-Test "6.12 styles.css defines collapsed row and group headers" ($cssContent.Contains('is-collapsed-row') -and $cssContent.Contains('group-header-row')) "Collapsed styles found"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

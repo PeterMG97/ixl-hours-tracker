@@ -30,7 +30,15 @@
     adminPin: "IXL2026",
     isViewOnly: false,
     selectedCell: null,
-    isConnected: true
+    isConnected: true,
+    collapsedSections: (() => {
+      try {
+        const raw = localStorage.getItem('ixl_collapsed_sections');
+        return new Set(raw ? JSON.parse(raw) : []);
+      } catch (e) {
+        return new Set();
+      }
+    })()
   };
 
   // DOM Elements Cache
@@ -433,7 +441,13 @@
     let headHtml = `
       <tr>
         <th class="col-user" rowspan="2">
-          <span>Team Member</span>
+          <div class="user-col-header-bar">
+            <span>Team Member</span>
+            <div class="th-group-actions" title="Expand or shrink all team groups">
+              <button type="button" class="btn-group-action" id="thExpandAllGroups" title="Expand all sections">▾ All</button>
+              <button type="button" class="btn-group-action" id="thCollapseAllGroups" title="Shrink all sections">▸ All</button>
+            </div>
+          </div>
           <div class="col-resizer resizer-user" title="Drag to resize Employee column (Excel style)"></div>
         </th>
         <th class="col-metric" rowspan="2" title="Total hours allocated for this month">Hours</th>
@@ -461,13 +475,10 @@
 
       if (secEmployees.length === 0) return;
 
-      bodyHtml += `
-        <tr class="group-header-row">
-          <td colspan="${days.length + 2}">
-            <strong>${sec.name}</strong> • ${secEmployees.length} members
-          </td>
-        </tr>
-      `;
+      const isCollapsed = state.collapsedSections.has(sec.id);
+      let secMonthHours = 0;
+      let secUnfilledDays = 0;
+      let secRowsHtml = '';
 
       secEmployees.forEach(emp => {
         activeEmpCount++;
@@ -497,6 +508,7 @@
           if (!isWk && d.isPastOrToday && !hasVal) {
             isUnfilledPast = true;
             totalUnfilledDays++;
+            secUnfilledDays++;
           }
 
           const badgeClass = getProjectBadgeClass(projectName);
@@ -516,6 +528,7 @@
           `;
         });
 
+        secMonthHours += empMonthHours;
         totalMonthHours += empMonthHours;
 
         // Count ALL NO PROJECT days across all dates for this employee
@@ -527,8 +540,10 @@
           }
         }
 
-        bodyHtml += `
-          <tr class="user-row ${isSelf ? 'active-user-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" data-emp-id="${emp.id}">
+        secRowsHtml += `
+          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
+              data-emp-id="${emp.id}" 
+              data-section-id="${sec.id}">
             <td class="col-user">
               <div class="user-cell-content">
                 <div class="user-mini-avatar">${getInitials(emp.name)}</div>
@@ -546,6 +561,23 @@
           </tr>
         `;
       });
+
+      bodyHtml += `
+        <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''}" 
+            data-section-id="${sec.id}" 
+            title="Click to ${isCollapsed ? 'expand' : 'shrink'} ${sec.name}">
+          <td colspan="${days.length + 2}">
+            <div class="group-header-content">
+              <span class="group-toggle-icon">${isCollapsed ? '▶' : '▼'}</span>
+              <strong class="group-title">${sec.name}</strong>
+              <span class="group-badge">${secEmployees.length} members</span>
+              <span class="group-hours-badge" title="Total hours for this group this month">${secMonthHours}h</span>
+              ${secUnfilledDays > 0 ? `<span class="group-unfilled-badge" title="${secUnfilledDays} unfilled workdays in this group">⚠️ ${secUnfilledDays} unfilled</span>` : ''}
+              <span class="group-action-hint">${isCollapsed ? '(Shrunk • Click to expand)' : '(Click to shrink)'}</span>
+            </div>
+          </td>
+        </tr>
+      ` + secRowsHtml;
     });
 
     el.scheduleBody.innerHTML = bodyHtml;
@@ -554,9 +586,135 @@
     el.statCurrentMonthHours.textContent = `${totalMonthHours}h`;
     el.statUnfilledDays.textContent = `${totalUnfilledDays} days`;
 
+    // Attach group header click listeners (toggle expand/shrink)
+    el.scheduleBody.querySelectorAll('.group-header-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const secId = row.getAttribute('data-section-id');
+        if (secId) toggleSectionCollapse(secId);
+      });
+    });
+
+    // Header expand/collapse all buttons
+    const thExp = document.getElementById('thExpandAllGroups');
+    if (thExp) thExp.addEventListener('click', (e) => { e.stopPropagation(); expandAllSections(); });
+    const thCol = document.getElementById('thCollapseAllGroups');
+    if (thCol) thCol.addEventListener('click', (e) => { e.stopPropagation(); collapseAllSections(); });
+
     if (!state.isViewOnly) {
       attachCellEvents();
     }
+
+    renderSectionDrawerControls();
+  }
+
+  // -------------------------------------------------------------
+  // Team Section Expand / Shrink Management
+  // -------------------------------------------------------------
+
+  function saveCollapsedSections() {
+    try {
+      localStorage.setItem('ixl_collapsed_sections', JSON.stringify(Array.from(state.collapsedSections)));
+    } catch (e) {
+      console.error('Failed to save collapsed sections', e);
+    }
+  }
+
+  function toggleSectionCollapse(secId) {
+    if (state.collapsedSections.has(secId)) {
+      state.collapsedSections.delete(secId);
+    } else {
+      state.collapsedSections.add(secId);
+    }
+    saveCollapsedSections();
+
+    const isNowCollapsed = state.collapsedSections.has(secId);
+
+    // Toggle employee rows in DOM immediately
+    el.scheduleBody.querySelectorAll(`tr.user-row[data-section-id="${secId}"]`).forEach(r => {
+      r.classList.toggle('is-collapsed-row', isNowCollapsed);
+    });
+
+    // Update group header row
+    const headerRow = el.scheduleBody.querySelector(`tr.group-header-row[data-section-id="${secId}"]`);
+    if (headerRow) {
+      headerRow.classList.toggle('is-collapsed', isNowCollapsed);
+      headerRow.title = `Click to ${isNowCollapsed ? 'expand' : 'shrink'} this section`;
+      const icon = headerRow.querySelector('.group-toggle-icon');
+      if (icon) icon.textContent = isNowCollapsed ? '▶' : '▼';
+      const hint = headerRow.querySelector('.group-action-hint');
+      if (hint) hint.textContent = isNowCollapsed ? '(Shrunk • Click to expand)' : '(Click to shrink)';
+    }
+
+    renderSectionDrawerControls();
+  }
+
+  function expandAllSections() {
+    state.collapsedSections.clear();
+    saveCollapsedSections();
+    el.scheduleBody.querySelectorAll('tr.user-row').forEach(r => r.classList.remove('is-collapsed-row'));
+    el.scheduleBody.querySelectorAll('tr.group-header-row').forEach(hr => {
+      hr.classList.remove('is-collapsed');
+      const icon = hr.querySelector('.group-toggle-icon');
+      if (icon) icon.textContent = '▼';
+      const hint = hr.querySelector('.group-action-hint');
+      if (hint) hint.textContent = '(Click to shrink)';
+    });
+    renderSectionDrawerControls();
+    showToast('All team sections expanded');
+  }
+
+  function collapseAllSections() {
+    state.sections.forEach(s => state.collapsedSections.add(s.id));
+    saveCollapsedSections();
+    el.scheduleBody.querySelectorAll('tr.user-row').forEach(r => r.classList.add('is-collapsed-row'));
+    el.scheduleBody.querySelectorAll('tr.group-header-row').forEach(hr => {
+      hr.classList.add('is-collapsed');
+      const icon = hr.querySelector('.group-toggle-icon');
+      if (icon) icon.textContent = '▶';
+      const hint = hr.querySelector('.group-action-hint');
+      if (hint) hint.textContent = '(Shrunk • Click to expand)';
+    });
+    renderSectionDrawerControls();
+    showToast('All team sections shrunk');
+  }
+
+  function renderSectionDrawerControls() {
+    const container = document.getElementById('sectionTogglesContainer');
+    const desc = document.getElementById('sectionsSummaryDesc');
+    if (!container) return;
+
+    const total = state.sections.length;
+    const collapsedCount = state.collapsedSections.size;
+    if (desc) {
+      if (collapsedCount === 0) desc.textContent = `All ${total} groups expanded`;
+      else if (collapsedCount === total) desc.textContent = `All ${total} groups shrunk`;
+      else desc.textContent = `${total - collapsedCount} expanded, ${collapsedCount} shrunk`;
+    }
+
+    let html = '';
+    state.sections.forEach(sec => {
+      const isCol = state.collapsedSections.has(sec.id);
+      const count = state.employees.filter(e => e.sectionId === sec.id && e.active !== false).length;
+      html += `
+        <div class="section-toggle-card">
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <strong style="font-size:12px;">${sec.name}</strong>
+            <span style="font-size:10px; color:var(--text-muted);">${count} members • ${sec.location}</span>
+          </div>
+          <button type="button" class="section-toggle-btn ${isCol ? 'is-collapsed' : ''}" data-section-id="${sec.id}">
+            ${isCol ? '▶ Shrunk' : '▼ Expanded'}
+          </button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll('.section-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const secId = btn.getAttribute('data-section-id');
+        if (secId) toggleSectionCollapse(secId);
+      });
+    });
   }
 
   // -------------------------------------------------------------
@@ -1747,6 +1905,12 @@
   if (el.settingsSidebarOverlay) {
     el.settingsSidebarOverlay.addEventListener('click', () => toggleSettingsDrawer(false));
   }
+
+  const btnExpAll = document.getElementById('btnExpandAllSections');
+  if (btnExpAll) btnExpAll.addEventListener('click', expandAllSections);
+
+  const btnColAll = document.getElementById('btnCollapseAllSections');
+  if (btnColAll) btnColAll.addEventListener('click', collapseAllSections);
 
   // -------------------------------------------------------------
   // Modal Utilities & Toast

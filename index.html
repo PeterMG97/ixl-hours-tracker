@@ -676,6 +676,27 @@
         </div>
       </div>
 
+      <!-- Section: Group Visibility (Expand / Shrink) -->
+      <div class="settings-section">
+        <span class="settings-section-heading">Team Groups &amp; Sections</span>
+        <div class="settings-row-item vertical">
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <div>
+              <strong>Section Display</strong>
+              <span class="setting-desc" id="sectionsSummaryDesc">All groups expanded</span>
+            </div>
+            <div style="display:flex; gap:4px;">
+              <button class="btn btn-ghost btn-xs" id="btnExpandAllSections" title="Expand all sections" style="font-size:11px; padding:2px 6px;">▾ Expand All</button>
+              <button class="btn btn-ghost btn-xs" id="btnCollapseAllSections" title="Shrink all sections" style="font-size:11px; padding:2px 6px;">▸ Shrink All</button>
+            </div>
+          </div>
+          
+          <div id="sectionTogglesContainer" style="display:flex; flex-direction:column; gap:6px; width:100%; margin-top:4px;">
+            <!-- Dynamically populated list of section toggles -->
+          </div>
+        </div>
+      </div>
+
       <!-- Section: Quick Actions -->
       <div class="settings-section">
         <span class="settings-section-heading">Quick Actions</span>
