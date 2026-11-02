@@ -672,6 +672,42 @@
     </div>
   </div>
 
+  <!-- Change Admin Password Modal (Admin Only, requires current password + identical new passwords) -->
+  <div id="changePasswordModal" class="modal hidden">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3>Change Admin Password</h3>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-xs text-muted" style="margin-bottom: 14px; line-height: 1.4;">
+          Provide your current Admin Password, then enter your new password twice for confirmation.
+        </p>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">Current Password</label>
+          <input type="password" id="currentAdminPinInput" class="form-control" placeholder="Enter current password" autocomplete="current-password">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">New Password</label>
+          <input type="password" id="newAdminPinInput1" class="form-control" placeholder="Enter new password" autocomplete="new-password">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New Password</label>
+          <input type="password" id="newAdminPinInput2" class="form-control" placeholder="Re-enter new password" autocomplete="new-password">
+        </div>
+
+        <div id="changePinErrorMsg" class="text-danger text-xs hidden" style="margin-top: 6px; font-weight: 500;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close" id="cancelChangePinBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveChangePinBtn">Update Password</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Employee Monthly Contributions Modal (Triggered by double-clicking employee name) -->
   <div id="employeeContributionsModal" class="modal hidden">
     <div class="modal-dialog modal-xl">
@@ -855,6 +891,14 @@
             <span id="adminToggleSub">Unlock management actions</span>
           </div>
           <span class="action-card-arrow">›</span>
+        </button>
+        <button class="settings-action-card admin-card hidden" id="openChangePasswordBtn">
+          <span class="action-card-icon" id="changePasswordIcon"></span>
+          <div class="action-card-text">
+            <strong>Change Admin Password</strong>
+            <span>Admin only &bull; Update security password</span>
+          </div>
+          <span class="action-card-arrow">&rarr;</span>
         </button>
       </div>
     </div>

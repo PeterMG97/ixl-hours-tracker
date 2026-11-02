@@ -194,6 +194,16 @@
     forgotPinDeniedMsg: document.getElementById('forgotPinDeniedMsg'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
 
+    // Change Admin Password Modal
+    openChangePasswordBtn: document.getElementById('openChangePasswordBtn'),
+    changePasswordModal: document.getElementById('changePasswordModal'),
+    currentAdminPinInput: document.getElementById('currentAdminPinInput'),
+    newAdminPinInput1: document.getElementById('newAdminPinInput1'),
+    newAdminPinInput2: document.getElementById('newAdminPinInput2'),
+    changePinErrorMsg: document.getElementById('changePinErrorMsg'),
+    saveChangePinBtn: document.getElementById('saveChangePinBtn'),
+    cancelChangePinBtn: document.getElementById('cancelChangePinBtn'),
+
     // Employee Monthly Contributions Modal
     employeeContributionsModal: document.getElementById('employeeContributionsModal'),
     contribAvatar: document.getElementById('contribAvatar'),
@@ -2215,6 +2225,7 @@
     if (!isPeter) {
       if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('hidden');
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
+      if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
       return;
     }
 
@@ -2222,6 +2233,7 @@
     if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('hidden');
 
     if (state.isAdmin) {
+      if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.remove('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
       if (el.adminIcon) el.adminIcon.textContent = '';
@@ -2232,6 +2244,7 @@
       if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Active (All Rows Unlocked)';
       if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Active: You can edit any cell for any employee. Click to lock.';
     } else {
+      if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Unlock';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Unlock management actions';
       if (el.adminIcon) el.adminIcon.textContent = '';
@@ -2276,7 +2289,8 @@
       return;
     }
     const pin = el.adminPinInput.value.trim();
-    if (pin === "IXL2026") {
+    const expectedPin = state.adminPin || "IXL2026";
+    if (pin === expectedPin) {
       state.isAdmin = true;
       setStoredItem('ixl_is_admin', 'true');
       updateAdminUI();
@@ -2346,6 +2360,120 @@
       showToast('Admin password sent to your official Outlook email (peter.mounir@alstomgroup.com).');
     });
   }
+
+  // -------------------------------------------------------------
+  // Change Admin Password (Admin Only: Peter MOUNIR in Admin Mode)
+  // Requires: Current password + 2 identical new password entries
+  // -------------------------------------------------------------
+
+  function openChangePasswordModal() {
+    if (!isCurrentUserPeter() || !state.isAdmin) {
+      showToast('Admin mode must be active to change password.', 'warning');
+      return;
+    }
+    if (el.currentAdminPinInput) el.currentAdminPinInput.value = '';
+    if (el.newAdminPinInput1) el.newAdminPinInput1.value = '';
+    if (el.newAdminPinInput2) el.newAdminPinInput2.value = '';
+    if (el.changePinErrorMsg) {
+      el.changePinErrorMsg.textContent = '';
+      el.changePinErrorMsg.classList.add('hidden');
+    }
+    openModal(el.changePasswordModal);
+    setTimeout(() => {
+      if (el.currentAdminPinInput) el.currentAdminPinInput.focus();
+    }, 100);
+  }
+
+  function handleSaveChangePin() {
+    if (!isCurrentUserPeter() || !state.isAdmin) {
+      showToast('Admin privileges required.', 'warning');
+      closeModal(el.changePasswordModal);
+      return;
+    }
+
+    const currentVal = el.currentAdminPinInput ? el.currentAdminPinInput.value.trim() : '';
+    const new1Val = el.newAdminPinInput1 ? el.newAdminPinInput1.value.trim() : '';
+    const new2Val = el.newAdminPinInput2 ? el.newAdminPinInput2.value.trim() : '';
+    const activePin = state.adminPin || 'IXL2026';
+
+    const showChangeError = (msg, focusEl) => {
+      if (el.changePinErrorMsg) {
+        el.changePinErrorMsg.textContent = msg;
+        el.changePinErrorMsg.classList.remove('hidden');
+      }
+      if (focusEl) focusEl.focus();
+    };
+
+    if (!currentVal) {
+      showChangeError('Please enter your current Admin Password.', el.currentAdminPinInput);
+      return;
+    }
+
+    if (currentVal !== activePin) {
+      showChangeError('Current password is incorrect. Please try again.', el.currentAdminPinInput);
+      return;
+    }
+
+    if (!new1Val) {
+      showChangeError('Please enter your new Admin Password.', el.newAdminPinInput1);
+      return;
+    }
+
+    if (new1Val.length < 4) {
+      showChangeError('New password must be at least 4 characters long.', el.newAdminPinInput1);
+      return;
+    }
+
+    if (new1Val !== new2Val) {
+      showChangeError('New passwords do not match. Please ensure both entries are identical.', el.newAdminPinInput2);
+      return;
+    }
+
+    if (new1Val === activePin) {
+      showChangeError('New password cannot be the same as your current password.', el.newAdminPinInput1);
+      return;
+    }
+
+    // Success: Update state, persist to database, notify
+    state.adminPin = new1Val;
+    syncToServer();
+
+    if (el.changePinErrorMsg) el.changePinErrorMsg.classList.add('hidden');
+    if (el.currentAdminPinInput) el.currentAdminPinInput.value = '';
+    if (el.newAdminPinInput1) el.newAdminPinInput1.value = '';
+    if (el.newAdminPinInput2) el.newAdminPinInput2.value = '';
+
+    closeModal(el.changePasswordModal);
+    showToast('Admin Password successfully updated and saved!');
+
+    // Dispatch background confirmation to official work Outlook email
+    try {
+      fetch('/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'peter.mounir@alstomgroup.com' })
+      }).catch(() => {});
+    } catch (err) {}
+  }
+
+  if (el.openChangePasswordBtn) {
+    el.openChangePasswordBtn.addEventListener('click', openChangePasswordModal);
+  }
+
+  if (el.saveChangePinBtn) {
+    el.saveChangePinBtn.addEventListener('click', handleSaveChangePin);
+  }
+
+  [el.currentAdminPinInput, el.newAdminPinInput1, el.newAdminPinInput2].forEach(inputEl => {
+    if (inputEl) {
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSaveChangePin();
+        }
+      });
+    }
+  });
 
   // -------------------------------------------------------------
   // Analytics & Monthly Rollup

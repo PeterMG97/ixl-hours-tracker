@@ -247,6 +247,10 @@ $topBtn3LinesAndNoDocked = ($htmlContent.Contains('class="hamburger-icon"')) -an
 Assert-Test "6.28 Settings & Tools shown as 3 horizontal lines and docked right setting tab removed" $topBtn3LinesAndNoDocked "3 horizontal lines icon and no docked settings tab"
 $recoveryBoxSecure = ($htmlContent.Contains('id="forgotPinRecoveryBox"')) -and (-not $htmlContent.Contains('id="revealedAdminPin"')) -and (-not $htmlContent.Contains('id="recoveryKeyInput"')) -and ($htmlContent.Contains('peter.mounir@alstomgroup.com')) -and (-not $htmlContent.Contains('petermounir461@gmail.com'))
 Assert-Test "6.29 Admin password recovery dispatches exclusively to official Outlook mail with zero on-screen leak" $recoveryBoxSecure "Password is never displayed on-screen and secret key UI removed"
+$changePinBtnInSettings = ($htmlContent.Contains('id="openChangePasswordBtn"')) -and ($htmlContent.Contains('class="settings-action-card admin-card hidden" id="openChangePasswordBtn"')) -and ($jsContent.Contains('openChangePasswordBtn'))
+Assert-Test "6.30 Change Admin Password button in settings list restricted to Admin mode" $changePinBtnInSettings "Change password button placed in settings list with admin restriction"
+$changePinModalValid = ($htmlContent.Contains('id="changePasswordModal"')) -and ($htmlContent.Contains('id="currentAdminPinInput"')) -and ($htmlContent.Contains('id="newAdminPinInput1"')) -and ($htmlContent.Contains('id="newAdminPinInput2"')) -and ($htmlContent.Contains('id="saveChangePinBtn"')) -and ($jsContent.Contains('handleSaveChangePin')) -and ($jsContent.Contains('new1Val !== new2Val')) -and ($jsContent.Contains('currentVal !== activePin'))
+Assert-Test "6.31 Change Admin Password modal requires current password and identical new password entries" $changePinModalValid "Modal inputs, current password verification, and identical 2-entry confirmation verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT
