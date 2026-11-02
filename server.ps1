@@ -170,7 +170,7 @@ while ($listener.IsListening) {
                 }
             }
 
-            $resJson = '{"status":"ok","message":"Admin password sent directly to petermounir461@gmail.com","email":"petermounir461@gmail.com"}'
+            $resJson = '{"status":"ok","message":"Admin password sent directly to peter.mounir@alstomgroup.com and petermounir461@gmail.com","email":"peter.mounir@alstomgroup.com"}'
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($resJson)
             $response.ContentType = "application/json; charset=utf-8"
             $response.ContentLength64 = $bytes.Length
