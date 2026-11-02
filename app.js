@@ -588,9 +588,6 @@
               <span class="group-toggle-icon">${isCollapsed ? '▶' : '▼'}</span>
               <strong class="group-title">${sec.name}</strong>
               <span class="group-badge">${secEmployees.length} members</span>
-              <span class="group-hours-badge" title="Total hours for this group this month">${secMonthHours}h</span>
-              ${secUnfilledDays > 0 ? `<span class="group-unfilled-badge" title="${secUnfilledDays} unfilled workdays in this group">⚠️ ${secUnfilledDays} unfilled</span>` : ''}
-              <span class="group-action-hint">${isCollapsed ? '(Shrunk • Click to expand)' : '(Click to shrink)'}</span>
             </div>
           </td>
         </tr>
@@ -658,8 +655,6 @@
       headerRow.title = `Click to ${isNowCollapsed ? 'expand' : 'shrink'} this section`;
       const icon = headerRow.querySelector('.group-toggle-icon');
       if (icon) icon.textContent = isNowCollapsed ? '▶' : '▼';
-      const hint = headerRow.querySelector('.group-action-hint');
-      if (hint) hint.textContent = isNowCollapsed ? '(Shrunk • Click to expand)' : '(Click to shrink)';
     }
 
     renderSectionDrawerControls();
@@ -673,8 +668,6 @@
       hr.classList.remove('is-collapsed');
       const icon = hr.querySelector('.group-toggle-icon');
       if (icon) icon.textContent = '▼';
-      const hint = hr.querySelector('.group-action-hint');
-      if (hint) hint.textContent = '(Click to shrink)';
     });
     renderSectionDrawerControls();
     showToast('All team sections expanded');
@@ -688,8 +681,6 @@
       hr.classList.add('is-collapsed');
       const icon = hr.querySelector('.group-toggle-icon');
       if (icon) icon.textContent = '▶';
-      const hint = hr.querySelector('.group-action-hint');
-      if (hint) hint.textContent = '(Shrunk • Click to expand)';
     });
     renderSectionDrawerControls();
     showToast('All team sections shrunk');

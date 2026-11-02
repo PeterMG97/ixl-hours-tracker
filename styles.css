@@ -668,15 +668,6 @@ body {
   background: #334155;
   color: #cbd5e1;
 }
-[data-theme="dark"] .group-hours-badge {
-  background: #0c4a6e;
-  color: #7dd3fc;
-}
-[data-theme="dark"] .group-unfilled-badge {
-  background: #78350f;
-  color: #fde68a;
-  border-color: rgba(245, 158, 11, 0.4);
-}
 [data-theme="dark"] .btn-group-action {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--border-light);
@@ -1233,44 +1224,14 @@ body.is-resizing-columns {
   color: var(--text-main);
 }
 
-.group-badge,
-.group-hours-badge,
-.group-unfilled-badge {
+.group-badge {
   font-size: 10px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 12px;
   line-height: 1.2;
-}
-
-.group-badge {
   background: #e2e8f0;
   color: #475569;
-}
-
-.group-hours-badge {
-  background: #e0f2fe;
-  color: #0369a1;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.group-unfilled-badge {
-  background: #fef3c7;
-  color: #b45309;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.group-action-hint {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-left: 4px;
-  opacity: 0.85;
-}
-
-.group-header-row:hover .group-action-hint {
-  color: var(--primary);
-  opacity: 1;
 }
 
 /* User Row Collapsed State */
