@@ -1206,7 +1206,7 @@
     el.popoverSubtitle.textContent = dates.length <= 3 
       ? dates.join(', ') 
       : `${dates.slice(0, 3).join(', ')} +${dates.length - 3} more`;
-    el.popoverHoursInput.value = emp.defaultHoursPerDay || 8;
+    el.popoverHoursInput.value = Math.min(12, Math.max(1, emp ? (emp.defaultHoursPerDay || 8) : 8));
     el.projectSearchInput.value = '';
     setPopoverCategory('all', false);
 
@@ -1229,12 +1229,40 @@
     el.projectSearchInput.focus();
   }
 
+  // -------------------------------------------------------------
+  // Daily Hours Validation: Projects, Tenders, and Special (1 to 12h)
+  // -------------------------------------------------------------
+
+  function isWorkActivity(projectName) {
+    if (!projectName) return false;
+    const trimmed = projectName.trim();
+    if (!trimmed || trimmed === 'Day OFF' || trimmed === 'NO STATUS') return false;
+    return true;
+  }
+
+  function sanitizeDayHours(projectName, rawHours, fallbackHours = 8) {
+    if (!projectName || projectName.trim() === '' || projectName.trim() === 'Day OFF') {
+      return 0;
+    }
+    let h = parseFloat(rawHours);
+    if (isNaN(h)) h = parseFloat(fallbackHours) || 8;
+
+    if (isWorkActivity(projectName)) {
+      if (h < 1) h = 1;
+      if (h > 12) h = 12;
+    } else {
+      if (h < 0) h = 0;
+      if (h > 24) h = 24;
+    }
+    return Math.round(h * 10) / 10;
+  }
+
   function batchApplyToSelectedCells(projectName, hours) {
     if (state.selectedCells.size === 0) return;
     const count = state.selectedCells.size;
     const empId = state.selectedEmpId;
     const emp = state.employees.find(e => e.id === empId);
-    const parsedHours = Number(hours) || 0;
+    const sanitizedHours = sanitizeDayHours(projectName, hours, emp ? emp.defaultHoursPerDay : 8);
 
     state.selectedCells.forEach(key => {
       if (!projectName || projectName.trim() === '') {
@@ -1242,7 +1270,7 @@
       } else {
         state.allocations[key] = {
           project: projectName.trim(),
-          hours: parsedHours
+          hours: sanitizedHours
         };
       }
     });
@@ -1262,7 +1290,8 @@
 
     el.popoverTitle.textContent = emp.name;
     el.popoverSubtitle.textContent = dateStr;
-    el.popoverHoursInput.value = alloc && alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8);
+    const baseH = alloc && alloc.hours !== undefined ? alloc.hours : (emp ? (emp.defaultHoursPerDay || 8) : 8);
+    el.popoverHoursInput.value = Math.min(12, Math.max(1, Number(baseH) || 8));
     el.projectSearchInput.value = '';
     setPopoverCategory('all', false);
 
@@ -1378,6 +1407,28 @@
     });
   });
 
+  if (el.popoverHoursInput) {
+    el.popoverHoursInput.addEventListener('change', () => {
+      let val = parseFloat(el.popoverHoursInput.value);
+      if (isNaN(val) || val < 1) {
+        el.popoverHoursInput.value = 1;
+      } else if (val > 12) {
+        el.popoverHoursInput.value = 12;
+      }
+    });
+  }
+
+  if (el.bulkHoursInput) {
+    el.bulkHoursInput.addEventListener('change', () => {
+      let val = parseFloat(el.bulkHoursInput.value);
+      if (isNaN(val) || val < 1) {
+        el.bulkHoursInput.value = 1;
+      } else if (val > 12) {
+        el.bulkHoursInput.value = 12;
+      }
+    });
+  }
+
   el.applyCellBtn.addEventListener('click', () => {
     if (state.isMultiEditing) {
       saveCellAssignment('');
@@ -1397,12 +1448,22 @@
 
     if (!state.selectedCell) return;
     const { empId, dateStr } = state.selectedCell;
+    const emp = state.employees.find(e => e.id === empId);
     const key = `${empId}_${dateStr}`;
-    const hours = Number(el.popoverHoursInput.value) || 8;
 
     if (!projectName || projectName.trim() === '') {
       delete state.allocations[key];
     } else {
+      const rawVal = el.popoverHoursInput ? el.popoverHoursInput.value : '';
+      const hours = sanitizeDayHours(projectName, rawVal, emp ? emp.defaultHoursPerDay : 8);
+
+      if (isWorkActivity(projectName)) {
+        const numVal = parseFloat(rawVal);
+        if (!isNaN(numVal) && (numVal < 1 || numVal > 12)) {
+          showToast(`Daily hours adjusted to ${hours}h (allowed range: 1 to 12h for projects/tenders/special)`, 'info');
+        }
+      }
+
       state.allocations[key] = {
         project: projectName.trim(),
         hours: hours
@@ -1534,7 +1595,8 @@
     const loc = (sec.location || '').toLowerCase();
     const isIstanbul = loc.includes('istanbul');
 
-    el.bulkHoursInput.value = emp.defaultHoursPerDay || 8;
+    const defH = emp.defaultHoursPerDay || 8;
+    el.bulkHoursInput.value = Math.min(12, Math.max(1, defH));
 
     if (isIstanbul) {
       el.bulkEmployeeOfficeHint.textContent = `Office: Istanbul Team • Holidays: Saturday & Sunday`;
@@ -1565,7 +1627,14 @@
     const fromStr = el.bulkFromDate.value;
     const toStr = el.bulkToDate.value;
     const proj = el.bulkProjectSelect.value;
-    const hours = Number(el.bulkHoursInput.value) || (emp.defaultHoursPerDay || 8);
+    const rawBulkH = el.bulkHoursInput.value;
+    const hours = sanitizeDayHours(proj, rawBulkH, emp ? emp.defaultHoursPerDay : 8);
+    if (isWorkActivity(proj)) {
+      const numBulk = parseFloat(rawBulkH);
+      if (!isNaN(numBulk) && (numBulk < 1 || numBulk > 12)) {
+        showToast(`Bulk hours adjusted to ${hours}h (allowed range: 1 to 12h for projects/tenders/special)`, 'info');
+      }
+    }
     const holidayOption = document.querySelector('input[name="bulkHolidayOption"]:checked').value;
 
     if (!fromStr || !toStr) {
@@ -1752,7 +1821,7 @@
           <td>${dayNames[item.dow]}</td>
           <td>${scheduleTag}</td>
           <td>
-            <input type="number" class="form-control form-control-sm text-center row-hours-input" min="0" max="24" step="0.5" value="${item.allocHours}">
+            <input type="number" class="form-control form-control-sm text-center row-hours-input" min="1" max="12" step="0.5" value="${Math.min(12, Math.max(1, Number(item.allocHours) || 8))}">
           </td>
           <td>
             <select class="form-control form-control-sm row-project-select">
@@ -1774,7 +1843,7 @@
         const projSelect = tr.querySelector('.row-project-select');
         const hoursInput = tr.querySelector('.row-hours-input');
         const chosenProj = projSelect.value;
-        const chosenHours = Number(hoursInput.value) || 8;
+        const chosenHours = sanitizeDayHours(chosenProj, hoursInput.value, emp ? emp.defaultHoursPerDay : 8);
 
         if (!chosenProj) {
           showToast('Please select a project to assign.', 'warning');
@@ -1811,7 +1880,7 @@
 
     for (const [key, alloc] of Object.entries(state.allocations)) {
       if (key.startsWith(empPrefix) && alloc && alloc.project === 'NO PROJECT') {
-        const curHours = alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8);
+        const curHours = sanitizeDayHours(chosenProj, alloc.hours, emp ? emp.defaultHoursPerDay : 8);
         state.allocations[key] = {
           project: chosenProj,
           hours: curHours

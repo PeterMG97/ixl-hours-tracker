@@ -251,6 +251,8 @@ $changePinBtnInSettings = ($htmlContent.Contains('id="openChangePasswordBtn"')) 
 Assert-Test "6.30 Change Admin Password button in settings list restricted to Admin mode" $changePinBtnInSettings "Change password button placed in settings list with admin restriction"
 $changePinModalValid = ($htmlContent.Contains('id="changePasswordModal"')) -and ($htmlContent.Contains('id="currentAdminPinInput"')) -and ($htmlContent.Contains('id="newAdminPinInput1"')) -and ($htmlContent.Contains('id="newAdminPinInput2"')) -and ($htmlContent.Contains('id="saveChangePinBtn"')) -and ($jsContent.Contains('handleSaveChangePin')) -and ($jsContent.Contains('new1Val !== new2Val')) -and ($jsContent.Contains('currentVal !== activePin'))
 Assert-Test "6.31 Change Admin Password modal requires current password and identical new password entries" $changePinModalValid "Modal inputs, current password verification, and identical 2-entry confirmation verified"
+$hoursMinMaxEnforced = ($htmlContent -match 'id="popoverHoursInput"[^>]*min="1"[^>]*max="12"') -and ($htmlContent -match 'id="bulkHoursInput"[^>]*min="1"[^>]*max="12"') -and ($jsContent.Contains('sanitizeDayHours')) -and ($jsContent.Contains('if (h < 1) h = 1;')) -and ($jsContent.Contains('if (h > 12) h = 12;')) -and ($jsContent.Contains('isWorkActivity'))
+Assert-Test "6.32 Daily hours per project/tender/special enforced between minimum 1h and maximum 12h" $hoursMinMaxEnforced "HTML min/max attributes and JavaScript sanitizeDayHours validation verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT
