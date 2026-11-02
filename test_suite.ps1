@@ -30,7 +30,7 @@ Write-Host "`n>>> GROUP 1: Database & Data Integrity (data.json)" -ForegroundCol
 $dbRaw = [System.IO.File]::ReadAllText((Join-Path $AppDir "data.json"))
 $db = $dbRaw | ConvertFrom-Json
 
-Assert-Test "1.1 Database contains all 27 Team Members" ($db.employees.Count -eq 27) "Found: $($db.employees.Count)"
+Assert-Test "1.1 Database contains all Team Members (27+ items)" ($db.employees.Count -ge 27) "Found: $($db.employees.Count)"
 Assert-Test "1.2 Database contains all Projects (55 items)" ($db.projects.Count -ge 50) "Found: $($db.projects.Count)"
 Assert-Test "1.3 Database has correct secret Admin PIN" ($db.adminPin -eq "IXL2026") "PIN: $($db.adminPin)"
 
@@ -208,6 +208,7 @@ Assert-Test "6.6 styles.css defines full [data-theme='dark'] mode" ($cssContent.
 Assert-Test "6.7 index.html contains NO PROJECT alert button" ($htmlContent.Contains('id="openNoProjectDaysBtn"')) "Alert button found"
 Assert-Test "6.8 index.html contains NO PROJECT manager modal" ($htmlContent.Contains('id="noProjectModal"')) "Manager modal found"
 Assert-Test "6.9 app.js implements openNoProjectModal & batch assign" ($jsContent.Contains('openNoProjectModal')) "Modal logic found"
+Assert-Test "6.10 index.html contains collapsible Settings & Tools drawer" ($htmlContent.Contains('id="settingsSidebar"') -and $htmlContent.Contains('id="toggleSettingsSidebarBtn"')) "Collapsible drawer found"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

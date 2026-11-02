@@ -77,24 +77,12 @@
           <button class="today-shortcut-btn" id="jumpTodayBtn">Today</button>
         </div>
 
-        <!-- Action Tools -->
-        <div class="action-toolbar">
-          <!-- Theme Selector (Light / Dark / Auto by day time) -->
-          <div class="theme-control">
-            <select id="themeSelect" class="theme-select" title="Theme mode">
-              <option value="auto">🌗 Auto (Day/Night)</option>
-              <option value="light">☀️ Light</option>
-              <option value="dark">🌙 Dark</option>
-            </select>
-          </div>
-
-          <button class="btn btn-primary btn-sm" id="topbarBulkFillBtn" title="Bulk fill date range for an employee">⚡ Bulk Fill</button>
-          <button class="btn btn-ghost" id="openAnalyticsBtn">📊 Analytics</button>
-          <button class="btn btn-ghost" id="openProjectsBtn">📁 Projects</button>
-          <button class="btn btn-ghost" id="openTeamBtn">👥 Team</button>
-          <button class="btn btn-ghost" id="copyViewLinkBtn" title="Copy View-Only Link">🔗 View Link</button>
-          <button class="btn btn-admin" id="adminToggleBtn">🔒 Admin Unlock</button>
-        </div>
+        <!-- Settings & Tools Trigger -->
+        <button class="btn-settings-toggle" id="toggleSettingsSidebarBtn" title="Open Settings & Tools menu">
+          <span class="settings-gear">⚙️</span>
+          <span class="settings-text">Settings &amp; Tools</span>
+          <span class="admin-badge-dot hidden" id="adminActiveDot" title="Admin Mode Active"></span>
+        </button>
       </div>
     </header>
 
@@ -627,6 +615,122 @@
       </div>
     </div>
   </div>
+
+  <!-- Settings & Tools Expandable Side Drawer (Right Side) -->
+  <div id="settingsSidebarOverlay" class="settings-drawer-overlay hidden"></div>
+  <aside id="settingsSidebar" class="settings-drawer">
+    <div class="settings-drawer-header">
+      <div class="settings-drawer-title">
+        <span class="settings-drawer-icon">⚙️</span>
+        <div>
+          <h4>Settings &amp; Tools</h4>
+          <span class="settings-drawer-subtitle">Actions, management &amp; appearance</span>
+        </div>
+      </div>
+      <button class="btn-icon-close" id="closeSettingsSidebarBtn" title="Close Settings">&times;</button>
+    </div>
+
+    <div class="settings-drawer-body">
+      <!-- Section: Appearance -->
+      <div class="settings-section">
+        <span class="settings-section-heading">Appearance</span>
+        <div class="settings-row-item">
+          <div class="setting-item-meta">
+            <span class="setting-icon">🌗</span>
+            <div>
+              <strong>Theme Mode</strong>
+              <span class="setting-desc">Light, Dark, or Auto by daytime</span>
+            </div>
+          </div>
+          <select id="themeSelect" class="theme-select" title="Theme mode">
+            <option value="auto">🌗 Auto (Day/Night)</option>
+            <option value="light">☀️ Light</option>
+            <option value="dark">🌙 Dark</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Section: Quick Actions -->
+      <div class="settings-section">
+        <span class="settings-section-heading">Quick Actions</span>
+        
+        <button class="settings-action-card primary" id="topbarBulkFillBtn">
+          <span class="action-card-icon">⚡</span>
+          <div class="action-card-text">
+            <strong>Bulk Fill Schedule</strong>
+            <span>Auto-fill date range &amp; office holidays</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+
+        <button class="settings-action-card" id="openAnalyticsBtn">
+          <span class="action-card-icon">📊</span>
+          <div class="action-card-text">
+            <strong>Project Analytics</strong>
+            <span>Hours breakdown &amp; monthly totals</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+      </div>
+
+      <!-- Section: Data Management -->
+      <div class="settings-section">
+        <span class="settings-section-heading">Data Management</span>
+
+        <button class="settings-action-card" id="openProjectsBtn">
+          <span class="action-card-icon">📁</span>
+          <div class="action-card-text">
+            <strong>Projects &amp; WBS</strong>
+            <span>Manage projects &amp; baseline hours</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+
+        <button class="settings-action-card" id="openTeamBtn">
+          <span class="action-card-icon">👥</span>
+          <div class="action-card-text">
+            <strong>Team Members</strong>
+            <span>Cairo &amp; Istanbul engineers</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+      </div>
+
+      <!-- Section: Security & Sharing -->
+      <div class="settings-section">
+        <span class="settings-section-heading">Security &amp; Sharing</span>
+
+        <button class="settings-action-card" id="copyViewLinkBtn">
+          <span class="action-card-icon">🔗</span>
+          <div class="action-card-text">
+            <strong>View-Only Link</strong>
+            <span>Copy shareable read-only link</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+
+        <button class="settings-action-card admin-card" id="adminToggleBtn">
+          <span class="action-card-icon" id="adminIcon">🔒</span>
+          <div class="action-card-text">
+            <strong id="adminToggleLabel">Admin Unlock</strong>
+            <span id="adminToggleSub">Unlock management actions</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-drawer-footer">
+      <button class="btn btn-secondary btn-sm" id="collapseSettingsBtn" style="width:100%;">⇥ Shrink / Close Settings</button>
+    </div>
+  </aside>
+
+  <!-- Docked Floating Side Tab on the Right Edge -->
+  <button class="docked-settings-pill" id="dockedSettingsBtn" title="Expand Settings & Tools">
+    <span class="docked-gear">⚙️</span>
+    <span class="docked-text">Settings</span>
+    <span class="docked-admin-dot hidden" id="dockedAdminDot"></span>
+  </button>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>

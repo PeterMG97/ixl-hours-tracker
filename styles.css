@@ -1562,3 +1562,402 @@ body.view-only .task-chip {
   background: #111827;
   border-color: var(--border-light);
 }
+
+/* -------------------------------------------------------------
+ * Settings & Tools Collapsible Sidebar Drawer
+ * ------------------------------------------------------------- */
+
+/* Header Trigger Button */
+.btn-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.btn-settings-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+}
+
+.settings-gear {
+  font-size: 14px;
+}
+
+.admin-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+  animation: pulse-red 1.5s infinite;
+}
+
+/* Floating Docked Tab on the Right Edge */
+.docked-settings-pill {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: 1px solid var(--border-medium);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  padding: 10px 6px;
+  z-index: 800;
+  cursor: pointer;
+  box-shadow: -3px 3px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.docked-settings-pill:hover {
+  padding-left: 10px;
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  box-shadow: -4px 4px 16px rgba(37, 99, 235, 0.2);
+}
+
+.docked-gear {
+  font-size: 16px;
+}
+
+.docked-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.docked-admin-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+/* Overlay */
+.settings-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1200;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.settings-drawer-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+/* Drawer Container */
+.settings-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+  max-width: 90vw;
+  background: white;
+  z-index: 1250;
+  box-shadow: -6px 0 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.settings-drawer.open {
+  transform: translateX(0);
+}
+
+/* Drawer Header */
+.settings-drawer-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+}
+
+.settings-drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-drawer-icon {
+  font-size: 22px;
+}
+
+.settings-drawer-title h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.settings-drawer-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+/* Drawer Body */
+.settings-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Settings Section */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-section-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+/* Settings Row Item (for Theme) */
+.settings-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.setting-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-icon {
+  font-size: 18px;
+}
+
+.setting-item-meta strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.setting-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Settings Action Cards */
+.settings-action-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.settings-action-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-medium);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transform: translateX(-2px);
+}
+
+.settings-action-card.primary {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.settings-action-card.primary:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.settings-action-card.admin-card {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.settings-action-card.admin-card:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.settings-action-card.admin-card.unlocked {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.settings-action-card.admin-card.unlocked:hover {
+  background: #dcfce7;
+}
+
+.action-card-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.action-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-card-text strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 1px;
+}
+
+.action-card-text span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-card-arrow {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-weight: 300;
+  transition: transform 0.15s ease;
+}
+
+.settings-action-card:hover .action-card-arrow {
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+/* Drawer Footer */
+.settings-drawer-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-light);
+  background: #f8fafc;
+}
+
+/* Dark Theme Overrides for Settings Drawer */
+[data-theme="dark"] .btn-settings-toggle {
+  background: #111827;
+  border-color: var(--border-medium);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .btn-settings-toggle:hover {
+  background: #1e293b;
+  border-color: var(--primary);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .docked-settings-pill {
+  background: #111827;
+  border-color: var(--border-medium);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .docked-settings-pill:hover {
+  background: #1e293b;
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .docked-text {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .settings-drawer {
+  background: #0f172a;
+  box-shadow: -6px 0 25px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .settings-drawer-header {
+  background: #111827;
+  border-bottom-color: var(--border-light);
+}
+
+[data-theme="dark"] .settings-row-item {
+  background: #111827;
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .settings-action-card {
+  background: #111827;
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .settings-action-card:hover {
+  background: #1e293b;
+  border-color: var(--border-medium);
+}
+
+[data-theme="dark"] .settings-action-card.primary {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+[data-theme="dark"] .settings-action-card.primary:hover {
+  background: rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="dark"] .settings-action-card.admin-card {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .settings-action-card.admin-card:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+[data-theme="dark"] .settings-action-card.admin-card.unlocked {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .settings-drawer-footer {
+  background: #111827;
+  border-top-color: var(--border-light);
+}

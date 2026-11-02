@@ -119,6 +119,19 @@
     noProjectTableBody: document.getElementById('noProjectTableBody'),
     noProjectEmptyState: document.getElementById('noProjectEmptyState'),
 
+    // Settings & Tools Drawer
+    toggleSettingsSidebarBtn: document.getElementById('toggleSettingsSidebarBtn'),
+    dockedSettingsBtn: document.getElementById('dockedSettingsBtn'),
+    closeSettingsSidebarBtn: document.getElementById('closeSettingsSidebarBtn'),
+    collapseSettingsBtn: document.getElementById('collapseSettingsBtn'),
+    settingsSidebar: document.getElementById('settingsSidebar'),
+    settingsSidebarOverlay: document.getElementById('settingsSidebarOverlay'),
+    adminActiveDot: document.getElementById('adminActiveDot'),
+    dockedAdminDot: document.getElementById('dockedAdminDot'),
+    adminToggleLabel: document.getElementById('adminToggleLabel'),
+    adminToggleSub: document.getElementById('adminToggleSub'),
+    adminIcon: document.getElementById('adminIcon'),
+
     // Theme & Toast
     themeSelect: document.getElementById('themeSelect'),
     toast: document.getElementById('toast'),
@@ -1429,11 +1442,28 @@
   // Requirement 3 & 6: Secret Admin Password "IXL2026"
   // -------------------------------------------------------------
 
+  function updateAdminUI() {
+    if (state.isAdmin) {
+      if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
+      if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
+      if (el.adminIcon) el.adminIcon.textContent = '🔓';
+      if (el.adminToggleBtn) el.adminToggleBtn.classList.add('unlocked');
+      if (el.adminActiveDot) el.adminActiveDot.classList.remove('hidden');
+      if (el.dockedAdminDot) el.dockedAdminDot.classList.remove('hidden');
+    } else {
+      if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Unlock';
+      if (el.adminToggleSub) el.adminToggleSub.textContent = 'Unlock management actions';
+      if (el.adminIcon) el.adminIcon.textContent = '🔒';
+      if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('unlocked');
+      if (el.adminActiveDot) el.adminActiveDot.classList.add('hidden');
+      if (el.dockedAdminDot) el.dockedAdminDot.classList.add('hidden');
+    }
+  }
+
   el.adminToggleBtn.addEventListener('click', () => {
     if (state.isAdmin) {
       state.isAdmin = false;
-      el.adminToggleBtn.textContent = '🔒 Admin Unlock';
-      el.adminToggleBtn.className = 'btn btn-admin';
+      updateAdminUI();
       updateUserDisplay();
       renderSchedule();
       showToast('Admin mode locked');
@@ -1448,8 +1478,7 @@
     const pin = el.adminPinInput.value.trim();
     if (pin === "IXL2026") {
       state.isAdmin = true;
-      el.adminToggleBtn.textContent = '🔓 Admin Active';
-      el.adminToggleBtn.className = 'btn btn-admin unlocked';
+      updateAdminUI();
       closeModal(el.adminPinModal);
       updateUserDisplay();
       renderSchedule();
@@ -1591,11 +1620,55 @@
   });
 
   // -------------------------------------------------------------
+  // Settings & Tools Expandable Drawer Navigation
+  // -------------------------------------------------------------
+
+  function toggleSettingsDrawer(open) {
+    if (!el.settingsSidebar) return;
+    const isOpen = el.settingsSidebar.classList.contains('open');
+    const shouldOpen = open !== undefined ? open : !isOpen;
+
+    if (shouldOpen) {
+      el.settingsSidebar.classList.add('open');
+      if (el.settingsSidebarOverlay) el.settingsSidebarOverlay.classList.remove('hidden');
+    } else {
+      el.settingsSidebar.classList.remove('open');
+      if (el.settingsSidebarOverlay) el.settingsSidebarOverlay.classList.add('hidden');
+    }
+  }
+
+  if (el.toggleSettingsSidebarBtn) {
+    el.toggleSettingsSidebarBtn.addEventListener('click', () => toggleSettingsDrawer());
+  }
+
+  if (el.dockedSettingsBtn) {
+    el.dockedSettingsBtn.addEventListener('click', () => toggleSettingsDrawer(true));
+  }
+
+  if (el.closeSettingsSidebarBtn) {
+    el.closeSettingsSidebarBtn.addEventListener('click', () => toggleSettingsDrawer(false));
+  }
+
+  if (el.collapseSettingsBtn) {
+    el.collapseSettingsBtn.addEventListener('click', () => toggleSettingsDrawer(false));
+  }
+
+  if (el.settingsSidebarOverlay) {
+    el.settingsSidebarOverlay.addEventListener('click', () => toggleSettingsDrawer(false));
+  }
+
+  // -------------------------------------------------------------
   // Modal Utilities & Toast
   // -------------------------------------------------------------
 
-  function openModal(modalEl) { modalEl.classList.remove('hidden'); }
-  function closeModal(modalEl) { modalEl.classList.add('hidden'); }
+  function openModal(modalEl) {
+    toggleSettingsDrawer(false);
+    modalEl.classList.remove('hidden');
+  }
+
+  function closeModal(modalEl) {
+    modalEl.classList.add('hidden');
+  }
 
   document.querySelectorAll('.modal-close').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -1607,6 +1680,7 @@
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeCellPopover();
+      toggleSettingsDrawer(false);
       document.querySelectorAll('.modal').forEach(m => closeModal(m));
     }
   });
