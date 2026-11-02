@@ -39,8 +39,8 @@
   --badge-tender-text: #6b21a8;
   --badge-train-bg: #dcfce7;
   --badge-train-text: #15803d;
-  --badge-sup-bg: #ffedd5;
-  --badge-sup-text: #c2410c;
+  --badge-sup-bg: #dcfce7;
+  --badge-sup-text: #15803d;
   --badge-off-bg: #f1f5f9;
   --badge-off-text: #64748b;
 
@@ -556,8 +556,8 @@ body {
   --badge-tender-text: #d8b4fe;
   --badge-train-bg: #052e16;
   --badge-train-text: #86efac;
-  --badge-sup-bg: #431407;
-  --badge-sup-text: #fdba74;
+  --badge-sup-bg: #052e16;
+  --badge-sup-text: #86efac;
   --badge-off-bg: #1e293b;
   --badge-off-text: #94a3b8;
 
@@ -744,6 +744,10 @@ body {
 [data-theme="dark"] .admin-badge {
   background: #2d3748;
   color: #cbd5e1;
+}
+[data-theme="dark"] .metric-card {
+  background: #161f30 !important;
+  border-color: var(--border-light) !important;
 }
 [data-theme="dark"] .data-table-wrapper {
   border-color: var(--border-light);
@@ -976,11 +980,11 @@ body {
   white-space: nowrap;
 }
 
-.pill-proj { background: var(--badge-proj-bg); color: var(--badge-proj-text); }
-.pill-tender { background: var(--badge-tender-bg); color: var(--badge-tender-text); }
-.pill-training { background: var(--badge-train-bg); color: var(--badge-train-text); }
-.pill-support { background: var(--badge-sup-bg); color: var(--badge-sup-text); }
-.pill-off { background: var(--badge-off-bg); color: var(--badge-off-text); border: 1px solid #cbd5e1; }
+.pill-proj, .pill.proj { background: var(--badge-proj-bg); color: var(--badge-proj-text); }
+.pill-tender, .pill.tender { background: var(--badge-tender-bg); color: var(--badge-tender-text); }
+.pill-training, .pill.training { background: var(--badge-train-bg); color: var(--badge-train-text); }
+.pill-support, .pill.support { background: var(--badge-sup-bg); color: var(--badge-sup-text); }
+.pill-off, .pill.off { background: var(--badge-off-bg); color: var(--badge-off-text); border: 1px solid #cbd5e1; }
 
 /* Requirement 9: Missing Day Pill */
 .pill-missing {
@@ -1054,7 +1058,20 @@ body {
 }
 
 /* Sticky Left Employee Column */
-.schedule-table th.col-user,
+.schedule-table th.col-user {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 25;
+  text-align: left;
+  padding: 6px 14px;
+  width: var(--user-col-width, 210px);
+  min-width: var(--user-col-width, 210px);
+  max-width: var(--user-col-width, 210px);
+  border-right: 2px solid var(--border-light);
+  white-space: nowrap;
+}
+
 .schedule-table td.col-user {
   position: sticky;
   left: 0;
@@ -1067,6 +1084,8 @@ body {
   max-width: var(--user-col-width, 210px);
   border-right: 2px solid var(--border-light);
   white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
 }
 
 .schedule-table thead th.col-user {
@@ -1560,7 +1579,7 @@ td.col-slot.is-selected-cell .task-chip {
 .task-chip.support {
   background: var(--badge-sup-bg);
   color: var(--badge-sup-text);
-  border-color: #fed7aa;
+  border-color: #bbf7d0;
 }
 
 .task-chip.off {
@@ -2190,15 +2209,6 @@ body.view-only .task-chip {
   font-size: 14px;
 }
 
-.admin-badge-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
-  animation: pulse-red 1.5s infinite;
-}
-
 /* Floating Docked Tab on the Right Edge */
 .docked-settings-pill {
   position: fixed;
@@ -2239,14 +2249,6 @@ body.view-only .task-chip {
   letter-spacing: 0.08em;
   color: var(--text-secondary);
   text-transform: uppercase;
-}
-
-.docked-admin-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
 }
 
 /* Overlay */

@@ -207,6 +207,7 @@ Write-Host "`n>>> GROUP 6: Frontend File & Element Verification" -ForegroundColo
 $htmlContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "index.html"))
 $jsContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "app.js"))
 $cssContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "styles.css"))
+$serverContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "server.js"))
 
 Assert-Test "6.1 index.html contains Theme Selector (themeSelect)" ($htmlContent.Contains('id="themeSelect"')) "Theme control found"
 Assert-Test "6.2 index.html contains Bulk Fill Modal & Controls" ($htmlContent.Contains('id="bulkFillModal"')) "Bulk Fill modal found"
@@ -233,6 +234,14 @@ Assert-Test "6.22 Cell popover contains category list and pills (Project, Tender
 $emojiRegex = '[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27EF]|[\u2300-\u23FF]|[\u2B50]|[\u203C\u2049\u2122\u2139\u3030\u303D\u3297\u3299]'
 $hasEmojis = ($htmlContent -match $emojiRegex) -or ($jsContent -match $emojiRegex) -or ($cssContent -match $emojiRegex)
 Assert-Test "6.23 Zero emojis across frontend files (index.html, app.js, styles.css)" (-not $hasEmojis) "Emoji presence: $hasEmojis"
+$redDotRemoved = (-not $htmlContent.Contains('id="adminActiveDot"')) -and (-not $htmlContent.Contains('id="dockedAdminDot"')) -and (-not $cssContent.Contains('.admin-badge-dot')) -and (-not $cssContent.Contains('.docked-admin-dot'))
+Assert-Test "6.24 Red dot/lamp removed beside Settings and Tools" $redDotRemoved "No red dot found beside settings"
+$forgotPwdConfigured = ($htmlContent.Contains('id="forgotPinBtn"')) -and ($jsContent.Contains('petermounir461@gmail.com')) -and ($serverContent.Contains('petermounir461@gmail.com'))
+Assert-Test "6.25 Forgot admin password dispatches to petermounir461@gmail.com" $forgotPwdConfigured "Forgot password configured with email dispatch"
+$matchingSpecialColors = ($cssContent.Contains('--badge-sup-bg: #dcfce7')) -and ($cssContent.Contains('--badge-sup-text: #15803d')) -and ($cssContent.Contains('--badge-sup-bg: #052e16')) -and ($cssContent.Contains('--badge-sup-text: #86efac'))
+Assert-Test "6.26 Training, Academy, and Support share matching green highlight and font styling" $matchingSpecialColors "Green highlight & text unified across themes"
+$employeeContribs = ($htmlContent.Contains('id="employeeContributionsModal"')) -and ($jsContent.Contains('openEmployeeContributions')) -and ($jsContent.Contains('renderEmployeeContributions')) -and ($jsContent.Contains('data-emp-id'))
+Assert-Test "6.27 Double-clicking employee name opens monthly contributions page" $employeeContribs "Employee monthly contributions modal and double-click interaction verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

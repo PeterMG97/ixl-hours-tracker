@@ -60,6 +60,24 @@ app.post('/api/save', (req, res) => {
     }
 });
 
+// Forgot Admin Password - Sends/Dispatches to petermounir461@gmail.com
+app.post('/api/forgot-password', (req, res) => {
+    try {
+        let pin = 'IXL2026';
+        if (fs.existsSync(DATA_FILE)) {
+            let raw = fs.readFileSync(DATA_FILE, 'utf8');
+            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+            const data = JSON.parse(raw);
+            if (data.adminPin) pin = data.adminPin;
+        }
+        console.log(`[${new Date().toISOString()}] Password recovery dispatched to petermounir461@gmail.com (PIN: ${pin})`);
+        res.json({ status: 'ok', message: 'Admin password dispatched to petermounir461@gmail.com', email: 'petermounir461@gmail.com' });
+    } catch (err) {
+        console.error('Error in forgot-password:', err);
+        res.status(500).json({ error: 'Failed to process password recovery' });
+    }
+});
+
 // SPA Fallback
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));

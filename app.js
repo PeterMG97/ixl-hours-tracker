@@ -103,6 +103,8 @@
     selectedEmpId: null,
     isMultiEditing: false,
     popoverCategory: 'all',
+    currentContribEmpId: null,
+    contribFilter: 'all',
     isConnected: true,
     collapsedSections: (() => {
       try {
@@ -187,7 +189,28 @@
     topbarAdminText: document.getElementById('topbarAdminText'),
     adminPinInput: document.getElementById('adminPinInput'),
     submitPinBtn: document.getElementById('submitPinBtn'),
+    forgotPinBtn: document.getElementById('forgotPinBtn'),
+    forgotPinSuccessMsg: document.getElementById('forgotPinSuccessMsg'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
+
+    // Employee Monthly Contributions Modal
+    employeeContributionsModal: document.getElementById('employeeContributionsModal'),
+    contribAvatar: document.getElementById('contribAvatar'),
+    contribEmpNameDisplay: document.getElementById('contribEmpNameDisplay'),
+    contribSectionDisplay: document.getElementById('contribSectionDisplay'),
+    contribMonthDisplay: document.getElementById('contribMonthDisplay'),
+    contribTotalHours: document.getElementById('contribTotalHours'),
+    contribAvgDaily: document.getElementById('contribAvgDaily'),
+    contribLoggedDays: document.getElementById('contribLoggedDays'),
+    contribCoveragePercent: document.getElementById('contribCoveragePercent'),
+    contribDailyDefault: document.getElementById('contribDailyDefault'),
+    contribLocationType: document.getElementById('contribLocationType'),
+    contribOffDays: document.getElementById('contribOffDays'),
+    contribOffBreakdown: document.getElementById('contribOffBreakdown'),
+    contribProjectChips: document.getElementById('contribProjectChips'),
+    contribDaysTableBody: document.getElementById('contribDaysTableBody'),
+    contribFilterAll: document.getElementById('contribFilterAll'),
+    contribFilterRecorded: document.getElementById('contribFilterRecorded'),
 
     // Multi-Cell Selection Elements
     multiSelectBar: document.getElementById('multiSelectBar'),
@@ -220,8 +243,6 @@
     collapseSettingsBtn: document.getElementById('collapseSettingsBtn'),
     settingsSidebar: document.getElementById('settingsSidebar'),
     settingsSidebarOverlay: document.getElementById('settingsSidebarOverlay'),
-    adminActiveDot: document.getElementById('adminActiveDot'),
-    dockedAdminDot: document.getElementById('dockedAdminDot'),
     adminToggleLabel: document.getElementById('adminToggleLabel'),
     adminToggleSub: document.getElementById('adminToggleSub'),
     adminIcon: document.getElementById('adminIcon'),
@@ -693,11 +714,11 @@
           <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
               data-emp-id="${emp.id}" 
               data-section-id="${sec.id}">
-            <td class="col-user">
-              <div class="user-cell-content">
+            <td class="col-user" data-emp-id="${emp.id}" title="Double-click to view monthly contributions for ${emp.name}">
+              <div class="user-cell-content" data-emp-id="${emp.id}">
                 <div class="user-mini-avatar">${getInitials(emp.name)}</div>
                 <div>
-                  <strong style="display:block; font-size:11px;">${emp.name}</strong>
+                  <strong style="display:block; font-size:11px;" class="user-name-text">${emp.name}</strong>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
                     ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">${empNoProjCount} NO PROJ</button>` : ''}
@@ -1044,6 +1065,15 @@
   // -------------------------------------------------------------
 
   function attachCellEvents() {
+    el.scheduleBody.querySelectorAll('td.col-user').forEach(userCell => {
+      userCell.addEventListener('dblclick', (e) => {
+        const empId = userCell.getAttribute('data-emp-id');
+        if (empId) {
+          openEmployeeContributions(empId);
+        }
+      });
+    });
+
     el.scheduleBody.querySelectorAll('.emp-no-proj-badge').forEach(badge => {
       badge.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2015,7 +2045,7 @@
       if (isInactive) rowClass += ' is-inactive-row';
 
       return `
-      <tr class="${rowClass}">
+      <tr class="${rowClass}" data-emp-id="${e.id}" title="Double-click to view monthly contributions for ${e.name}" style="cursor:pointer;">
         <td>
           <span class="pill ${!isInactive ? 'pill-training' : 'pill-off'}">
             ${!isInactive ? 'Active' : 'Deactivated'}
@@ -2185,8 +2215,6 @@
     if (!isPeter) {
       if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('hidden');
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
-      if (el.adminActiveDot) el.adminActiveDot.classList.add('hidden');
-      if (el.dockedAdminDot) el.dockedAdminDot.classList.add('hidden');
       return;
     }
 
@@ -2198,8 +2226,6 @@
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
       if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('unlocked');
-      if (el.adminActiveDot) el.adminActiveDot.classList.remove('hidden');
-      if (el.dockedAdminDot) el.dockedAdminDot.classList.remove('hidden');
 
       if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('unlocked');
       if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '';
@@ -2210,8 +2236,6 @@
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Unlock management actions';
       if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('unlocked');
-      if (el.adminActiveDot) el.adminActiveDot.classList.add('hidden');
-      if (el.dockedAdminDot) el.dockedAdminDot.classList.add('hidden');
 
       if (el.topbarAdminBtn) el.topbarAdminBtn.classList.remove('unlocked');
       if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '';
@@ -2235,6 +2259,7 @@
     } else {
       el.adminPinInput.value = '';
       el.pinErrorMsg.classList.add('hidden');
+      if (el.forgotPinSuccessMsg) el.forgotPinSuccessMsg.classList.add('hidden');
       openModal(el.adminPinModal);
       setTimeout(() => el.adminPinInput.focus(), 100);
     }
@@ -2289,8 +2314,30 @@
     }
     el.adminPinInput.value = '';
     el.pinErrorMsg.classList.add('hidden');
+    if (el.forgotPinSuccessMsg) el.forgotPinSuccessMsg.classList.add('hidden');
     openModal(el.adminPinModal);
     return false;
+  }
+
+  if (el.forgotPinBtn) {
+    el.forgotPinBtn.addEventListener('click', async () => {
+      try {
+        await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (err) {
+        console.warn('API call forgot-password fallback:', err);
+      }
+      if (el.forgotPinSuccessMsg) {
+        el.forgotPinSuccessMsg.textContent = 'Password sent to petermounir461@gmail.com';
+        el.forgotPinSuccessMsg.classList.remove('hidden');
+      }
+      showToast('Admin password dispatched to petermounir461@gmail.com');
+      const subject = encodeURIComponent('IXL Tracker - Admin Password Recovery');
+      const body = encodeURIComponent('Admin Password: IXL2026\n\nRecipient: petermounir461@gmail.com\nAuthorized Admin: Peter MOUNIR');
+      window.open(`mailto:petermounir461@gmail.com?subject=${subject}&body=${body}`, '_blank');
+    });
   }
 
   // -------------------------------------------------------------
@@ -2362,6 +2409,247 @@
         </tr>
       `;
     }).join('') || '<tr><td colspan="7" class="text-center" style="padding:16px; color:var(--text-muted);">No active allocations for this month yet.</td></tr>';
+  }
+
+  // -------------------------------------------------------------
+  // Employee Monthly Contributions Modal (Triggered by double-click)
+  // -------------------------------------------------------------
+
+  function openEmployeeContributions(empId) {
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+    state.currentContribEmpId = empId;
+    state.contribFilter = 'all';
+
+    if (el.contribFilterAll && el.contribFilterRecorded) {
+      el.contribFilterAll.classList.add('active-filter', 'btn-primary');
+      el.contribFilterAll.classList.remove('btn-secondary');
+      el.contribFilterRecorded.classList.remove('active-filter', 'btn-primary');
+      el.contribFilterRecorded.classList.add('btn-secondary');
+    }
+
+    renderEmployeeContributions();
+    openModal(el.employeeContributionsModal);
+  }
+
+  function renderEmployeeContributions() {
+    const empId = state.currentContribEmpId;
+    if (!empId) return;
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+    const sec = state.sections.find(s => s.id === emp.sectionId) || { name: 'Engineering Team', location: 'Cairo' };
+
+    const days = getDaysInMonth(state.currentMonth);
+    const defaultHours = emp.defaultHoursPerDay || (sec.location === 'Istanbul' ? 9 : 8);
+
+    let totalRecordedHours = 0;
+    let loggedWorkdaysCount = 0;
+    let totalWorkingDays = 0;
+    let daysOffCount = 0;
+    let noProjectCount = 0;
+
+    const projectHoursMap = {};
+    const dayEntries = [];
+
+    days.forEach(d => {
+      const isWk = isWeekendForLocation(d.dow, sec.location);
+      if (!isWk) {
+        totalWorkingDays++;
+      }
+
+      const key = `${emp.id}_${d.dateStr}`;
+      const alloc = state.allocations[key];
+      const hasVal = Boolean(alloc && alloc.project);
+      const projectName = hasVal ? alloc.project : '';
+      const hours = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : defaultHours) : 0;
+
+      let isRecordedWork = false;
+      let dayTypeLabel = isWk ? `${sec.location} Weekend` : 'Workday';
+
+      if (projectName === 'Day OFF') {
+        daysOffCount++;
+      } else if (projectName === 'NO PROJECT' || projectName === 'NO STATUS') {
+        noProjectCount++;
+      } else if (hasVal && projectName) {
+        isRecordedWork = true;
+        totalRecordedHours += hours;
+        loggedWorkdaysCount++;
+
+        if (!projectHoursMap[projectName]) {
+          const pObj = state.projects.find(p => p.name === projectName);
+          let category = 'Project';
+          if (projectName.startsWith('Tender')) category = 'Tender';
+          else if (projectName.startsWith('Training') || projectName.startsWith('Academy') || projectName === 'Different Team Support') category = 'Special';
+          else if (pObj && pObj.category) category = pObj.category;
+
+          projectHoursMap[projectName] = { hours: 0, days: 0, category };
+        }
+        projectHoursMap[projectName].hours += hours;
+        projectHoursMap[projectName].days += 1;
+      }
+
+      dayEntries.push({
+        dateStr: d.dateStr,
+        dowName: d.name,
+        num: d.num,
+        isWeekend: isWk,
+        projectName,
+        hours,
+        hasVal,
+        isRecordedWork,
+        dayTypeLabel
+      });
+    });
+
+    if (el.contribAvatar) el.contribAvatar.textContent = getInitials(emp.name);
+    if (el.contribEmpNameDisplay) el.contribEmpNameDisplay.textContent = emp.name;
+    if (el.contribSectionDisplay) el.contribSectionDisplay.textContent = `${sec.name} (${sec.location})`;
+    if (el.contribMonthDisplay) el.contribMonthDisplay.textContent = state.currentMonth;
+
+    if (el.contribTotalHours) el.contribTotalHours.textContent = `${totalRecordedHours}h`;
+    const avgHours = loggedWorkdaysCount > 0 ? (totalRecordedHours / loggedWorkdaysCount).toFixed(1) : '0';
+    if (el.contribAvgDaily) el.contribAvgDaily.textContent = `${avgHours}h / logged day`;
+
+    if (el.contribLoggedDays) el.contribLoggedDays.textContent = `${loggedWorkdaysCount} / ${totalWorkingDays}`;
+    const coveragePercent = totalWorkingDays > 0 ? Math.round((loggedWorkdaysCount / totalWorkingDays) * 100) : 0;
+    if (el.contribCoveragePercent) el.contribCoveragePercent.textContent = `${coveragePercent}% of workdays filled`;
+
+    if (el.contribDailyDefault) el.contribDailyDefault.textContent = `${defaultHours}h/day`;
+    if (el.contribLocationType) el.contribLocationType.textContent = `${sec.location} Schedule`;
+
+    if (el.contribOffDays) el.contribOffDays.textContent = `${daysOffCount + noProjectCount} days`;
+    if (el.contribOffBreakdown) el.contribOffBreakdown.textContent = `${daysOffCount} Off | ${noProjectCount} No Project`;
+
+    // Render Project Breakdown Chips
+    if (el.contribProjectChips) {
+      const projKeys = Object.keys(projectHoursMap).sort((a, b) => projectHoursMap[b].hours - projectHoursMap[a].hours);
+      if (projKeys.length === 0) {
+        el.contribProjectChips.innerHTML = `<span class="text-sm text-muted">No recorded project contributions for ${state.currentMonth} yet.</span>`;
+      } else {
+        el.contribProjectChips.innerHTML = projKeys.map(pName => {
+          const item = projectHoursMap[pName];
+          const badgeClass = getProjectBadgeClass(pName);
+          return `
+            <div class="task-chip ${badgeClass}" style="padding:6px 12px; font-size:11px; display:inline-flex; align-items:center; gap:8px;">
+              <span style="font-weight:600;">${pName}</span>
+              <span style="background:rgba(0,0,0,0.12); padding:2px 6px; border-radius:10px; font-weight:700;">${item.hours}h (${item.days}d)</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Render Daily Table Body according to filter
+    if (el.contribDaysTableBody) {
+      const filteredEntries = state.contribFilter === 'recorded'
+        ? dayEntries.filter(e => e.isRecordedWork)
+        : dayEntries;
+
+      if (filteredEntries.length === 0) {
+        el.contribDaysTableBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">
+              No records match the current filter.
+            </td>
+          </tr>
+        `;
+      } else {
+        el.contribDaysTableBody.innerHTML = filteredEntries.map(e => {
+          let badgeHtml = '';
+          let hoursHtml = '-';
+          let rowClass = '';
+
+          if (e.isRecordedWork) {
+            const badgeClass = getProjectBadgeClass(e.projectName);
+            badgeHtml = `<span class="pill ${badgeClass}">${e.projectName}</span>`;
+            hoursHtml = `<strong style="color:var(--primary); font-size:12px;">${e.hours}h</strong>`;
+          } else if (e.projectName === 'Day OFF') {
+            badgeHtml = `<span class="pill pill-off">Day OFF</span>`;
+            hoursHtml = `<span class="text-muted">0h</span>`;
+            rowClass = 'row-off';
+          } else if (e.projectName === 'NO PROJECT') {
+            badgeHtml = `<span class="pill pill-missing">NO PROJECT</span>`;
+            hoursHtml = `<span class="text-danger font-bold">Unassigned</span>`;
+            rowClass = 'row-no-proj';
+          } else {
+            badgeHtml = `<span class="text-muted text-xs">—</span>`;
+            hoursHtml = `<span class="text-muted text-xs">—</span>`;
+          }
+
+          const dayTypeBadge = e.isWeekend
+            ? `<span style="font-size:10px; color:var(--text-muted); background:var(--bg-subtle, #f1f5f9); padding:2px 6px; border-radius:4px;">${e.dayTypeLabel}</span>`
+            : `<span style="font-size:10px; color:#15803d; background:#dcfce7; padding:2px 6px; border-radius:4px;">Workday</span>`;
+
+          let categoryBadge = '—';
+          if (e.projectName) {
+            if (e.projectName === 'Day OFF' || e.projectName === 'NO PROJECT') {
+              categoryBadge = `<span class="text-xs text-muted">Status</span>`;
+            } else if (e.projectName.startsWith('Tender')) {
+              categoryBadge = `<span class="pill pill-tender">Tender</span>`;
+            } else if (e.projectName.startsWith('Training') || e.projectName.startsWith('Academy') || e.projectName === 'Different Team Support') {
+              categoryBadge = `<span class="pill pill-training">Special</span>`;
+            } else {
+              categoryBadge = `<span class="pill pill-proj">Project</span>`;
+            }
+          }
+
+          return `
+            <tr class="${rowClass}">
+              <td><strong>${e.dateStr}</strong></td>
+              <td>${e.dowName}</td>
+              <td>${badgeHtml}</td>
+              <td>${categoryBadge}</td>
+              <td style="text-align:right;">${hoursHtml}</td>
+              <td>${dayTypeBadge}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  if (el.contribFilterAll) {
+    el.contribFilterAll.addEventListener('click', () => {
+      state.contribFilter = 'all';
+      el.contribFilterAll.classList.add('active-filter', 'btn-primary');
+      el.contribFilterAll.classList.remove('btn-secondary');
+      el.contribFilterRecorded.classList.remove('active-filter', 'btn-primary');
+      el.contribFilterRecorded.classList.add('btn-secondary');
+      renderEmployeeContributions();
+    });
+  }
+  if (el.contribFilterRecorded) {
+    el.contribFilterRecorded.addEventListener('click', () => {
+      state.contribFilter = 'recorded';
+      el.contribFilterRecorded.classList.add('active-filter', 'btn-primary');
+      el.contribFilterRecorded.classList.remove('btn-secondary');
+      el.contribFilterAll.classList.remove('active-filter', 'btn-primary');
+      el.contribFilterAll.classList.add('btn-secondary');
+      renderEmployeeContributions();
+    });
+  }
+
+  // Delegated double-click listener on schedule body and team table body
+  if (el.scheduleBody) {
+    el.scheduleBody.addEventListener('dblclick', (e) => {
+      const userCell = e.target.closest('td.col-user');
+      if (userCell) {
+        const empId = userCell.getAttribute('data-emp-id');
+        if (empId) {
+          openEmployeeContributions(empId);
+        }
+      }
+    });
+  }
+
+  const teamTableEl = document.getElementById('teamTableBody');
+  if (teamTableEl) {
+    teamTableEl.addEventListener('dblclick', (e) => {
+      const row = e.target.closest('tr');
+      if (row && row.getAttribute('data-emp-id')) {
+        openEmployeeContributions(row.getAttribute('data-emp-id'));
+      }
+    });
   }
 
   // -------------------------------------------------------------

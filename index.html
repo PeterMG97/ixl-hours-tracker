@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=2.3">
+  <link rel="stylesheet" href="styles.css?v=2.4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -76,7 +76,6 @@
         <button class="btn-settings-toggle" id="toggleSettingsSidebarBtn" title="Open Settings & Tools menu">
           <span class="settings-gear"></span>
           <span class="settings-text">Settings &amp; Tools</span>
-          <span class="admin-badge-dot hidden" id="adminActiveDot" title="Admin Mode Active"></span>
         </button>
       </div>
     </header>
@@ -642,10 +641,95 @@
           <input type="password" id="adminPinInput" class="form-control text-center" placeholder="••••••••" autofocus>
           <span id="pinErrorMsg" class="text-danger text-sm hidden" style="margin-top:4px; display:block;">Incorrect password. Try again.</span>
         </div>
+        <div style="margin-top: 12px; text-align: center;">
+          <button type="button" class="btn-link text-sm" id="forgotPinBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px; padding:4px;">Forgot Admin Password?</button>
+          <div id="forgotPinSuccessMsg" class="text-success text-sm hidden" style="margin-top: 8px; font-weight: 500;">Password sent to petermounir461@gmail.com</div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary modal-close">Cancel</button>
         <button class="btn btn-primary" id="submitPinBtn">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Monthly Contributions Modal (Triggered by double-clicking employee name) -->
+  <div id="employeeContributionsModal" class="modal hidden">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div class="modal-title-group" style="display:flex; align-items:center; gap:12px;">
+          <div class="user-mini-avatar" id="contribAvatar" style="width:40px; height:40px; font-size:14px;">PM</div>
+          <div>
+            <h3 id="contribEmpNameDisplay" style="margin:0;">Employee Contributions</h3>
+            <p class="modal-subtitle" style="margin:2px 0 0 0;">
+              <span id="contribSectionDisplay"></span> &bull; Recorded Hours for <strong id="contribMonthDisplay"></strong>
+            </p>
+          </div>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top:16px;">
+        <!-- Top Summary Metric Cards -->
+        <div class="contrib-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:18px;">
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Total Recorded Hours</div>
+            <div id="contribTotalHours" style="font-size:24px; font-weight:700; color:var(--primary); margin-top:4px;">0h</div>
+            <div id="contribAvgDaily" style="font-size:11px; color:var(--text-muted); margin-top:2px;">0h / logged day</div>
+          </div>
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Workdays Logged</div>
+            <div id="contribLoggedDays" style="font-size:24px; font-weight:700; color:var(--text-main); margin-top:4px;">0 / 0</div>
+            <div id="contribCoveragePercent" style="font-size:11px; color:var(--text-muted); margin-top:2px;">0% of workdays filled</div>
+          </div>
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Standard Daily Shift</div>
+            <div id="contribDailyDefault" style="font-size:24px; font-weight:700; color:var(--text-main); margin-top:4px;">8h</div>
+            <div id="contribLocationType" style="font-size:11px; color:var(--text-muted); margin-top:2px;">Office Shift</div>
+          </div>
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Days Off / No Project</div>
+            <div id="contribOffDays" style="font-size:24px; font-weight:700; color:var(--text-muted); margin-top:4px;">0 days</div>
+            <div id="contribOffBreakdown" style="font-size:11px; color:var(--text-muted); margin-top:2px;">0 Off | 0 Unassigned</div>
+          </div>
+        </div>
+
+        <!-- Project Breakdown Badges -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:8px; color:var(--text-main);">Hours by Project &amp; Category:</div>
+          <div id="contribProjectChips" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        </div>
+
+        <!-- Detailed Days Table Filter Bar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:13px; font-weight:600; color:var(--text-main);">Daily Contributions Log:</div>
+          <div class="btn-group" style="display:flex; gap:6px;">
+            <button type="button" class="btn btn-sm btn-primary active-filter" id="contribFilterAll">All Month Days</button>
+            <button type="button" class="btn btn-sm btn-secondary" id="contribFilterRecorded">Recorded Work Only</button>
+          </div>
+        </div>
+
+        <!-- Detailed Day-by-Day Table -->
+        <div class="table-container" style="max-height: 420px; overflow-y: auto;">
+          <table class="data-table" id="contribDaysTable" style="width:100%;">
+            <thead>
+              <tr>
+                <th style="width: 130px;">Date</th>
+                <th style="width: 100px;">Day</th>
+                <th>Project / Task Contributed</th>
+                <th style="width: 120px;">Category</th>
+                <th style="width: 110px; text-align:right;">Recorded Hours</th>
+                <th style="width: 130px;">Day Status</th>
+              </tr>
+            </thead>
+            <tbody id="contribDaysTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="text-xs text-muted">Double-click any team member on the grid to inspect their monthly contributions.</span>
+        <button class="btn btn-secondary modal-close">Close</button>
       </div>
     </div>
   </div>
@@ -765,7 +849,6 @@
   <button class="docked-settings-pill" id="dockedSettingsBtn" title="Expand Settings & Tools">
     <span class="docked-gear"></span>
     <span class="docked-text">Settings</span>
-    <span class="docked-admin-dot hidden" id="dockedAdminDot"></span>
   </button>
 
   <!-- Floating Multi-Cell Selection Bar -->
@@ -796,6 +879,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=2.3"></script>
+  <script src="app.js?v=2.4"></script>
 </body>
 </html>
