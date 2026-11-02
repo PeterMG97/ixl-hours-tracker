@@ -41,7 +41,6 @@
           </button>
         </div>
 
-
       </div>
 
       <div class="header-right">
@@ -93,10 +92,6 @@
     <!-- Control Strip (Stats Bar) -->
     <div class="control-strip">
       <div class="strip-stats">
-        <div class="stat-bubble">
-          <span class="stat-bubble-label">Active Team:</span>
-          <strong id="statActiveEmployees">27</strong>
-        </div>
         <div class="stat-bubble">
           <span class="stat-bubble-label" id="labelCurrentMonthHours">Month Hours:</span>
           <strong id="statCurrentMonthHours">0h</strong>
@@ -479,7 +474,12 @@
     <div class="modal-dialog modal-xl">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h3>Team Members &amp; Office Allocation</h3>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h3 style="margin:0;">Team Members &amp; Office Allocation</h3>
+            <span class="badge" id="teamModalHeaderBadge" style="background:var(--primary-soft, #eff6ff); color:var(--primary, #1d4ed8); font-weight:700; font-size:11px; padding:3px 10px; border-radius:12px; border:1px solid var(--border-medium, #bfdbfe);">
+              Active Team: <strong id="teamModalActiveMembersCount">27</strong>
+            </span>
+          </div>
           <p class="modal-subtitle">Manage engineers, office sections, and daily default hours.</p>
         </div>
         <button class="modal-close-icon modal-close">&times;</button>
@@ -886,7 +886,7 @@
           <span class="action-card-icon"></span>
           <div class="action-card-text">
             <strong>Team Members</strong>
-            <span>Cairo &amp; Istanbul engineers</span>
+            <span id="settingsTeamSub">Cairo &amp; Istanbul engineers &bull; <strong id="settingsTeamActiveCount">27</strong> Active</span>
           </div>
           <span class="action-card-arrow">›</span>
         </button>

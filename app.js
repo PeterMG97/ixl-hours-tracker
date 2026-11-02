@@ -759,7 +759,11 @@
 
     el.scheduleBody.innerHTML = bodyHtml;
 
-    el.statActiveEmployees.textContent = activeEmpCount;
+    if (el.statActiveEmployees) el.statActiveEmployees.textContent = activeEmpCount;
+    const teamModalCount = document.getElementById('teamModalActiveMembersCount');
+    if (teamModalCount) teamModalCount.textContent = activeEmpCount;
+    const settingsActiveCount = document.getElementById('settingsTeamActiveCount');
+    if (settingsActiveCount) settingsActiveCount.textContent = activeEmpCount;
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const [y, m] = state.currentMonth.split('-').map(Number);
@@ -2105,6 +2109,12 @@
 
   function renderTeamModal() {
     populateSectionDropdowns();
+    const activeCount = state.employees.filter(e => e.active !== false).length;
+    const teamModalCount = document.getElementById('teamModalActiveMembersCount');
+    if (teamModalCount) teamModalCount.textContent = activeCount;
+    const settingsActiveCount = document.getElementById('settingsTeamActiveCount');
+    if (settingsActiveCount) settingsActiveCount.textContent = activeCount;
+
     const tbody = document.getElementById('teamTableBody');
     const filterText = (document.getElementById('filterTeamTableInput').value || '').toLowerCase();
     const showInactive = document.getElementById('showInactiveMembersCheckbox').checked;

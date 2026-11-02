@@ -255,6 +255,8 @@ $hoursMinMaxEnforced = ($htmlContent -match 'id="popoverHoursInput"[^>]*min="1"[
 Assert-Test "6.32 Daily hours per project/tender/special enforced between minimum 1h and maximum 12h" $hoursMinMaxEnforced "HTML min/max attributes and JavaScript sanitizeDayHours validation verified"
 $legendRemoved = (-not $htmlContent.Contains('class="legend-pills"')) -and (-not $htmlContent.Contains('class="legend-heading"'))
 Assert-Test "6.33 Legend pills bar completely removed from DOM" $legendRemoved "Legend pills and heading verified removed from layout"
+$activeTeamOnlyInTeamPart = (-not $htmlContent.Contains('<span class="stat-bubble-label">Active Team:</span>')) -and ($htmlContent.Contains('id="teamModalActiveMembersCount"')) -and ($jsContent.Contains('teamModalActiveMembersCount'))
+Assert-Test "6.34 Active Team count included exclusively inside Team Members section and removed from control strip" $activeTeamOnlyInTeamPart "Active team count placed in team modal and removed from main stats bar"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT
