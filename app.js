@@ -33,7 +33,6 @@
     pendingAdminCell: null,
     selectedCells: new Set(),
     selectedEmpId: null,
-    isSelectMode: false,
     isMultiEditing: false,
     isConnected: true,
     collapsedSections: (() => {
@@ -122,7 +121,6 @@
     pinErrorMsg: document.getElementById('pinErrorMsg'),
 
     // Multi-Cell Selection Elements
-    btnToggleSelectMode: document.getElementById('btnToggleSelectMode'),
     multiSelectBar: document.getElementById('multiSelectBar'),
     multiSelectCount: document.getElementById('multiSelectCount'),
     multiSelectEmpName: document.getElementById('multiSelectEmpName'),
@@ -901,7 +899,7 @@
 
         const targetBtn = slot.querySelector('.task-chip') || slot;
         const key = `${empId}_${dateStr}`;
-        const isMulti = e.ctrlKey || e.metaKey || state.isSelectMode;
+        const isMulti = e.ctrlKey || e.metaKey;
 
         // Permission check: Admin or Self can edit/select
         const canEditThisRow = state.isAdmin || (state.currentUserId === empId);
@@ -1161,30 +1159,11 @@
       !el.cellPopover.contains(e.target) && 
       !e.target.closest('.task-chip') && 
       !e.target.closest('td.col-slot') && 
-      !e.target.closest('#multiSelectBar') && 
-      !e.target.closest('#btnToggleSelectMode')
+      !e.target.closest('#multiSelectBar')
     ) {
       closeCellPopover();
     }
   });
-
-  // Wire Multi-Select UI buttons
-  if (el.btnToggleSelectMode) {
-    el.btnToggleSelectMode.addEventListener('click', () => {
-      state.isSelectMode = !state.isSelectMode;
-      el.btnToggleSelectMode.classList.toggle('active', state.isSelectMode);
-      document.body.classList.toggle('select-mode-active', state.isSelectMode);
-      const textEl = el.btnToggleSelectMode.querySelector('.select-mode-text');
-      if (textEl) {
-        textEl.textContent = state.isSelectMode ? 'Multi-Select ON' : 'Multi-Select';
-      }
-      if (state.isSelectMode) {
-        showToast('Select Mode ON: Click any cells in your row to select or unselect.');
-      } else {
-        showToast('Select Mode OFF');
-      }
-    });
-  }
 
   if (el.multiEditAssignBtn) {
     el.multiEditAssignBtn.addEventListener('click', () => {
