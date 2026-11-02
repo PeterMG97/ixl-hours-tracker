@@ -222,6 +222,7 @@ Assert-Test "6.13 Top bar contains Quick Admin toggle (topbarAdminBtn) and persi
 Assert-Test "6.14 Multi-cell selection enabled (multiSelectBar & toggleCellSelection)" ($htmlContent.Contains('id="multiSelectBar"') -and $jsContent.Contains('toggleCellSelection')) "Multi-cell selection found"
 Assert-Test "6.15 Personal Month Hours and Unfilled counters calculated for identified user" ($jsContent.Contains('statCurrentMonthHours') -and $jsContent.Contains('statUnfilledDays') -and $jsContent.Contains('currentEmp') -and $jsContent.Contains('userMonthHours')) "Individual month stat counters verified"
 Assert-Test "6.16 Device persistence for user identity implements LocalStorage and Cookie fallback with ID and Name resolution" ($jsContent.Contains('persistUserIdentity') -and $jsContent.Contains('resolveStoredUser') -and $jsContent.Contains('ixl_current_user_name')) "Cross-session device persistence verified"
+Assert-Test "6.17 Admin rights option strictly restricted to Peter MOUNIR" ($jsContent.Contains('isCurrentUserPeter') -and $jsContent.Contains('peter mounir')) "Admin access restricted strictly to Peter MOUNIR"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

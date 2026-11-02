@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=1.5">
+  <link rel="stylesheet" href="styles.css?v=1.6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,8 +41,8 @@
           </button>
         </div>
 
-        <!-- Quick Admin Badge / Unlock Button -->
-        <button class="topbar-admin-badge" id="topbarAdminBtn" title="Admin Mode: Click to unlock or lock admin privileges">
+        <!-- Quick Admin Badge / Unlock Button (Only available to Peter MOUNIR) -->
+        <button class="topbar-admin-badge hidden" id="topbarAdminBtn" title="Admin Mode: Click to unlock or lock admin privileges">
           <span id="topbarAdminIcon">🔒</span>
           <span id="topbarAdminText">Admin Unlock</span>
         </button>
@@ -706,7 +706,7 @@
           <span class="action-card-arrow">›</span>
         </button>
 
-        <button class="settings-action-card admin-card" id="adminToggleBtn">
+        <button class="settings-action-card admin-card hidden" id="adminToggleBtn">
           <span class="action-card-icon" id="adminIcon">🔒</span>
           <div class="action-card-text">
             <strong id="adminToggleLabel">Admin Unlock</strong>
@@ -757,6 +757,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=1.5"></script>
+  <script src="app.js?v=1.6"></script>
 </body>
 </html>

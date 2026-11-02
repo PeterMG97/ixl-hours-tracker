@@ -303,6 +303,12 @@
 
     resolveStoredUser();
 
+    // Admin rights option is ONLY available if using the name (Peter MOUNIR)
+    if (!isCurrentUserPeter()) {
+      state.isAdmin = false;
+      removeStoredItem('ixl_is_admin');
+    }
+
     updateAdminUI();
     updateUserDisplay();
     renderSchedule();
@@ -373,6 +379,17 @@
   }
 
   // -------------------------------------------------------------
+  // Requirement: Admin rights option is ONLY available to Peter MOUNIR
+  // -------------------------------------------------------------
+
+  function isCurrentUserPeter() {
+    if (!state.currentUserId) return false;
+    const emp = state.employees.find(e => e.id === state.currentUserId);
+    if (!emp || !emp.name) return false;
+    return emp.name.trim().toLowerCase() === 'peter mounir';
+  }
+
+  // -------------------------------------------------------------
   // Requirement 7: User Identification & Row Permission Enforcement
   // -------------------------------------------------------------
 
@@ -380,7 +397,7 @@
     if (!state.currentUserId) {
       el.currentUserNameDisplay.textContent = 'Select Your Name';
       el.userAvatarInitials.textContent = '?';
-      if (state.isAdmin) {
+      if (state.isAdmin && isCurrentUserPeter()) {
         el.userPermissionBanner.classList.remove('hidden');
         el.userPermissionBanner.classList.add('admin-active-banner');
         el.userPermissionBanner.innerHTML = `<span>🛡️ <strong>Admin Mode Active:</strong> You have full permission to edit and allocate hours for <em>any employee</em> on any day.</span>`;
@@ -396,14 +413,18 @@
       el.userAvatarInitials.textContent = getInitials(currentEmp.name);
       if (el.permBannerName) el.permBannerName.textContent = currentEmp.name;
       
-      if (state.isAdmin) {
+      if (state.isAdmin && isCurrentUserPeter()) {
         el.userPermissionBanner.classList.remove('hidden');
         el.userPermissionBanner.classList.add('admin-active-banner');
         el.userPermissionBanner.innerHTML = `<span>🛡️ <strong>Admin Mode Active:</strong> You are signed in as <strong>${currentEmp.name}</strong> with full admin permission to edit all cells for all employees.</span>`;
       } else {
         el.userPermissionBanner.classList.remove('admin-active-banner');
         el.userPermissionBanner.classList.remove('hidden');
-        el.userPermissionBanner.innerHTML = `<span>ℹ️ You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row. (Click another employee's cell or 'Admin Unlock' above to edit anyone).</span>`;
+        if (isCurrentUserPeter()) {
+          el.userPermissionBanner.innerHTML = `<span>ℹ️ You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row. (Click 'Admin Unlock' above to edit all employees).</span>`;
+        } else {
+          el.userPermissionBanner.innerHTML = `<span>ℹ️ You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row.</span>`;
+        }
       }
     }
   }
@@ -447,6 +468,14 @@
         const emp = state.employees.find(e => e.id === empId);
         state.currentUserId = empId;
         persistUserIdentity(empId, emp ? emp.name : '');
+
+        // Revoke admin if chosen user is not Peter MOUNIR
+        if (!isCurrentUserPeter()) {
+          state.isAdmin = false;
+          removeStoredItem('ixl_is_admin');
+        }
+
+        updateAdminUI();
         updateUserDisplay();
         closeModal(el.userSelectModal);
         renderSchedule();
@@ -580,7 +609,7 @@
         let empUnfilledDays = 0;
 
         const isSelf = (state.currentUserId === emp.id);
-        const canEditThisRow = !state.isViewOnly && (state.isAdmin || isSelf);
+        const canEditThisRow = !state.isViewOnly && ((state.isAdmin && isCurrentUserPeter()) || isSelf);
 
         let cellsHtml = '';
         days.forEach(d => {
@@ -1016,20 +1045,22 @@
         const key = `${empId}_${dateStr}`;
         const isMulti = e.ctrlKey || e.metaKey;
 
-        // Permission check: Admin or Self can edit/select
-        const canEditThisRow = state.isAdmin || (state.currentUserId === empId);
+        // Permission check: Admin (Peter MOUNIR only) or Self can edit/select
+        const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
 
         if (!canEditThisRow) {
           const targetEmp = state.employees.find(x => x.id === empId);
+          const currentEmp = state.employees.find(x => x.id === state.currentUserId);
           if (isMulti) {
-            const currentEmp = state.employees.find(x => x.id === state.currentUserId);
             showToast(`You can only select cells in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
-          } else {
+          } else if (isCurrentUserPeter()) {
             state.pendingAdminCell = { empId, dateStr, element: targetBtn };
             el.adminPinInput.value = '';
             el.pinErrorMsg.classList.add('hidden');
             openModal(el.adminPinModal);
             showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
+          } else {
+            showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
           }
           return;
         }
@@ -2014,6 +2045,20 @@
   // -------------------------------------------------------------
 
   function updateAdminUI() {
+    const isPeter = isCurrentUserPeter();
+
+    // The admin rights option is ONLY available if using the name (Peter MOUNIR)
+    if (!isPeter) {
+      if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('hidden');
+      if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
+      if (el.adminActiveDot) el.adminActiveDot.classList.add('hidden');
+      if (el.dockedAdminDot) el.dockedAdminDot.classList.add('hidden');
+      return;
+    }
+
+    if (el.topbarAdminBtn) el.topbarAdminBtn.classList.remove('hidden');
+    if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('hidden');
+
     if (state.isAdmin) {
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
@@ -2042,6 +2087,10 @@
   }
 
   function toggleAdminMode() {
+    if (!isCurrentUserPeter()) {
+      showToast('Admin rights are only available to Peter MOUNIR.', 'warning');
+      return;
+    }
     if (state.isAdmin) {
       state.isAdmin = false;
       removeStoredItem('ixl_is_admin');
@@ -2061,6 +2110,11 @@
   if (el.topbarAdminBtn) el.topbarAdminBtn.addEventListener('click', toggleAdminMode);
 
   el.submitPinBtn.addEventListener('click', () => {
+    if (!isCurrentUserPeter()) {
+      showToast('Admin rights are only available to Peter MOUNIR.', 'warning');
+      closeModal(el.adminPinModal);
+      return;
+    }
     const pin = el.adminPinInput.value.trim();
     if (pin === "IXL2026") {
       state.isAdmin = true;
@@ -2094,7 +2148,11 @@
   });
 
   function requireAdmin() {
-    if (state.isAdmin) return true;
+    if (state.isAdmin && isCurrentUserPeter()) return true;
+    if (!isCurrentUserPeter()) {
+      showToast('Admin rights are only available to Peter MOUNIR.', 'warning');
+      return false;
+    }
     el.adminPinInput.value = '';
     el.pinErrorMsg.classList.add('hidden');
     openModal(el.adminPinModal);
