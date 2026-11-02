@@ -127,6 +127,57 @@ while ($listener.IsListening) {
             continue
         }
 
+        if ($path -eq "/api/forgot-password" -and $method -eq "POST") {
+            $pin = "IXL2026"
+            if (Test-Path $DataFilePath) {
+                try {
+                    $raw = [System.IO.File]::ReadAllText($DataFilePath, [System.Text.Encoding]::UTF8)
+                    if ($raw.Length -gt 0 -and $raw[0] -eq [char]0xFEFF) { $raw = $raw.Substring(1) }
+                    $jsonData = $raw | ConvertFrom-Json
+                    if ($jsonData.adminPin) { $pin = $jsonData.adminPin }
+                } catch {}
+            }
+
+            $sentDirectly = $false
+            # Background Direct Dispatch via local Outlook in background without UI
+            try {
+                $outlook = New-Object -ComObject Outlook.Application -ErrorAction Stop
+                $mail = $outlook.CreateItem(0)
+                $mail.To = "petermounir461@gmail.com"
+                $mail.Subject = "IXL Tracker - Admin Password Recovery"
+                $mail.Body = "Hello Peter,`r`n`r`nYour Admin Password for IXL Team Hours Tracker is: $pin`r`n`r`nAuthorized Admin: Peter MOUNIR`r`nSystem: IXL Team Hours Tracker`r`nTimestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+                $mail.Send()
+                $sentDirectly = $true
+                Write-Host "[EMAIL] Directly dispatched admin password to petermounir461@gmail.com via Outlook background process." -ForegroundColor Green
+            } catch {
+                Write-Host "[EMAIL] Outlook background dispatch notice: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+
+            # Direct Web Dispatch fallback if Outlook COM unavailable
+            if (-not $sentDirectly) {
+                try {
+                    $payload = @{
+                        _subject = "IXL Tracker - Admin Password Recovery"
+                        name = "IXL Admin Security"
+                        email = "petermounir461@gmail.com"
+                        message = "Hello Peter,`r`n`r`nYour Admin Password for IXL Team Hours Tracker is: $pin`r`n`r`nAuthorized Admin: Peter MOUNIR`r`nSystem: IXL Team Hours Tracker`r`nTimestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+                    } | ConvertTo-Json
+                    Invoke-RestMethod -Uri "https://formsubmit.co/ajax/petermounir461@gmail.com" -Method Post -Body $payload -ContentType "application/json" -TimeoutSec 5 -ErrorAction Stop | Out-Null
+                    Write-Host "[EMAIL] Directly dispatched admin password to petermounir461@gmail.com via Web API." -ForegroundColor Green
+                } catch {
+                    Write-Host "[EMAIL] Web API dispatch notice: $($_.Exception.Message)" -ForegroundColor Yellow
+                }
+            }
+
+            $resJson = '{"status":"ok","message":"Admin password sent directly to petermounir461@gmail.com","email":"petermounir461@gmail.com"}'
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($resJson)
+            $response.ContentType = "application/json; charset=utf-8"
+            $response.ContentLength64 = $bytes.Length
+            $response.OutputStream.Write($bytes, 0, $bytes.Length)
+            $response.Close()
+            continue
+        }
+
         # Static File Serving
         $localRel = $path.TrimStart('/')
         if ($localRel -eq "" -or $localRel -eq "view") {

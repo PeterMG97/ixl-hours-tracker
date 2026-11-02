@@ -208,6 +208,7 @@ $htmlContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "index.html"))
 $jsContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "app.js"))
 $cssContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "styles.css"))
 $serverContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "server.js"))
+$serverPs1Content = [System.IO.File]::ReadAllText((Join-Path $AppDir "server.ps1"))
 
 Assert-Test "6.1 index.html contains Theme Selector (themeSelect)" ($htmlContent.Contains('id="themeSelect"')) "Theme control found"
 Assert-Test "6.2 index.html contains Bulk Fill Modal & Controls" ($htmlContent.Contains('id="bulkFillModal"')) "Bulk Fill modal found"
@@ -236,8 +237,8 @@ $hasEmojis = ($htmlContent -match $emojiRegex) -or ($jsContent -match $emojiRege
 Assert-Test "6.23 Zero emojis across frontend files (index.html, app.js, styles.css)" (-not $hasEmojis) "Emoji presence: $hasEmojis"
 $redDotRemoved = (-not $htmlContent.Contains('id="adminActiveDot"')) -and (-not $htmlContent.Contains('id="dockedAdminDot"')) -and (-not $cssContent.Contains('.admin-badge-dot')) -and (-not $cssContent.Contains('.docked-admin-dot'))
 Assert-Test "6.24 Red dot/lamp removed beside Settings and Tools" $redDotRemoved "No red dot found beside settings"
-$forgotPwdConfigured = ($htmlContent.Contains('id="forgotPinBtn"')) -and ($jsContent.Contains('petermounir461@gmail.com')) -and ($serverContent.Contains('petermounir461@gmail.com'))
-Assert-Test "6.25 Forgot admin password dispatches to petermounir461@gmail.com" $forgotPwdConfigured "Forgot password configured with email dispatch"
+$forgotPwdConfigured = ($htmlContent.Contains('id="forgotPinBtn"')) -and ($jsContent.Contains('petermounir461@gmail.com')) -and (-not $jsContent.Contains('mailto:')) -and ($serverContent.Contains('petermounir461@gmail.com')) -and ($serverPs1Content.Contains('petermounir461@gmail.com'))
+Assert-Test "6.25 Forgot admin password dispatches directly to petermounir461@gmail.com without opening mail client" $forgotPwdConfigured "Forgot password configured with direct background dispatch (no mailto)"
 $matchingSpecialColors = ($cssContent.Contains('--badge-sup-bg: #dcfce7')) -and ($cssContent.Contains('--badge-sup-text: #15803d')) -and ($cssContent.Contains('--badge-sup-bg: #052e16')) -and ($cssContent.Contains('--badge-sup-text: #86efac'))
 Assert-Test "6.26 Training, Academy, and Support share matching green highlight and font styling" $matchingSpecialColors "Green highlight & text unified across themes"
 $employeeContribs = ($htmlContent.Contains('id="employeeContributionsModal"')) -and ($jsContent.Contains('openEmployeeContributions')) -and ($jsContent.Contains('renderEmployeeContributions')) -and ($jsContent.Contains('data-emp-id'))

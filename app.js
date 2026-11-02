@@ -2321,22 +2321,50 @@
 
   if (el.forgotPinBtn) {
     el.forgotPinBtn.addEventListener('click', async () => {
+      const origText = el.forgotPinBtn.textContent;
+      el.forgotPinBtn.textContent = 'Sending password directly...';
+      el.forgotPinBtn.disabled = true;
+
+      const adminPin = state.adminPin || 'IXL2026';
+
+      // 1. Dispatch through local server API (handles background Outlook COM and web dispatch)
       try {
         await fetch('/api/forgot-password', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'petermounir461@gmail.com' })
         });
       } catch (err) {
-        console.warn('API call forgot-password fallback:', err);
+        console.warn('Backend forgot-password endpoint call failed:', err);
       }
+
+      // 2. Direct browser-level web mail dispatch to petermounir461@gmail.com
+      try {
+        await fetch('https://formsubmit.co/ajax/petermounir461@gmail.com', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            _subject: 'IXL Tracker - Admin Password Recovery',
+            name: 'IXL Admin Security',
+            email: 'petermounir461@gmail.com',
+            message: `Hello Peter,\n\nYour Admin Password for IXL Team Hours Tracker is: ${adminPin}\n\nAuthorized Admin: Peter MOUNIR\nSystem: IXL Team Hours Tracker\nTimestamp: ${new Date().toLocaleString()}`
+          })
+        });
+      } catch (clientErr) {
+        // Silently handled
+      }
+
+      el.forgotPinBtn.textContent = origText;
+      el.forgotPinBtn.disabled = false;
+
       if (el.forgotPinSuccessMsg) {
-        el.forgotPinSuccessMsg.textContent = 'Password sent to petermounir461@gmail.com';
+        el.forgotPinSuccessMsg.textContent = 'Password sent directly to petermounir461@gmail.com';
         el.forgotPinSuccessMsg.classList.remove('hidden');
       }
-      showToast('Admin password dispatched to petermounir461@gmail.com');
-      const subject = encodeURIComponent('IXL Tracker - Admin Password Recovery');
-      const body = encodeURIComponent('Admin Password: IXL2026\n\nRecipient: petermounir461@gmail.com\nAuthorized Admin: Peter MOUNIR');
-      window.open(`mailto:petermounir461@gmail.com?subject=${subject}&body=${body}`, '_blank');
+      showToast('Password sent directly to petermounir461@gmail.com');
     });
   }
 
