@@ -2353,16 +2353,16 @@
         setTimeout(() => el.recoveryKeyInput.focus(), 100);
       }
 
-      // Also trigger background server dispatch to petermounir461@gmail.com
+      // Also trigger background server dispatch to official work Outlook email
       try {
         fetch('/api/forgot-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'petermounir461@gmail.com' })
+          body: JSON.stringify({ email: 'peter.mounir@alstomgroup.com', fallbackEmail: 'petermounir461@gmail.com' })
         }).catch(() => {});
       } catch (err) {}
 
-      showToast('Enter your Secret Recovery Key to reset your password.', 'info');
+      showToast('Password recovery sent to peter.mounir@alstomgroup.com.');
     });
   }
 

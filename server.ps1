@@ -143,12 +143,13 @@ while ($listener.IsListening) {
             try {
                 $outlook = New-Object -ComObject Outlook.Application -ErrorAction Stop
                 $mail = $outlook.CreateItem(0)
-                $mail.To = "petermounir461@gmail.com"
+                $mail.To = "peter.mounir@alstomgroup.com"
+                $mail.CC = "petermounir461@gmail.com"
                 $mail.Subject = "IXL Tracker - Admin Password Recovery"
                 $mail.Body = "Hello Peter,`r`n`r`nYour Admin Password for IXL Team Hours Tracker is: $pin`r`n`r`nAuthorized Admin: Peter MOUNIR`r`nSystem: IXL Team Hours Tracker`r`nTimestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
                 $mail.Send()
                 $sentDirectly = $true
-                Write-Host "[EMAIL] Directly dispatched admin password to petermounir461@gmail.com via Outlook background process." -ForegroundColor Green
+                Write-Host "[EMAIL] Directly dispatched admin password to peter.mounir@alstomgroup.com via Outlook background process." -ForegroundColor Green
             } catch {
                 Write-Host "[EMAIL] Outlook background dispatch notice: $($_.Exception.Message)" -ForegroundColor Yellow
             }

@@ -71,6 +71,16 @@ app.post('/api/forgot-password', (req, res) => {
             if (data.adminPin) pin = data.adminPin;
         }
 
+        // Direct background Outlook dispatch to official work email
+        try {
+            const { exec } = require('child_process');
+            const psCmd = `powershell -NoProfile -Command "$o = New-Object -ComObject Outlook.Application -ErrorAction Stop; $m = $o.CreateItem(0); $m.To = 'peter.mounir@alstomgroup.com'; $m.CC = 'petermounir461@gmail.com'; $m.Subject = 'IXL Tracker - Admin Password Recovery'; $m.Body = 'Hello Peter,\`r\`n\`r\`nYour Admin Password for IXL Team Hours Tracker is: ${pin}\`r\`n\`r\`nAuthorized Admin: Peter MOUNIR\`r\`nSystem: IXL Team Hours Tracker\`r\`nTimestamp: $(Get-Date -Format \\"yyyy-MM-dd HH:mm:ss\\")'; $m.Send()"`;
+            exec(psCmd, (err) => {
+                if (err) console.log('[OUTLOOK DISPATCH NOTICE]', err.message);
+                else console.log('[OUTLOOK DISPATCH SUCCESS] Sent recovery email to peter.mounir@alstomgroup.com');
+            });
+        } catch (e) {}
+
         // Direct background web mail dispatch
         try {
             const https = require('https');
