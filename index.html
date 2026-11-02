@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=1.4">
+  <link rel="stylesheet" href="styles.css?v=1.5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -645,57 +645,7 @@
         </div>
       </div>
 
-      <!-- Section: Column Widths (Excel Style) -->
-      <div class="settings-section">
-        <span class="settings-section-heading">Column Width (Excel Style)</span>
-        <div class="settings-row-item vertical">
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-            <div>
-              <strong>Day Column Density</strong>
-              <span class="setting-desc" id="dayWidthLabel">48px (Compact)</span>
-            </div>
-            <button class="btn btn-ghost btn-xs" id="resetColWidthBtn" title="Reset to standard 48px" style="font-size:11px; padding:2px 6px;">Reset</button>
-          </div>
-          
-          <div class="density-btn-group">
-            <button class="density-btn active" data-width="48">Compact (48px)</button>
-            <button class="density-btn" data-width="75">Medium (75px)</button>
-            <button class="density-btn" data-width="110">Wide (110px)</button>
-            <button class="density-btn" data-width="150">Full (150px)</button>
-          </div>
 
-          <div style="display:flex; align-items:center; gap:10px; width:100%; margin-top:4px;">
-            <span style="font-size:11px; color:var(--text-muted);">40px</span>
-            <input type="range" id="colWidthSlider" min="40" max="180" step="2" value="48" style="flex:1; accent-color:var(--primary);">
-            <span style="font-size:11px; color:var(--text-muted);">180px</span>
-          </div>
-
-          <div style="font-size:11px; color:var(--text-muted); line-height:1.3; margin-top:6px; background:rgba(59,130,246,0.06); padding:6px 8px; border-radius:6px; border:1px dashed rgba(59,130,246,0.2); width:100%;">
-            💡 <strong>Excel Dragging:</strong> Hover between column headers in the table and drag the vertical border to resize any column interactively!
-          </div>
-        </div>
-      </div>
-
-      <!-- Section: Group Visibility (Expand / Shrink) -->
-      <div class="settings-section">
-        <span class="settings-section-heading">Team Groups &amp; Sections</span>
-        <div class="settings-row-item vertical">
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-            <div>
-              <strong>Section Display</strong>
-              <span class="setting-desc" id="sectionsSummaryDesc">All groups expanded</span>
-            </div>
-            <div style="display:flex; gap:4px;">
-              <button class="btn btn-ghost btn-xs" id="btnExpandAllSections" title="Expand all sections" style="font-size:11px; padding:2px 6px;">▾ Expand All</button>
-              <button class="btn btn-ghost btn-xs" id="btnCollapseAllSections" title="Shrink all sections" style="font-size:11px; padding:2px 6px;">▸ Shrink All</button>
-            </div>
-          </div>
-          
-          <div id="sectionTogglesContainer" style="display:flex; flex-direction:column; gap:6px; width:100%; margin-top:4px;">
-            <!-- Dynamically populated list of section toggles -->
-          </div>
-        </div>
-      </div>
 
       <!-- Section: Quick Actions -->
       <div class="settings-section">
@@ -807,6 +757,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=1.4"></script>
+  <script src="app.js?v=1.5"></script>
 </body>
 </html>
