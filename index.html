@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=2.2">
+  <link rel="stylesheet" href="styles.css?v=2.3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
 
         <!-- Quick Admin Badge / Unlock Button (Only available to Peter MOUNIR) -->
         <button class="topbar-admin-badge hidden" id="topbarAdminBtn" title="Admin Mode: Click to unlock or lock admin privileges">
-          <span id="topbarAdminIcon">🔒</span>
+          <span id="topbarAdminIcon"></span>
           <span id="topbarAdminText">Admin Unlock</span>
         </button>
       </div>
@@ -74,7 +74,7 @@
 
         <!-- Settings & Tools Trigger -->
         <button class="btn-settings-toggle" id="toggleSettingsSidebarBtn" title="Open Settings & Tools menu">
-          <span class="settings-gear">⚙️</span>
+          <span class="settings-gear"></span>
           <span class="settings-text">Settings &amp; Tools</span>
           <span class="admin-badge-dot hidden" id="adminActiveDot" title="Admin Mode Active"></span>
         </button>
@@ -83,13 +83,13 @@
 
     <!-- View-Only Alert Banner -->
     <div id="viewModeBanner" class="mode-alert-banner hidden">
-      <span>👁️ <strong>View-Only Mode:</strong> You are viewing the live schedule. Editing is disabled.</span>
+      <span><strong>View-Only Mode:</strong> You are viewing the live schedule. Editing is disabled.</span>
       <a href="?" class="banner-link">Switch to Edit Mode</a>
     </div>
 
     <!-- Active User Permissions Alert (Requirement 7) -->
     <div id="userPermissionBanner" class="user-permission-banner hidden">
-      <span>ℹ️ You are editing as <strong id="permBannerName"></strong>. You can only edit days in your own schedule row.</span>
+      <span>You are editing as <strong id="permBannerName"></strong>. You can only edit days in your own schedule row.</span>
     </div>
 
     <!-- Control Strip & Legend -->
@@ -102,7 +102,7 @@
         <span class="pill pill-support">Different Team Support</span>
         <span class="pill pill-off">Day OFF</span>
         <!-- Requirement 9: Missing Day Highlight -->
-        <span class="pill pill-missing">⚠️ Unfilled Workday</span>
+        <span class="pill pill-missing">Unfilled Workday</span>
       </div>
 
       <div class="strip-stats">
@@ -182,10 +182,10 @@
       <!-- Category Filter List (Requirement 2) -->
       <div class="popover-category-filter">
         <select id="popoverCategorySelect" class="form-select form-control-sm popover-category-select" title="Choose category">
-          <option value="all">📂 All Categories</option>
-          <option value="Project">🏗️ Project</option>
-          <option value="Tender">📋 Tender</option>
-          <option value="Special">⭐ Special (Academy / Different Team Support)</option>
+          <option value="all">All Categories</option>
+          <option value="Project">Project</option>
+          <option value="Tender">Tender</option>
+          <option value="Special">Special (Academy / Different Team Support)</option>
         </select>
         <div class="popover-category-pills" id="popoverCategoryPills">
           <button type="button" class="category-pill active" data-category="all">All</button>
@@ -208,7 +208,7 @@
       </div>
 
       <div class="popover-footer-action">
-        <button class="link-btn" id="openBulkFillBtn">⚡ Bulk fill range (Monday - Friday)...</button>
+        <button class="link-btn" id="openBulkFillBtn">Bulk fill range (Monday - Friday)...</button>
       </div>
     </div>
   </div>
@@ -218,7 +218,7 @@
     <div class="modal-dialog modal-md">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h3>⚡ Bulk Fill Schedule</h3>
+          <h3>Bulk Fill Schedule</h3>
           <p class="modal-subtitle">Automatically fill a date range for a team member.</p>
         </div>
         <button class="modal-close-icon modal-close">&times;</button>
@@ -295,7 +295,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary modal-close">Cancel</button>
-        <button class="btn btn-primary" id="confirmBulkFillBtn">⚡ Fill Dates Automatically</button>
+        <button class="btn btn-primary" id="confirmBulkFillBtn">Fill Dates Automatically</button>
       </div>
     </div>
   </div>
@@ -305,7 +305,7 @@
     <div class="modal-dialog modal-xl">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h3>⚠️ Manage "NO PROJECT" Days</h3>
+          <h3>Manage "NO PROJECT" Days</h3>
           <p class="modal-subtitle">Review and assign projects to all unallocated dates for <strong id="noProjectEmpNameDisplay"></strong> (<span id="noProjectMonthDisplay"></span>).</p>
         </div>
         <button class="modal-close-icon modal-close">&times;</button>
@@ -347,7 +347,7 @@
 
         <!-- Empty state when 0 NO PROJECT days -->
         <div id="noProjectEmptyState" class="empty-state-card hidden">
-          <div class="empty-state-icon">🎉</div>
+          <div class="empty-state-icon"></div>
           <h4>All Caught Up!</h4>
           <p>No days are currently marked as "NO PROJECT" for this team member in the selected month.</p>
         </div>
@@ -468,7 +468,7 @@
   <div id="deleteProjectModal" class="modal hidden" style="z-index: 1100;">
     <div class="modal-dialog modal-sm">
       <div class="modal-header">
-        <h3 class="text-danger">⚠️ Delete Project</h3>
+        <h3 class="text-danger">Delete Project</h3>
         <button class="modal-close-icon modal-close">&times;</button>
       </div>
       <div class="modal-body">
@@ -655,7 +655,7 @@
   <aside id="settingsSidebar" class="settings-drawer">
     <div class="settings-drawer-header">
       <div class="settings-drawer-title">
-        <span class="settings-drawer-icon">⚙️</span>
+        <span class="settings-drawer-icon"></span>
         <div>
           <h4>Settings &amp; Tools</h4>
           <span class="settings-drawer-subtitle">Actions, management &amp; appearance</span>
@@ -670,16 +670,16 @@
         <span class="settings-section-heading">Appearance</span>
         <div class="settings-row-item">
           <div class="setting-item-meta">
-            <span class="setting-icon">🌗</span>
+            <span class="setting-icon"></span>
             <div>
               <strong>Theme Mode</strong>
               <span class="setting-desc">Light, Dark, or Auto by daytime</span>
             </div>
           </div>
           <select id="themeSelect" class="theme-select" title="Theme mode">
-            <option value="dark" selected>🌙 Dark (Default)</option>
-            <option value="light">☀️ Light</option>
-            <option value="auto">🌗 Auto (Day/Night)</option>
+            <option value="dark" selected>Dark (Default)</option>
+            <option value="light">Light</option>
+            <option value="auto">Auto (Day/Night)</option>
           </select>
         </div>
       </div>
@@ -691,7 +691,7 @@
         <span class="settings-section-heading">Quick Actions</span>
         
         <button class="settings-action-card primary" id="topbarBulkFillBtn">
-          <span class="action-card-icon">⚡</span>
+          <span class="action-card-icon"></span>
           <div class="action-card-text">
             <strong>Bulk Fill Schedule</strong>
             <span>Auto-fill date range &amp; office holidays</span>
@@ -700,7 +700,7 @@
         </button>
 
         <button class="settings-action-card" id="openAnalyticsBtn">
-          <span class="action-card-icon">📊</span>
+          <span class="action-card-icon"></span>
           <div class="action-card-text">
             <strong>Project Analytics</strong>
             <span>Hours breakdown &amp; monthly totals</span>
@@ -714,7 +714,7 @@
         <span class="settings-section-heading">Data Management</span>
 
         <button class="settings-action-card" id="openProjectsBtn">
-          <span class="action-card-icon">📁</span>
+          <span class="action-card-icon"></span>
           <div class="action-card-text">
             <strong>Projects &amp; WBS</strong>
             <span>Manage projects &amp; baseline hours</span>
@@ -723,7 +723,7 @@
         </button>
 
         <button class="settings-action-card" id="openTeamBtn">
-          <span class="action-card-icon">👥</span>
+          <span class="action-card-icon"></span>
           <div class="action-card-text">
             <strong>Team Members</strong>
             <span>Cairo &amp; Istanbul engineers</span>
@@ -737,7 +737,7 @@
         <span class="settings-section-heading">Security &amp; Sharing</span>
 
         <button class="settings-action-card" id="copyViewLinkBtn">
-          <span class="action-card-icon">🔗</span>
+          <span class="action-card-icon"></span>
           <div class="action-card-text">
             <strong>View-Only Link</strong>
             <span>Copy shareable read-only link</span>
@@ -746,7 +746,7 @@
         </button>
 
         <button class="settings-action-card admin-card hidden" id="adminToggleBtn">
-          <span class="action-card-icon" id="adminIcon">🔒</span>
+          <span class="action-card-icon" id="adminIcon"></span>
           <div class="action-card-text">
             <strong id="adminToggleLabel">Admin Unlock</strong>
             <span id="adminToggleSub">Unlock management actions</span>
@@ -757,13 +757,13 @@
     </div>
 
     <div class="settings-drawer-footer">
-      <button class="btn btn-secondary btn-sm" id="collapseSettingsBtn" style="width:100%;">⇥ Shrink / Close Settings</button>
+      <button class="btn btn-secondary btn-sm" id="collapseSettingsBtn" style="width:100%;">Shrink / Close Settings</button>
     </div>
   </aside>
 
   <!-- Docked Floating Side Tab on the Right Edge -->
   <button class="docked-settings-pill" id="dockedSettingsBtn" title="Expand Settings & Tools">
-    <span class="docked-gear">⚙️</span>
+    <span class="docked-gear"></span>
     <span class="docked-text">Settings</span>
     <span class="docked-admin-dot hidden" id="dockedAdminDot"></span>
   </button>
@@ -776,7 +776,7 @@
     </div>
     <div class="multi-select-actions">
       <button type="button" class="btn btn-primary btn-sm" id="multiEditAssignBtn">
-        ✏️ Edit Selected
+        Edit Selected
       </button>
       <button type="button" class="btn btn-secondary btn-sm" id="multiQuickOffBtn" title="Set selected cells to Day OFF">
         Day OFF
@@ -788,7 +788,7 @@
         Clear
       </button>
       <button type="button" class="btn btn-ghost btn-sm multi-select-cancel" id="multiSelectCancelBtn" title="Cancel selection (Esc)">
-        ✕ Done
+        Done
       </button>
     </div>
   </div>
@@ -796,6 +796,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>

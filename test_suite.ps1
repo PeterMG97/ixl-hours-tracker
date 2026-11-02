@@ -230,6 +230,9 @@ Assert-Test "6.19 Dark theme configured as default" ($htmlContent.Contains('data
 Assert-Test "6.20 Delete project triggers confirmation warning modal" ($htmlContent.Contains('id="deleteProjectModal"') -and $jsContent.Contains('openDeleteProjectModal') -and $jsContent.Contains('confirmDeleteProjectBtn')) "Delete project warning confirmation modal verified"
 Assert-Test "6.21 User selection cards and team list rows have high-contrast styling across themes" ($cssContent.Contains('[data-theme="dark"] .user-select-card.active-selected') -and $cssContent.Contains('.team-table-row.is-current-user-row') -and $jsContent.Contains('is-current-user-row')) "High contrast card & team row styles verified"
 Assert-Test "6.22 Cell popover contains category list and pills (Project, Tender, Special)" ($htmlContent.Contains('id="popoverCategorySelect"') -and $htmlContent.Contains('id="popoverCategoryPills"') -and $jsContent.Contains('isProjectMatchingCategory') -and $cssContent.Contains('.popover-category-select')) "Category list selector verified"
+$emojiRegex = '[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27EF]|[\u2300-\u23FF]|[\u2B50]|[\u203C\u2049\u2122\u2139\u3030\u303D\u3297\u3299]'
+$hasEmojis = ($htmlContent -match $emojiRegex) -or ($jsContent -match $emojiRegex) -or ($cssContent -match $emojiRegex)
+Assert-Test "6.23 Zero emojis across frontend files (index.html, app.js, styles.css)" (-not $hasEmojis) "Emoji presence: $hasEmojis"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

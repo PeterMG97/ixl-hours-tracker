@@ -1499,11 +1499,14 @@ td.col-slot.is-selected-cell .task-chip {
 }
 
 .slot-unfilled-alert::after {
-  content: "⚠️";
-  font-size: 8px;
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--missing-border);
   position: absolute;
-  top: 1px;
-  right: 1px;
+  top: 3px;
+  right: 3px;
 }
 
 /* Modern Task Chip (Replaces Excel cell text) */

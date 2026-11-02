@@ -417,7 +417,7 @@
       if (state.isAdmin && isCurrentUserPeter()) {
         el.userPermissionBanner.classList.remove('hidden');
         el.userPermissionBanner.classList.add('admin-active-banner');
-        el.userPermissionBanner.innerHTML = `<span>🛡️ <strong>Admin Mode Active:</strong> You have full permission to edit and allocate hours for <em>any employee</em> on any day.</span>`;
+        el.userPermissionBanner.innerHTML = `<span><strong>Admin Mode Active:</strong> You have full permission to edit and allocate hours for <em>any employee</em> on any day.</span>`;
       } else {
         el.userPermissionBanner.classList.remove('admin-active-banner');
         el.userPermissionBanner.classList.add('hidden');
@@ -433,14 +433,14 @@
       if (state.isAdmin && isCurrentUserPeter()) {
         el.userPermissionBanner.classList.remove('hidden');
         el.userPermissionBanner.classList.add('admin-active-banner');
-        el.userPermissionBanner.innerHTML = `<span>🛡️ <strong>Admin Mode Active:</strong> You are signed in as <strong>${currentEmp.name}</strong> with full admin permission to edit all cells for all employees.</span>`;
+        el.userPermissionBanner.innerHTML = `<span><strong>Admin Mode Active:</strong> You are signed in as <strong>${currentEmp.name}</strong> with full admin permission to edit all cells for all employees.</span>`;
       } else {
         el.userPermissionBanner.classList.remove('admin-active-banner');
         el.userPermissionBanner.classList.remove('hidden');
         if (isCurrentUserPeter()) {
-          el.userPermissionBanner.innerHTML = `<span>ℹ️ You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row. (Click 'Admin Unlock' above to edit all employees).</span>`;
+          el.userPermissionBanner.innerHTML = `<span>You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row. (Click 'Admin Unlock' above to edit all employees).</span>`;
         } else {
-          el.userPermissionBanner.innerHTML = `<span>ℹ️ You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row.</span>`;
+          el.userPermissionBanner.innerHTML = `<span>You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row.</span>`;
         }
       }
     }
@@ -667,7 +667,7 @@
               <button class="task-chip ${badgeClass}" 
                       data-emp-id="${emp.id}" 
                       data-date="${d.dateStr}"
-                      title="${emp.name} | ${d.dateStr}: ${projectName || (isUnfilledPast ? '⚠️ Unfilled workday' : 'Empty')}">
+                      title="${emp.name} | ${d.dateStr}: ${projectName || (isUnfilledPast ? 'Unfilled workday' : 'Empty')}">
                 ${shortLabel}
               </button>
             </td>
@@ -700,7 +700,7 @@
                   <strong style="display:block; font-size:11px;">${emp.name}</strong>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
-                    ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">⚠️ ${empNoProjCount} NO PROJ</button>` : ''}
+                    ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">${empNoProjCount} NO PROJ</button>` : ''}
                   </div>
                 </div>
               </div>
@@ -993,7 +993,7 @@
         const match = title.match(/\|\s*\d{4}-\d{2}-\d{2}:\s*(.*)$/);
         if (match && match[1]) {
           const raw = match[1].trim();
-          if (raw && raw !== 'Empty' && !raw.startsWith('⚠️')) {
+          if (raw && raw !== 'Empty' && !raw.startsWith('Unfilled')) {
             chip.textContent = getCompactLabel(raw);
           }
         }
@@ -1845,7 +1845,7 @@
           <td>
             <div style="display:flex; gap:6px;">
               <button class="btn btn-ghost btn-sm adjust-hours-btn" data-proj-id="${p.id}" ${!state.isAdmin ? 'disabled title="Admin access required"' : ''}>
-                ⚡ Adjust Hours
+                Adjust Hours
               </button>
               <button class="btn btn-ghost btn-sm delete-proj-btn" data-proj-id="${p.id}" ${!state.isAdmin ? 'disabled title="Admin access required"' : ''}>
                 Delete
@@ -2196,25 +2196,25 @@
     if (state.isAdmin) {
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
-      if (el.adminIcon) el.adminIcon.textContent = '🔓';
+      if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('unlocked');
       if (el.adminActiveDot) el.adminActiveDot.classList.remove('hidden');
       if (el.dockedAdminDot) el.dockedAdminDot.classList.remove('hidden');
 
       if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('unlocked');
-      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '🛡️';
+      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '';
       if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Active (All Rows Unlocked)';
       if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Active: You can edit any cell for any employee. Click to lock.';
     } else {
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Unlock';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Unlock management actions';
-      if (el.adminIcon) el.adminIcon.textContent = '🔒';
+      if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('unlocked');
       if (el.adminActiveDot) el.adminActiveDot.classList.add('hidden');
       if (el.dockedAdminDot) el.dockedAdminDot.classList.add('hidden');
 
       if (el.topbarAdminBtn) el.topbarAdminBtn.classList.remove('unlocked');
-      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '🔒';
+      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '';
       if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Unlock';
       if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Mode: Click to enter PIN and edit all employees';
     }
