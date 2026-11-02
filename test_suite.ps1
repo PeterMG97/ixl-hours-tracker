@@ -205,7 +205,7 @@ Assert-Test "6.3 index.html contains Project Breakdown Analytics" ($htmlContent.
 Assert-Test "6.4 app.js uses timezone-safe date parsing (parseLocalDate)" ($jsContent.Contains('parseLocalDate')) "Safe parser found"
 Assert-Test "6.5 app.js uses lastIndexOf('_') for composite key parsing" ($jsContent.Contains("k.lastIndexOf('_')")) "Safe key parser found"
 Assert-Test "6.6 styles.css defines full [data-theme='dark'] mode" ($cssContent.Contains("[data-theme=""dark""]")) "Dark theme rules found"
-Assert-Test "6.7 index.html contains NO PROJECT alert button" ($htmlContent.Contains('id="openNoProjectDaysBtn"')) "Alert button found"
+Assert-Test "6.7 Employee NO PROJECT badge renders on schedule row" ($jsContent.Contains('emp-no-proj-badge')) "Row badge found"
 Assert-Test "6.8 index.html contains NO PROJECT manager modal" ($htmlContent.Contains('id="noProjectModal"')) "Manager modal found"
 Assert-Test "6.9 app.js implements openNoProjectModal & batch assign" ($jsContent.Contains('openNoProjectModal')) "Modal logic found"
 Assert-Test "6.10 index.html contains collapsible Settings & Tools drawer" ($htmlContent.Contains('id="settingsSidebar"') -and $htmlContent.Contains('id="toggleSettingsSidebarBtn"')) "Collapsible drawer found"

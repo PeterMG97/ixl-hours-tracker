@@ -509,13 +509,14 @@
 
         totalMonthHours += empMonthHours;
 
+        // Count ALL NO PROJECT days across all dates for this employee
         let empNoProjCount = 0;
-        days.forEach(d => {
-          const key = `${emp.id}_${d.dateStr}`;
-          if (state.allocations[key] && state.allocations[key].project === 'NO PROJECT') {
+        const empPrefix = `${emp.id}_`;
+        for (const [k, alloc] of Object.entries(state.allocations)) {
+          if (k.startsWith(empPrefix) && alloc && alloc.project === 'NO PROJECT') {
             empNoProjCount++;
           }
-        });
+        }
 
         bodyHtml += `
           <tr class="user-row ${isSelf ? 'active-user-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" data-emp-id="${emp.id}">
@@ -526,7 +527,7 @@
                   <strong style="display:block; font-size:11px;">${emp.name}</strong>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
-                    ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit ${empNoProjCount} NO PROJECT days">⚠️ ${empNoProjCount} NO PROJ</button>` : ''}
+                    ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">⚠️ ${empNoProjCount} NO PROJ</button>` : ''}
                   </div>
                 </div>
               </div>
@@ -543,8 +544,6 @@
     el.statActiveEmployees.textContent = activeEmpCount;
     el.statCurrentMonthHours.textContent = `${totalMonthHours}h`;
     el.statUnfilledDays.textContent = `${totalUnfilledDays} days`;
-
-    updateNoProjectTopBarBadge(days);
 
     if (!state.isViewOnly) {
       attachCellEvents();
@@ -858,61 +857,8 @@
   });
 
   // -------------------------------------------------------------
-  // NO PROJECT Days Management (Request 2)
+  // NO PROJECT Days Management (Request 2 & 15)
   // -------------------------------------------------------------
-
-  function updateNoProjectTopBarBadge(days) {
-    if (!el.openNoProjectDaysBtn) return;
-
-    if (state.currentUserId) {
-      let myNoProjCount = 0;
-      days.forEach(d => {
-        const key = `${state.currentUserId}_${d.dateStr}`;
-        if (state.allocations[key] && state.allocations[key].project === 'NO PROJECT') {
-          myNoProjCount++;
-        }
-      });
-
-      el.openNoProjectDaysBtn.classList.remove('hidden');
-      if (myNoProjCount > 0) {
-        el.openNoProjectDaysBtn.classList.remove('clean');
-        el.openNoProjectDaysBtn.innerHTML = `
-          <span class="alert-icon">⚠️</span>
-          <span class="alert-label">NO PROJECT:</span>
-          <span class="alert-badge">${myNoProjCount}</span>
-        `;
-      } else {
-        el.openNoProjectDaysBtn.classList.add('clean');
-        el.openNoProjectDaysBtn.innerHTML = `
-          <span class="alert-icon">✓</span>
-          <span class="alert-label">0 NO PROJECT Days</span>
-        `;
-      }
-    } else if (state.isAdmin) {
-      let totalNoProj = 0;
-      state.employees.filter(e => e.active !== false).forEach(e => {
-        days.forEach(d => {
-          const key = `${e.id}_${d.dateStr}`;
-          if (state.allocations[key] && state.allocations[key].project === 'NO PROJECT') totalNoProj++;
-        });
-      });
-      el.openNoProjectDaysBtn.classList.remove('hidden');
-      el.openNoProjectDaysBtn.classList.toggle('clean', totalNoProj === 0);
-      el.openNoProjectDaysBtn.innerHTML = `
-        <span class="alert-icon">${totalNoProj > 0 ? '⚠️' : '✓'}</span>
-        <span class="alert-label">Team NO PROJ:</span>
-        <span class="alert-badge">${totalNoProj}</span>
-      `;
-    } else {
-      el.openNoProjectDaysBtn.classList.add('hidden');
-    }
-  }
-
-  if (el.openNoProjectDaysBtn) {
-    el.openNoProjectDaysBtn.addEventListener('click', () => {
-      openNoProjectModal(state.currentUserId);
-    });
-  }
 
   function openNoProjectModal(targetEmpId) {
     if (!state.currentUserId && !state.isAdmin) {
@@ -972,25 +918,26 @@
     const isIstanbul = loc.includes('istanbul');
 
     el.noProjectEmpNameDisplay.textContent = emp.name;
-    const [y, m] = state.currentMonth.split('-').map(Number);
-    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    el.noProjectMonthDisplay.textContent = `${monthNames[m - 1]} ${y}`;
-
-    const days = getDaysInMonth(state.currentMonth);
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+    // Count and list ALL NO PROJECT days across all dates/months for this employee
     const noProjDates = [];
-    days.forEach(d => {
-      const key = `${emp.id}_${d.dateStr}`;
-      const alloc = state.allocations[key];
-      if (alloc && alloc.project === 'NO PROJECT') {
+    const empPrefix = `${emp.id}_`;
+    for (const [key, alloc] of Object.entries(state.allocations)) {
+      if (key.startsWith(empPrefix) && alloc && alloc.project === 'NO PROJECT') {
+        const dateStr = key.substring(key.lastIndexOf('_') + 1);
+        const dt = parseLocalDate(dateStr);
+        const dow = dt.getDay();
         noProjDates.push({
-          dateStr: d.dateStr,
-          dow: d.dow,
+          dateStr: dateStr,
+          dow: dow,
           allocHours: alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8)
         });
       }
-    });
+    }
+    noProjDates.sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+
+    el.noProjectMonthDisplay.textContent = `All Records (${noProjDates.length} Days)`;
 
     if (noProjDates.length === 0) {
       el.noProjectTableWrap.classList.add('hidden');
@@ -1080,13 +1027,11 @@
     const emp = state.employees.find(e => e.id === empId);
     if (!emp) return;
 
-    const days = getDaysInMonth(state.currentMonth);
+    const empPrefix = `${emp.id}_`;
     let updatedCount = 0;
 
-    days.forEach(d => {
-      const key = `${emp.id}_${d.dateStr}`;
-      const alloc = state.allocations[key];
-      if (alloc && alloc.project === 'NO PROJECT') {
+    for (const [key, alloc] of Object.entries(state.allocations)) {
+      if (key.startsWith(empPrefix) && alloc && alloc.project === 'NO PROJECT') {
         const curHours = alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8);
         state.allocations[key] = {
           project: chosenProj,
@@ -1094,7 +1039,7 @@
         };
         updatedCount++;
       }
-    });
+    }
 
     if (updatedCount > 0) {
       syncToServer();
