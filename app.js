@@ -49,9 +49,6 @@
   const el = {
     connectionLamp: document.getElementById('connectionLamp'),
     connectionText: document.getElementById('connectionText'),
-    modeBadge: document.getElementById('modeBadge'),
-    modeIcon: document.getElementById('modeIcon'),
-    modeText: document.getElementById('modeText'),
     viewModeBanner: document.getElementById('viewModeBanner'),
     userPermissionBanner: document.getElementById('userPermissionBanner'),
     permBannerName: document.getElementById('permBannerName'),
@@ -192,9 +189,6 @@
   if (urlParams.get('mode') === 'view' || window.location.pathname.endsWith('/view')) {
     state.isViewOnly = true;
     document.body.classList.add('view-only');
-    el.modeBadge.classList.add('view-only');
-    el.modeIcon.textContent = '👁️';
-    el.modeText.textContent = 'View-Only Mode';
     el.viewModeBanner.classList.remove('hidden');
     el.adminToggleBtn.classList.add('hidden');
     el.topbarBulkFillBtn.classList.add('hidden');
