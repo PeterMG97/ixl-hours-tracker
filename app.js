@@ -1927,14 +1927,24 @@
       return e.name.toLowerCase().includes(filterText);
     });
 
-    tbody.innerHTML = filtered.map(e => `
-      <tr style="${e.active === false ? 'opacity: 0.6; background:#f8fafc;' : ''}">
+    tbody.innerHTML = filtered.map(e => {
+      const isSelf = (e.id === state.currentUserId);
+      const isInactive = (e.active === false);
+      let rowClass = 'team-table-row';
+      if (isSelf) rowClass += ' is-current-user-row';
+      if (isInactive) rowClass += ' is-inactive-row';
+
+      return `
+      <tr class="${rowClass}">
         <td>
-          <span class="pill ${e.active !== false ? 'pill-training' : 'pill-off'}">
-            ${e.active !== false ? 'Active' : 'Deactivated'}
+          <span class="pill ${!isInactive ? 'pill-training' : 'pill-off'}">
+            ${!isInactive ? 'Active' : 'Deactivated'}
           </span>
         </td>
-        <td><strong>${e.name}</strong></td>
+        <td>
+          <strong class="team-emp-name">${e.name}</strong>
+          ${isSelf ? '<span class="pill pill-project" style="margin-left:6px; font-size:9px; vertical-align:middle;">You</span>' : ''}
+        </td>
         <td>
           <select class="form-select form-control-sm move-sec-select" data-emp-id="${e.id}" ${!state.isAdmin ? 'disabled' : ''}>
             ${state.sections.map(s => `
@@ -1948,7 +1958,7 @@
                  ${!state.isAdmin ? 'disabled' : ''}>
         </td>
         <td>
-          ${e.active !== false ? `
+          ${!isInactive ? `
             <button class="btn btn-danger btn-sm remove-member-btn" data-emp-id="${e.id}" ${!state.isAdmin ? 'disabled title="Admin access required"' : ''}>
               Remove...
             </button>
@@ -1959,7 +1969,7 @@
           `}
         </td>
       </tr>
-    `).join('');
+    `}).join('');
 
     tbody.querySelectorAll('.move-sec-select').forEach(sel => {
       sel.addEventListener('change', () => {

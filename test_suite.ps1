@@ -226,6 +226,7 @@ Assert-Test "6.17 Admin rights option strictly restricted to Peter MOUNIR" ($jsC
 Assert-Test "6.18 WBS Code editable by everyone in projects list" ($htmlContent.Contains('(Editable)') -and $jsContent.Contains('wbs-code-input') -and $cssContent.Contains('.wbs-code-input')) "WBS inline editor verified"
 Assert-Test "6.19 Dark theme configured as default" ($htmlContent.Contains('data-theme="dark"') -and $htmlContent.Contains('value="dark" selected') -and $jsContent.Contains("getStoredItem('ixl_theme_mode') || 'dark'")) "Dark theme default verified"
 Assert-Test "6.20 Delete project triggers confirmation warning modal" ($htmlContent.Contains('id="deleteProjectModal"') -and $jsContent.Contains('openDeleteProjectModal') -and $jsContent.Contains('confirmDeleteProjectBtn')) "Delete project warning confirmation modal verified"
+Assert-Test "6.21 User selection cards and team list rows have high-contrast styling across themes" ($cssContent.Contains('[data-theme="dark"] .user-select-card.active-selected') -and $cssContent.Contains('.team-table-row.is-current-user-row') -and $jsContent.Contains('is-current-user-row')) "High contrast card & team row styles verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT
