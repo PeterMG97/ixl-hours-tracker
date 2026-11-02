@@ -260,6 +260,9 @@ Assert-Test "6.34 Active Team count included exclusively inside Team Members sec
 $singleToggleBtn = ($jsContent.Contains('id="thToggleAllGroups"')) -and ($jsContent.Contains('toggleAllSections')) -and (-not $jsContent.Contains('id="thExpandAllGroups"')) -and (-not $jsContent.Contains('id="thCollapseAllGroups"'))
 Assert-Test "6.35 Single toggle button for all sections in schedule table header" $singleToggleBtn "Two separate expand/collapse buttons replaced with a single toggleable button"
 
+$cellHoldAndDrag = ($jsContent.Contains('cellDragState')) -and ($jsContent.Contains('handleCellMouseDown')) -and ($jsContent.Contains('activateSelectionForRange')) -and ($jsContent.Contains('handleDragMoveToSlot')) -and ($cssContent.Contains('is-cell-dragging'))
+Assert-Test "6.36 Left click hold and drag range multi-cell selection implemented" $cellHoldAndDrag "Click-and-hold (hold timer) and horizontal drag range selection verified"
+
 # -------------------------------------------------------------
 # SUMMARY REPORT
 # -------------------------------------------------------------

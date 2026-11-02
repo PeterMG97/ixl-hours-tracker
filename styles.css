@@ -1305,6 +1305,28 @@ body.is-resizing-columns {
 }
 
 /* Multi-Cell Selection Styles */
+body.is-cell-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: cell !important;
+}
+
+body.is-cell-dragging .schedule-table td.col-slot,
+body.is-cell-dragging .schedule-table td.col-slot * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.schedule-table td.col-slot {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.task-chip {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 td.col-slot.is-selected-cell {
   position: relative;
   background-color: rgba(37, 99, 235, 0.22) !important;

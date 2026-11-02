@@ -1120,7 +1120,27 @@
     });
 
     el.scheduleBody.querySelectorAll('td.col-slot').forEach(slot => {
+      slot.addEventListener('dragstart', (e) => e.preventDefault());
+
+      slot.addEventListener('mousedown', (e) => {
+        handleCellMouseDown(slot, e);
+      });
+
+      slot.addEventListener('mouseenter', (e) => {
+        if (!cellDragState.isMouseDown) return;
+        if ((e.buttons & 1) === 0) {
+          handleGlobalMouseUp(e);
+          return;
+        }
+        handleDragMoveToSlot(slot);
+      });
+
       slot.addEventListener('click', (e) => {
+        if (cellDragState.suppressClick) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         if (state.isViewOnly) return;
         const empId = slot.getAttribute('data-emp-id');
         const dateStr = slot.getAttribute('data-date');
@@ -1170,6 +1190,201 @@
         openCellPopover(empId, dateStr, targetBtn);
       });
     });
+
+    initGlobalCellDragListeners();
+  }
+
+  // -------------------------------------------------------------
+  // Click-and-Hold + Drag Range Selection Management
+  // -------------------------------------------------------------
+
+  const cellDragState = {
+    isMouseDown: false,
+    isDragging: false,
+    isHoldSelecting: false,
+    holdTimer: null,
+    startSlot: null,
+    startEmpId: null,
+    startDateStr: null,
+    startIndex: -1,
+    rowSlots: [],
+    baseSelectedCells: new Set(),
+    isMultiMode: false,
+    suppressClick: false
+  };
+
+  let _cellDragGlobalInitialized = false;
+  function initGlobalCellDragListeners() {
+    if (_cellDragGlobalInitialized) return;
+    _cellDragGlobalInitialized = true;
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('blur', () => {
+      if (cellDragState.isMouseDown) handleGlobalMouseUp();
+    });
+  }
+
+  function activateSelectionForRange(startIdx, endIdx) {
+    if (!cellDragState.rowSlots || cellDragState.rowSlots.length === 0) return;
+    const minIdx = Math.min(startIdx, endIdx);
+    const maxIdx = Math.max(startIdx, endIdx);
+    const empId = cellDragState.startEmpId;
+
+    // If changing employee, deselect previous selection
+    if (state.selectedEmpId && state.selectedEmpId !== empId) {
+      document.querySelectorAll('.schedule-table td.is-selected-cell').forEach(td => {
+        td.classList.remove('is-selected-cell');
+      });
+      state.selectedCells.clear();
+    }
+    state.selectedEmpId = empId;
+
+    const newSelectedKeys = new Set(cellDragState.baseSelectedCells);
+    for (let i = minIdx; i <= maxIdx; i++) {
+      const s = cellDragState.rowSlots[i];
+      if (s) {
+        const d = s.getAttribute('data-date');
+        if (d) newSelectedKeys.add(`${empId}_${d}`);
+      }
+    }
+
+    cellDragState.rowSlots.forEach(s => {
+      const d = s.getAttribute('data-date');
+      const k = `${empId}_${d}`;
+      if (newSelectedKeys.has(k)) {
+        s.classList.add('is-selected-cell');
+      } else if (!cellDragState.baseSelectedCells.has(k)) {
+        s.classList.remove('is-selected-cell');
+      }
+    });
+
+    state.selectedCells = newSelectedKeys;
+    updateMultiSelectUI();
+  }
+
+  function handleCellMouseDown(slot, e) {
+    if (e.button !== 0) return; // Left mouse button only
+    if (state.isViewOnly) return;
+
+    const empId = slot.getAttribute('data-emp-id');
+    const dateStr = slot.getAttribute('data-date');
+    if (!empId || !dateStr) return;
+
+    // Check row permissions
+    const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
+    if (!canEditThisRow) return;
+
+    const row = slot.closest('tr.user-row');
+    if (!row) return;
+
+    const rowSlots = Array.from(row.querySelectorAll('td.col-slot'));
+    const startIndex = rowSlots.indexOf(slot);
+    if (startIndex === -1) return;
+
+    const isMultiMode = e.ctrlKey || e.metaKey;
+    const baseSelected = (isMultiMode && state.selectedEmpId === empId) 
+      ? new Set(state.selectedCells) 
+      : new Set();
+
+    cellDragState.isMouseDown = true;
+    cellDragState.isDragging = false;
+    cellDragState.isHoldSelecting = false;
+    cellDragState.startSlot = slot;
+    cellDragState.startEmpId = empId;
+    cellDragState.startDateStr = dateStr;
+    cellDragState.startIndex = startIndex;
+    cellDragState.rowSlots = rowSlots;
+    cellDragState.baseSelectedCells = baseSelected;
+    cellDragState.isMultiMode = isMultiMode;
+    cellDragState.suppressClick = false;
+
+    if (cellDragState.holdTimer) {
+      clearTimeout(cellDragState.holdTimer);
+    }
+
+    // Left click and hold timer (220ms): selecting this cell upon hold
+    cellDragState.holdTimer = setTimeout(() => {
+      if (!cellDragState.isMouseDown) return;
+      cellDragState.isHoldSelecting = true;
+      cellDragState.suppressClick = true;
+      document.body.classList.add('is-cell-dragging');
+      closeCellPopover();
+
+      // Hold established: select this single cell
+      activateSelectionForRange(startIndex, startIndex);
+    }, 220);
+  }
+
+  function handleDragMoveToSlot(slot) {
+    if (!cellDragState.isMouseDown) return;
+    const currentIndex = cellDragState.rowSlots.indexOf(slot);
+    if (currentIndex === -1) return;
+
+    // If moved to a different cell or hold is already active, activate drag selection
+    if (currentIndex !== cellDragState.startIndex || cellDragState.isHoldSelecting) {
+      if (cellDragState.holdTimer) {
+        clearTimeout(cellDragState.holdTimer);
+        cellDragState.holdTimer = null;
+      }
+      cellDragState.isDragging = true;
+      cellDragState.suppressClick = true;
+      document.body.classList.add('is-cell-dragging');
+      closeCellPopover();
+
+      activateSelectionForRange(cellDragState.startIndex, currentIndex);
+    }
+  }
+
+  function handleGlobalMouseUp(e) {
+    if (!cellDragState.isMouseDown) return;
+    if (cellDragState.holdTimer) {
+      clearTimeout(cellDragState.holdTimer);
+      cellDragState.holdTimer = null;
+    }
+
+    const wasActive = cellDragState.isHoldSelecting || cellDragState.isDragging;
+    cellDragState.isMouseDown = false;
+    cellDragState.isDragging = false;
+    cellDragState.isHoldSelecting = false;
+    document.body.classList.remove('is-cell-dragging');
+
+    if (wasActive) {
+      cellDragState.suppressClick = true;
+      updateMultiSelectUI();
+      setTimeout(() => {
+        cellDragState.suppressClick = false;
+      }, 80);
+    }
+  }
+
+  function handleGlobalMouseMove(e) {
+    if (!cellDragState.isMouseDown) return;
+    if ((e.buttons & 1) === 0) {
+      handleGlobalMouseUp(e);
+      return;
+    }
+
+    const hovered = document.elementFromPoint(e.clientX, e.clientY);
+    if (!hovered) return;
+
+    const hoveredSlot = hovered.closest('td.col-slot');
+    if (hoveredSlot) {
+      const dateStr = hoveredSlot.getAttribute('data-date');
+      if (dateStr && cellDragState.rowSlots) {
+        const matchInRow = cellDragState.rowSlots.find(s => s.getAttribute('data-date') === dateStr);
+        if (matchInRow) {
+          handleDragMoveToSlot(matchInRow);
+          return;
+        }
+      }
+    }
+
+    // Clamping to first cell if dragged left into user/hours column
+    if (hovered.closest('td.col-user') || hovered.closest('th.col-user')) {
+      if (cellDragState.rowSlots && cellDragState.rowSlots.length > 0) {
+        handleDragMoveToSlot(cellDragState.rowSlots[0]);
+      }
+    }
   }
 
   // -------------------------------------------------------------
