@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=1.8">
+  <link rel="stylesheet" href="styles.css?v=1.9">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -405,7 +405,7 @@
               <tr>
                 <th>Category</th>
                 <th>Project Name (Alphabetical)</th>
-                <th>WBS Code</th>
+                <th>WBS Code <span style="font-size:10px; font-weight:normal; opacity:0.8;">(Editable)</span></th>
                 <!-- Requirement 4 & 9: Baseline + Tracked hours -->
                 <th>Baseline (Pre-1/11)</th>
                 <th>Tracked (Post-1/11)</th>
@@ -638,9 +638,9 @@
             </div>
           </div>
           <select id="themeSelect" class="theme-select" title="Theme mode">
-            <option value="auto">🌗 Auto (Day/Night)</option>
+            <option value="dark" selected>🌙 Dark (Default)</option>
             <option value="light">☀️ Light</option>
-            <option value="dark">🌙 Dark</option>
+            <option value="auto">🌗 Auto (Day/Night)</option>
           </select>
         </div>
       </div>
@@ -757,6 +757,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=1.8"></script>
+  <script src="app.js?v=1.9"></script>
 </body>
 </html>

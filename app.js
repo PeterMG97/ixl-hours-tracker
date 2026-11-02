@@ -1749,12 +1749,15 @@
       const baseline = Number(p.initialHours) || 0;
       const logged = calculateProjectLoggedHours(p.name);
       const total = baseline + logged;
+      const safeWbs = (p.wbs || '').replace(/"/g, '&quot;');
 
       return `
         <tr>
           <td><span class="pill ${getProjectBadgeClass(p.name)}">${p.category || 'Project'}</span></td>
           <td><strong>${p.name}</strong></td>
-          <td><code>${p.wbs || '—'}</code></td>
+          <td>
+            <input type="text" class="form-control form-control-sm wbs-code-input" data-proj-id="${p.id}" value="${safeWbs}" placeholder="Enter WBS code..." title="Click to edit WBS code">
+          </td>
           <td><strong>${baseline}h</strong></td>
           <td>${logged}h</td>
           <td><strong style="color:var(--primary); font-size:12px;">${total}h</strong></td>
@@ -1771,6 +1774,28 @@
         </tr>
       `;
     }).join('');
+
+    // Requirement: WBS Code editable by everyone without requiring admin rights
+    tbody.querySelectorAll('.wbs-code-input').forEach(input => {
+      const handleWbsSave = () => {
+        const pId = input.getAttribute('data-proj-id');
+        const proj = state.projects.find(p => p.id === pId);
+        if (!proj) return;
+        const newWbs = input.value.trim();
+        if ((proj.wbs || '') !== newWbs) {
+          proj.wbs = newWbs;
+          syncToServer();
+          showToast(`Updated WBS for "${proj.name}" to "${newWbs || '—'}"`);
+        }
+      };
+
+      input.addEventListener('change', handleWbsSave);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          input.blur();
+        }
+      });
+    });
 
     tbody.querySelectorAll('.adjust-hours-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -2368,12 +2393,12 @@
   // Theme Manager: Light, Dark, Auto (according to daytime)
   // -------------------------------------------------------------
   function initTheme() {
-    const savedTheme = localStorage.getItem('ixl_theme_mode') || 'auto';
+    const savedTheme = getStoredItem('ixl_theme_mode') || 'dark';
     if (el.themeSelect) {
       el.themeSelect.value = savedTheme;
       el.themeSelect.addEventListener('change', () => {
         const mode = el.themeSelect.value;
-        localStorage.setItem('ixl_theme_mode', mode);
+        setStoredItem('ixl_theme_mode', mode);
         applyTheme(mode);
         const modeName = el.themeSelect.options[el.themeSelect.selectedIndex].text;
         showToast(`Theme set to ${modeName}`);
@@ -2383,7 +2408,7 @@
 
     // Periodically re-check time for Auto mode every 30 seconds
     setInterval(() => {
-      const currentMode = localStorage.getItem('ixl_theme_mode') || 'auto';
+      const currentMode = getStoredItem('ixl_theme_mode') || 'dark';
       if (currentMode === 'auto') {
         applyTheme('auto');
       }

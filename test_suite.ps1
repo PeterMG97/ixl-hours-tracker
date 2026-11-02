@@ -223,6 +223,8 @@ Assert-Test "6.14 Multi-cell selection enabled (multiSelectBar & toggleCellSelec
 Assert-Test "6.15 Personal Month Hours and Unfilled counters calculated for identified user" ($jsContent.Contains('statCurrentMonthHours') -and $jsContent.Contains('statUnfilledDays') -and $jsContent.Contains('currentEmp') -and $jsContent.Contains('userMonthHours')) "Individual month stat counters verified"
 Assert-Test "6.16 Device persistence for user identity implements LocalStorage and Cookie fallback with ID and Name resolution" ($jsContent.Contains('persistUserIdentity') -and $jsContent.Contains('resolveStoredUser') -and $jsContent.Contains('ixl_current_user_name')) "Cross-session device persistence verified"
 Assert-Test "6.17 Admin rights option strictly restricted to Peter MOUNIR" ($jsContent.Contains('isCurrentUserPeter') -and $jsContent.Contains('peter mounir')) "Admin access restricted strictly to Peter MOUNIR"
+Assert-Test "6.18 WBS Code editable by everyone in projects list" ($htmlContent.Contains('(Editable)') -and $jsContent.Contains('wbs-code-input') -and $cssContent.Contains('.wbs-code-input')) "WBS inline editor verified"
+Assert-Test "6.19 Dark theme configured as default" ($htmlContent.Contains('data-theme="dark"') -and $htmlContent.Contains('value="dark" selected') -and $jsContent.Contains("getStoredItem('ixl_theme_mode') || 'dark'")) "Dark theme default verified"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

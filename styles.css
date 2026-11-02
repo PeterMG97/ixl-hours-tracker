@@ -754,6 +754,15 @@ body {
 [data-theme="dark"] .data-table tr:hover td {
   background: #1a2333;
 }
+[data-theme="dark"] .wbs-code-input {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+[data-theme="dark"] .wbs-code-input:focus {
+  border-color: #3b82f6;
+  background: #0f172a;
+}
 [data-theme="dark"] .user-select-card {
   background: #1e293b;
   border-color: var(--border-light);
@@ -1844,6 +1853,24 @@ body.view-only .task-chip {
 }
 .data-table tr:hover td {
   background: #fafafa;
+}
+
+.wbs-code-input {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  width: 140px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+.wbs-code-input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 /* Choice Cards (Requirement 4) */
