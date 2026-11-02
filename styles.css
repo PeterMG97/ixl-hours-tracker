@@ -949,7 +949,7 @@ body {
   border-bottom: 1px solid var(--border-light);
   padding: 8px 24px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
