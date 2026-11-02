@@ -2362,7 +2362,7 @@
         }).catch(() => {});
       } catch (err) {}
 
-      showToast('Recovery dispatch initiated to petermounir461@gmail.com');
+      showToast('Enter your Secret Recovery Key to reset your password.', 'info');
     });
   }
 
