@@ -1,4 +1,4 @@
-﻿{
+{
     "sections":  [
                      {
                          "name":  "Application Engineers - Cairo",
@@ -792,6 +792,5 @@
                                               }
                     },
     "adminPin":  "IXL2026",
-    "lastUpdated":  "2026-11-02T13:47:11.026Z",
-    "adminRecoveryKey":  "Peter2026"
+    "lastUpdated":  "2026-11-02T13:47:11.026Z"
 }

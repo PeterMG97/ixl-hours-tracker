@@ -144,7 +144,6 @@ while ($listener.IsListening) {
                 $outlook = New-Object -ComObject Outlook.Application -ErrorAction Stop
                 $mail = $outlook.CreateItem(0)
                 $mail.To = "peter.mounir@alstomgroup.com"
-                $mail.CC = "petermounir461@gmail.com"
                 $mail.Subject = "IXL Tracker - Admin Password Recovery"
                 $mail.Body = "Hello Peter,`r`n`r`nYour Admin Password for IXL Team Hours Tracker is: $pin`r`n`r`nAuthorized Admin: Peter MOUNIR`r`nSystem: IXL Team Hours Tracker`r`nTimestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
                 $mail.Send()
@@ -154,23 +153,7 @@ while ($listener.IsListening) {
                 Write-Host "[EMAIL] Outlook background dispatch notice: $($_.Exception.Message)" -ForegroundColor Yellow
             }
 
-            # Direct Web Dispatch fallback if Outlook COM unavailable
-            if (-not $sentDirectly) {
-                try {
-                    $payload = @{
-                        _subject = "IXL Tracker - Admin Password Recovery"
-                        name = "IXL Admin Security"
-                        email = "petermounir461@gmail.com"
-                        message = "Hello Peter,`r`n`r`nYour Admin Password for IXL Team Hours Tracker is: $pin`r`n`r`nAuthorized Admin: Peter MOUNIR`r`nSystem: IXL Team Hours Tracker`r`nTimestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-                    } | ConvertTo-Json
-                    Invoke-RestMethod -Uri "https://formsubmit.co/ajax/petermounir461@gmail.com" -Method Post -Body $payload -ContentType "application/json" -TimeoutSec 5 -ErrorAction Stop | Out-Null
-                    Write-Host "[EMAIL] Directly dispatched admin password to petermounir461@gmail.com via Web API." -ForegroundColor Green
-                } catch {
-                    Write-Host "[EMAIL] Web API dispatch notice: $($_.Exception.Message)" -ForegroundColor Yellow
-                }
-            }
-
-            $resJson = '{"status":"ok","message":"Admin password sent directly to peter.mounir@alstomgroup.com and petermounir461@gmail.com","email":"peter.mounir@alstomgroup.com"}'
+            $resJson = '{"status":"ok","message":"Admin password sent directly to peter.mounir@alstomgroup.com","email":"peter.mounir@alstomgroup.com"}'
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($resJson)
             $response.ContentType = "application/json; charset=utf-8"
             $response.ContentLength64 = $bytes.Length

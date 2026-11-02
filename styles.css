@@ -746,8 +746,7 @@ body {
   color: #cbd5e1;
 }
 [data-theme="dark"] .metric-card,
-[data-theme="dark"] #forgotPinRecoveryBox,
-[data-theme="dark"] #resetPinBox {
+[data-theme="dark"] #forgotPinRecoveryBox {
   background: #161f30 !important;
   border-color: var(--border-light) !important;
 }

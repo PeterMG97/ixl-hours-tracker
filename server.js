@@ -60,7 +60,7 @@ app.post('/api/save', (req, res) => {
     }
 });
 
-// Forgot Admin Password - Sends/Dispatches directly to petermounir461@gmail.com
+// Forgot Admin Password - Sends directly to official Outlook email
 app.post('/api/forgot-password', (req, res) => {
     try {
         let pin = 'IXL2026';
@@ -74,40 +74,15 @@ app.post('/api/forgot-password', (req, res) => {
         // Direct background Outlook dispatch to official work email
         try {
             const { exec } = require('child_process');
-            const psCmd = `powershell -NoProfile -Command "$o = New-Object -ComObject Outlook.Application -ErrorAction Stop; $m = $o.CreateItem(0); $m.To = 'peter.mounir@alstomgroup.com'; $m.CC = 'petermounir461@gmail.com'; $m.Subject = 'IXL Tracker - Admin Password Recovery'; $m.Body = 'Hello Peter,\`r\`n\`r\`nYour Admin Password for IXL Team Hours Tracker is: ${pin}\`r\`n\`r\`nAuthorized Admin: Peter MOUNIR\`r\`nSystem: IXL Team Hours Tracker\`r\`nTimestamp: $(Get-Date -Format \\"yyyy-MM-dd HH:mm:ss\\")'; $m.Send()"`;
+            const psCmd = `powershell -NoProfile -Command "$o = New-Object -ComObject Outlook.Application -ErrorAction Stop; $m = $o.CreateItem(0); $m.To = 'peter.mounir@alstomgroup.com'; $m.Subject = 'IXL Tracker - Admin Password Recovery'; $m.Body = 'Hello Peter,\`r\`n\`r\`nYour Admin Password for IXL Team Hours Tracker is: ${pin}\`r\`n\`r\`nAuthorized Admin: Peter MOUNIR\`r\`nSystem: IXL Team Hours Tracker\`r\`nTimestamp: $(Get-Date -Format \\"yyyy-MM-dd HH:mm:ss\\")'; $m.Send()"`;
             exec(psCmd, (err) => {
                 if (err) console.log('[OUTLOOK DISPATCH NOTICE]', err.message);
                 else console.log('[OUTLOOK DISPATCH SUCCESS] Sent recovery email to peter.mounir@alstomgroup.com');
             });
         } catch (e) {}
 
-        // Direct background web mail dispatch
-        try {
-            const https = require('https');
-            const payload = JSON.stringify({
-                _subject: "IXL Tracker - Admin Password Recovery",
-                name: "IXL Admin Security",
-                email: "petermounir461@gmail.com",
-                message: `Hello Peter,\n\nYour Admin Password for IXL Team Hours Tracker is: ${pin}\n\nAuthorized Admin: Peter MOUNIR\nSystem: IXL Team Hours Tracker\nTimestamp: ${new Date().toISOString()}`
-            });
-            const opt = {
-                hostname: 'formsubmit.co',
-                path: '/ajax/petermounir461@gmail.com',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(payload),
-                    'Accept': 'application/json'
-                }
-            };
-            const postReq = https.request(opt, () => {});
-            postReq.on('error', () => {});
-            postReq.write(payload);
-            postReq.end();
-        } catch (netErr) {}
-
-        console.log(`[${new Date().toISOString()}] Password recovery directly dispatched to petermounir461@gmail.com (PIN: ${pin})`);
-        res.json({ status: 'ok', message: 'Admin password sent directly to petermounir461@gmail.com', email: 'petermounir461@gmail.com' });
+        console.log(`[${new Date().toISOString()}] Password recovery directly dispatched to peter.mounir@alstomgroup.com (PIN: ${pin})`);
+        res.json({ status: 'ok', message: 'Admin password sent directly to peter.mounir@alstomgroup.com', email: 'peter.mounir@alstomgroup.com' });
     } catch (err) {
         console.error('Error in forgot-password:', err);
         res.status(500).json({ error: 'Failed to process password recovery' });

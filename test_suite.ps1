@@ -237,16 +237,16 @@ $hasEmojis = ($htmlContent -match $emojiRegex) -or ($jsContent -match $emojiRege
 Assert-Test "6.23 Zero emojis across frontend files (index.html, app.js, styles.css)" (-not $hasEmojis) "Emoji presence: $hasEmojis"
 $redDotRemoved = (-not $htmlContent.Contains('id="adminActiveDot"')) -and (-not $htmlContent.Contains('id="dockedAdminDot"')) -and (-not $cssContent.Contains('.admin-badge-dot')) -and (-not $cssContent.Contains('.docked-admin-dot'))
 Assert-Test "6.24 Red dot/lamp removed beside Settings and Tools" $redDotRemoved "No red dot found beside settings"
-$forgotPwdConfigured = ($htmlContent.Contains('id="forgotPinBtn"')) -and ($jsContent.Contains('petermounir461@gmail.com')) -and (-not $jsContent.Contains('mailto:')) -and ($serverContent.Contains('petermounir461@gmail.com')) -and ($serverPs1Content.Contains('petermounir461@gmail.com'))
-Assert-Test "6.25 Forgot admin password dispatches directly to petermounir461@gmail.com without opening mail client" $forgotPwdConfigured "Forgot password configured with direct background dispatch (no mailto)"
+$forgotPwdConfigured = ($htmlContent.Contains('id="forgotPinBtn"')) -and ($jsContent.Contains('peter.mounir@alstomgroup.com')) -and (-not $jsContent.Contains('mailto:')) -and ($serverContent.Contains('peter.mounir@alstomgroup.com')) -and ($serverPs1Content.Contains('peter.mounir@alstomgroup.com'))
+Assert-Test "6.25 Forgot admin password dispatches directly to peter.mounir@alstomgroup.com without opening mail client" $forgotPwdConfigured "Forgot password configured with direct Outlook dispatch (no mailto)"
 $matchingSpecialColors = ($cssContent.Contains('--badge-sup-bg: #dcfce7')) -and ($cssContent.Contains('--badge-sup-text: #15803d')) -and ($cssContent.Contains('--badge-sup-bg: #052e16')) -and ($cssContent.Contains('--badge-sup-text: #86efac'))
 Assert-Test "6.26 Training, Academy, and Support share matching green highlight and font styling" $matchingSpecialColors "Green highlight & text unified across themes"
 $employeeContribs = ($htmlContent.Contains('id="employeeContributionsModal"')) -and ($jsContent.Contains('openEmployeeContributions')) -and ($jsContent.Contains('renderEmployeeContributions')) -and ($jsContent.Contains('data-emp-id'))
 Assert-Test "6.27 Double-clicking employee name opens monthly contributions page" $employeeContribs "Employee monthly contributions modal and double-click interaction verified"
 $topBtn3LinesAndNoDocked = ($htmlContent.Contains('class="hamburger-icon"')) -and (-not $htmlContent.Contains('Settings &amp; Tools</span>')) -and (-not $htmlContent.Contains('id="dockedSettingsBtn"')) -and (-not $cssContent.Contains('.docked-settings-pill'))
 Assert-Test "6.28 Settings & Tools shown as 3 horizontal lines and docked right setting tab removed" $topBtn3LinesAndNoDocked "3 horizontal lines icon and no docked settings tab"
-$recoveryBoxSecure = ($htmlContent.Contains('id="forgotPinRecoveryBox"')) -and (-not $htmlContent.Contains('id="revealedAdminPin"')) -and ($htmlContent.Contains('id="verifyRecoveryKeyBtn"')) -and ($jsContent.Contains('verifyRecoveryKeyBtn')) -and ($jsContent.Contains('adminRecoveryKey'))
-Assert-Test "6.29 Admin password recovery challenge secured with secret key and zero password leak" $recoveryBoxSecure "Password is never displayed on-screen and requires secret recovery key"
+$recoveryBoxSecure = ($htmlContent.Contains('id="forgotPinRecoveryBox"')) -and (-not $htmlContent.Contains('id="revealedAdminPin"')) -and (-not $htmlContent.Contains('id="recoveryKeyInput"')) -and ($htmlContent.Contains('peter.mounir@alstomgroup.com')) -and (-not $htmlContent.Contains('petermounir461@gmail.com'))
+Assert-Test "6.29 Admin password recovery dispatches exclusively to official Outlook mail with zero on-screen leak" $recoveryBoxSecure "Password is never displayed on-screen and secret key UI removed"
 
 # -------------------------------------------------------------
 # SUMMARY REPORT

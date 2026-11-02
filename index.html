@@ -647,30 +647,16 @@
         <div style="margin-top: 12px; text-align: center;">
           <button type="button" class="btn-link text-sm" id="forgotPinBtn" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; font-size:12px; padding:4px;">Forgot Admin Password?</button>
 
-          <!-- Secure Password Recovery Challenge Box (Never reveals password on-screen) -->
+          <!-- Secure Password Recovery Confirmation (Sent strictly to official Outlook) -->
           <div id="forgotPinRecoveryBox" class="hidden" style="margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-light); text-align: left;">
-            <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px; line-height:1.4;">
-              For security, the Admin Password is never displayed on screen. A recovery dispatch has been sent directly to your official Outlook email: <strong style="color:var(--text-primary);">peter.mounir@alstomgroup.com</strong>.
+            <div style="font-size:12px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">
+              Admin Password Dispatched
             </div>
-
-            <div style="margin-top:10px; border-top:1px solid var(--border-subtle, #e2e8f0); padding-top:10px;">
-              <label style="font-size:11px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">
-                Verify with Peter MOUNIR's Secret Recovery Key:
-              </label>
-              <div style="display:flex; gap:6px;">
-                <input type="password" id="recoveryKeyInput" class="form-control form-control-sm" placeholder="Enter Secret Recovery Key" style="font-size:12px;">
-                <button type="button" class="btn btn-sm btn-primary" id="verifyRecoveryKeyBtn" style="white-space:nowrap; padding:4px 10px;">Verify</button>
-              </div>
-              <span id="recoveryKeyError" class="text-danger text-xs hidden" style="margin-top:4px; display:block;">Invalid recovery key. Access denied.</span>
+            <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+              For security, the Admin Password is never displayed on screen. It has been sent directly to your official Outlook inbox: <strong style="color:var(--text-primary);">peter.mounir@alstomgroup.com</strong>.
             </div>
-
-            <!-- Set New Password Box (Only visible after verified with secret recovery key) -->
-            <div id="resetPinBox" class="hidden" style="margin-top:10px; padding:10px; background:var(--bg-card, #ffffff); border-radius:6px; border:1px solid var(--border-medium);">
-              <span class="text-xs" style="color:var(--success, #16a34a); font-weight:600; display:block; margin-bottom:6px;">Identity Verified. Set New Admin Password:</span>
-              <div style="display:flex; gap:6px;">
-                <input type="password" id="newAdminPinInput" class="form-control form-control-sm" placeholder="New Password" style="font-size:12px;">
-                <button type="button" class="btn btn-sm btn-primary" id="saveNewPinBtn" style="white-space:nowrap; padding:4px 10px;">Save &amp; Unlock</button>
-              </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.4;">
+              Please open your Outlook email, retrieve your password, and enter it above to unlock Admin Mode.
             </div>
           </div>
 
@@ -907,6 +893,6 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast-popup hidden"></div>
 
-  <script src="app.js?v=2.8"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>
