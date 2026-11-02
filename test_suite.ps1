@@ -263,6 +263,9 @@ Assert-Test "6.35 Single toggle button for all sections in schedule table header
 $cellHoldAndDrag = ($jsContent.Contains('cellDragState')) -and ($jsContent.Contains('handleCellMouseDown')) -and ($jsContent.Contains('activateSelectionForRange')) -and ($jsContent.Contains('handleDragMoveToSlot')) -and ($cssContent.Contains('is-cell-dragging'))
 Assert-Test "6.36 Left click hold and drag range multi-cell selection implemented" $cellHoldAndDrag "Click-and-hold (hold timer) and horizontal drag range selection verified"
 
+$verticalAdminSelect = ($jsContent.Contains('activate2DSelection')) -and ($jsContent.Contains('getSelectedUniqueEmployees')) -and ($jsContent.Contains('minRow')) -and ($jsContent.Contains('maxRow'))
+Assert-Test "6.37 Admin mode enables 2D vertical and horizontal multi-cell selection across team members" $verticalAdminSelect "2D vertical row and horizontal date box selection in Admin mode verified"
+
 # -------------------------------------------------------------
 # SUMMARY REPORT
 # -------------------------------------------------------------

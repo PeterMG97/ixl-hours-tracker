@@ -1195,7 +1195,7 @@
   }
 
   // -------------------------------------------------------------
-  // Click-and-Hold + Drag Range Selection Management
+  // Click-and-Hold + Drag Range Selection Management (2D: Vertical & Horizontal in Admin)
   // -------------------------------------------------------------
 
   const cellDragState = {
@@ -1206,8 +1206,9 @@
     startSlot: null,
     startEmpId: null,
     startDateStr: null,
-    startIndex: -1,
-    rowSlots: [],
+    startRowIndex: -1,
+    startColIndex: -1,
+    allVisibleRows: [],
     baseSelectedCells: new Set(),
     isMultiMode: false,
     suppressClick: false
@@ -1224,43 +1225,77 @@
     });
   }
 
-  function activateSelectionForRange(startIdx, endIdx) {
-    if (!cellDragState.rowSlots || cellDragState.rowSlots.length === 0) return;
-    const minIdx = Math.min(startIdx, endIdx);
-    const maxIdx = Math.max(startIdx, endIdx);
-    const empId = cellDragState.startEmpId;
+  function activate2DSelection(currentRowIdx, currentColIdx) {
+    if (!cellDragState.allVisibleRows || cellDragState.allVisibleRows.length === 0) return;
+    const isAdmin = state.isAdmin && isCurrentUserPeter();
 
-    // If changing employee, deselect previous selection
-    if (state.selectedEmpId && state.selectedEmpId !== empId) {
+    // In admin mode, row selection spans vertically; in non-admin mode, locked to startRowIndex (horizontal only)
+    const minRow = isAdmin 
+      ? Math.max(0, Math.min(cellDragState.startRowIndex, currentRowIdx))
+      : cellDragState.startRowIndex;
+    const maxRow = isAdmin 
+      ? Math.min(cellDragState.allVisibleRows.length - 1, Math.max(cellDragState.startRowIndex, currentRowIdx))
+      : cellDragState.startRowIndex;
+
+    const minCol = Math.max(0, Math.min(cellDragState.startColIndex, currentColIdx));
+    const maxCol = Math.max(cellDragState.startColIndex, currentColIdx);
+
+    // If starting a fresh drag (not multi-mode), clear previous DOM selections outside base
+    if (!cellDragState.isMultiMode) {
       document.querySelectorAll('.schedule-table td.is-selected-cell').forEach(td => {
         td.classList.remove('is-selected-cell');
       });
-      state.selectedCells.clear();
     }
-    state.selectedEmpId = empId;
 
     const newSelectedKeys = new Set(cellDragState.baseSelectedCells);
-    for (let i = minIdx; i <= maxIdx; i++) {
-      const s = cellDragState.rowSlots[i];
-      if (s) {
-        const d = s.getAttribute('data-date');
-        if (d) newSelectedKeys.add(`${empId}_${d}`);
+
+    for (let r = minRow; r <= maxRow; r++) {
+      const row = cellDragState.allVisibleRows[r];
+      if (!row) continue;
+      const empId = row.getAttribute('data-emp-id');
+      if (!empId) continue;
+
+      const slots = Array.from(row.querySelectorAll('td.col-slot'));
+      const boundedMaxCol = Math.min(slots.length - 1, maxCol);
+
+      for (let c = minCol; c <= boundedMaxCol; c++) {
+        const slot = slots[c];
+        if (slot) {
+          const dateStr = slot.getAttribute('data-date');
+          if (dateStr) {
+            newSelectedKeys.add(`${empId}_${dateStr}`);
+          }
+        }
       }
     }
 
-    cellDragState.rowSlots.forEach(s => {
-      const d = s.getAttribute('data-date');
-      const k = `${empId}_${d}`;
-      if (newSelectedKeys.has(k)) {
-        s.classList.add('is-selected-cell');
-      } else if (!cellDragState.baseSelectedCells.has(k)) {
-        s.classList.remove('is-selected-cell');
-      }
+    // Apply visual selection classes across all visible rows
+    cellDragState.allVisibleRows.forEach(row => {
+      const empId = row.getAttribute('data-emp-id');
+      if (!empId) return;
+      row.querySelectorAll('td.col-slot').forEach(slot => {
+        const dateStr = slot.getAttribute('data-date');
+        const k = `${empId}_${dateStr}`;
+        if (newSelectedKeys.has(k)) {
+          slot.classList.add('is-selected-cell');
+        } else if (!cellDragState.baseSelectedCells.has(k)) {
+          slot.classList.remove('is-selected-cell');
+        }
+      });
     });
 
     state.selectedCells = newSelectedKeys;
+    if (minRow === maxRow) {
+      state.selectedEmpId = cellDragState.allVisibleRows[minRow].getAttribute('data-emp-id');
+    } else {
+      state.selectedEmpId = null;
+    }
+
     updateMultiSelectUI();
   }
+
+  // Alias for backward compatibility
+  const activateSelectionForRange = activate2DSelection;
 
   function handleCellMouseDown(slot, e) {
     if (e.button !== 0) return; // Left mouse button only
@@ -1274,15 +1309,19 @@
     const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
     if (!canEditThisRow) return;
 
+    const allVisibleRows = Array.from(el.scheduleBody.querySelectorAll('tr.user-row:not(.is-collapsed-row)'));
     const row = slot.closest('tr.user-row');
     if (!row) return;
 
+    const startRowIndex = allVisibleRows.indexOf(row);
+    if (startRowIndex === -1) return;
+
     const rowSlots = Array.from(row.querySelectorAll('td.col-slot'));
-    const startIndex = rowSlots.indexOf(slot);
-    if (startIndex === -1) return;
+    const startColIndex = rowSlots.indexOf(slot);
+    if (startColIndex === -1) return;
 
     const isMultiMode = e.ctrlKey || e.metaKey;
-    const baseSelected = (isMultiMode && state.selectedEmpId === empId) 
+    const baseSelected = (isMultiMode) 
       ? new Set(state.selectedCells) 
       : new Set();
 
@@ -1292,8 +1331,9 @@
     cellDragState.startSlot = slot;
     cellDragState.startEmpId = empId;
     cellDragState.startDateStr = dateStr;
-    cellDragState.startIndex = startIndex;
-    cellDragState.rowSlots = rowSlots;
+    cellDragState.startRowIndex = startRowIndex;
+    cellDragState.startColIndex = startColIndex;
+    cellDragState.allVisibleRows = allVisibleRows;
     cellDragState.baseSelectedCells = baseSelected;
     cellDragState.isMultiMode = isMultiMode;
     cellDragState.suppressClick = false;
@@ -1311,17 +1351,31 @@
       closeCellPopover();
 
       // Hold established: select this single cell
-      activateSelectionForRange(startIndex, startIndex);
+      activate2DSelection(startRowIndex, startColIndex);
     }, 220);
   }
 
   function handleDragMoveToSlot(slot) {
     if (!cellDragState.isMouseDown) return;
-    const currentIndex = cellDragState.rowSlots.indexOf(slot);
-    if (currentIndex === -1) return;
+    const row = slot.closest('tr.user-row');
+    if (!row) return;
+    const rIdx = cellDragState.allVisibleRows.indexOf(row);
+    if (rIdx === -1) return;
 
-    // If moved to a different cell or hold is already active, activate drag selection
-    if (currentIndex !== cellDragState.startIndex || cellDragState.isHoldSelecting) {
+    const rowSlots = Array.from(row.querySelectorAll('td.col-slot'));
+    const cIdx = rowSlots.indexOf(slot);
+    if (cIdx === -1) return;
+
+    handleDragMoveToCoords(rIdx, cIdx);
+  }
+
+  function handleDragMoveToCoords(rIdx, cIdx) {
+    if (!cellDragState.isMouseDown) return;
+    const isAdmin = state.isAdmin && isCurrentUserPeter();
+    const effectiveRIdx = isAdmin ? rIdx : cellDragState.startRowIndex;
+
+    // If moved to a different coordinate or hold is already active, activate drag selection
+    if (effectiveRIdx !== cellDragState.startRowIndex || cIdx !== cellDragState.startColIndex || cellDragState.isHoldSelecting) {
       if (cellDragState.holdTimer) {
         clearTimeout(cellDragState.holdTimer);
         cellDragState.holdTimer = null;
@@ -1331,7 +1385,7 @@
       document.body.classList.add('is-cell-dragging');
       closeCellPopover();
 
-      activateSelectionForRange(cellDragState.startIndex, currentIndex);
+      activate2DSelection(effectiveRIdx, cIdx);
     }
   }
 
@@ -1369,20 +1423,19 @@
 
     const hoveredSlot = hovered.closest('td.col-slot');
     if (hoveredSlot) {
-      const dateStr = hoveredSlot.getAttribute('data-date');
-      if (dateStr && cellDragState.rowSlots) {
-        const matchInRow = cellDragState.rowSlots.find(s => s.getAttribute('data-date') === dateStr);
-        if (matchInRow) {
-          handleDragMoveToSlot(matchInRow);
-          return;
-        }
-      }
+      handleDragMoveToSlot(hoveredSlot);
+      return;
     }
 
-    // Clamping to first cell if dragged left into user/hours column
-    if (hovered.closest('td.col-user') || hovered.closest('th.col-user')) {
-      if (cellDragState.rowSlots && cellDragState.rowSlots.length > 0) {
-        handleDragMoveToSlot(cellDragState.rowSlots[0]);
+    // Clamping if dragged left into user column or hours column of a row
+    const userRow = hovered.closest('tr.user-row');
+    if (userRow) {
+      const rIdx = cellDragState.allVisibleRows.indexOf(userRow);
+      if (rIdx !== -1) {
+        if (hovered.closest('td.col-user') || hovered.closest('td.col-metric')) {
+          handleDragMoveToCoords(rIdx, 0);
+          return;
+        }
       }
     }
   }
@@ -1391,11 +1444,25 @@
   // Multi-Cell Selection Management
   // -------------------------------------------------------------
 
+  function getSelectedUniqueEmployees() {
+    const empIds = new Set();
+    state.selectedCells.forEach(key => {
+      const lastUnder = key.lastIndexOf('_');
+      if (lastUnder !== -1) {
+        empIds.add(key.substring(0, lastUnder));
+      }
+    });
+    return Array.from(empIds).map(id => state.employees.find(e => e.id === id)).filter(Boolean);
+  }
+
   function toggleCellSelection(empId, key, slotEl) {
-    if (state.selectedCells.size > 0 && state.selectedEmpId !== empId) {
+    const isAdmin = state.isAdmin && isCurrentUserPeter();
+    if (!isAdmin && state.selectedCells.size > 0 && state.selectedEmpId !== empId) {
       clearSelection();
     }
-    state.selectedEmpId = empId;
+    if (!isAdmin) {
+      state.selectedEmpId = empId;
+    }
 
     if (state.selectedCells.has(key)) {
       state.selectedCells.delete(key);
@@ -1431,27 +1498,45 @@
 
     el.multiSelectBar.classList.remove('hidden');
     el.multiSelectCount.textContent = `${count} cell${count > 1 ? 's' : ''} selected`;
-    const emp = state.employees.find(e => e.id === state.selectedEmpId);
-    el.multiSelectEmpName.textContent = emp ? `(${emp.name})` : '';
+    
+    const uniqueEmps = getSelectedUniqueEmployees();
+    if (uniqueEmps.length === 1) {
+      el.multiSelectEmpName.textContent = `(${uniqueEmps[0].name})`;
+    } else if (uniqueEmps.length > 1) {
+      el.multiSelectEmpName.textContent = `(${uniqueEmps.length} members)`;
+    } else {
+      el.multiSelectEmpName.textContent = '';
+    }
   }
 
   function openMultiCellPopover(targetBtn) {
     if (state.selectedCells.size === 0) return;
-    const empId = state.selectedEmpId;
-    const emp = state.employees.find(e => e.id === empId);
-    if (!emp) return;
+    const uniqueEmps = getSelectedUniqueEmployees();
+    if (uniqueEmps.length === 0) return;
 
     state.isMultiEditing = true;
-    const dates = Array.from(state.selectedCells).map(k => k.split('_').slice(1).join('_')).sort();
+    const dates = Array.from(new Set(Array.from(state.selectedCells).map(k => {
+      const lastUnder = k.lastIndexOf('_');
+      return k.substring(lastUnder + 1);
+    }))).sort();
 
-    el.popoverTitle.textContent = `Assign ${dates.length} Days for ${emp.name}`;
-    el.popoverSubtitle.textContent = dates.length <= 3 
-      ? dates.join(', ') 
-      : `${dates.slice(0, 3).join(', ')} +${dates.length - 3} more`;
-    el.popoverHoursInput.value = Math.min(12, Math.max(1, emp ? (emp.defaultHoursPerDay || 8) : 8));
+    if (uniqueEmps.length === 1) {
+      const emp = uniqueEmps[0];
+      el.popoverTitle.textContent = `Assign ${dates.length} Days for ${emp.name}`;
+      el.popoverSubtitle.textContent = dates.length <= 3 
+        ? dates.join(', ') 
+        : `${dates.slice(0, 3).join(', ')} +${dates.length - 3} more`;
+      el.popoverHoursInput.value = Math.min(12, Math.max(1, emp ? (emp.defaultHoursPerDay || 8) : 8));
+    } else {
+      el.popoverTitle.textContent = `Assign ${state.selectedCells.size} Cells (${uniqueEmps.length} Members)`;
+      el.popoverSubtitle.textContent = dates.length <= 3 
+        ? `${dates.join(', ')} across ${uniqueEmps.length} team members` 
+        : `${dates.slice(0, 3).join(', ')} +${dates.length - 3} more across ${uniqueEmps.length} team members`;
+      el.popoverHoursInput.value = 8;
+    }
+
     el.projectSearchInput.value = '';
     setPopoverCategory('all', false);
-
     renderPopoverProjectList('');
 
     const anchorEl = targetBtn || el.multiEditAssignBtn;
@@ -1502,11 +1587,15 @@
   function batchApplyToSelectedCells(projectName, hours) {
     if (state.selectedCells.size === 0) return;
     const count = state.selectedCells.size;
-    const empId = state.selectedEmpId;
-    const emp = state.employees.find(e => e.id === empId);
-    const sanitizedHours = sanitizeDayHours(projectName, hours, emp ? emp.defaultHoursPerDay : 8);
+    const uniqueEmps = getSelectedUniqueEmployees();
 
     state.selectedCells.forEach(key => {
+      const lastUnder = key.lastIndexOf('_');
+      const cellEmpId = key.substring(0, lastUnder);
+      const cellEmp = state.employees.find(e => e.id === cellEmpId);
+      const fallbackH = cellEmp ? (cellEmp.defaultHoursPerDay || 8) : 8;
+      const sanitizedHours = sanitizeDayHours(projectName, hours, fallbackH);
+
       if (!projectName || projectName.trim() === '') {
         delete state.allocations[key];
       } else {
@@ -1521,7 +1610,12 @@
     closeCellPopover();
     renderSchedule();
     syncToServer();
-    showToast(`Updated ${count} cells for ${emp ? emp.name : 'employee'}`);
+
+    if (uniqueEmps.length === 1) {
+      showToast(`Updated ${count} cells for ${uniqueEmps[0].name}`);
+    } else {
+      showToast(`Updated ${count} cells across ${uniqueEmps.length} team members`);
+    }
   }
 
   function openCellPopover(empId, dateStr, targetBtn) {
