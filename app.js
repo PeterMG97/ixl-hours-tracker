@@ -415,7 +415,11 @@
       .replace(/^Tender - /, 'T: ')
       .replace(/^Training - /, 'Tr: ')
       .replace(/^Academy - /, 'Acad: ');
-    return clean.length > 9 ? clean.substring(0, 8) + '…' : clean;
+    
+    // Dynamic text truncation based on current day column width (Excel behavior)
+    const colWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--day-col-width')) || 48;
+    const maxChars = Math.max(8, Math.floor(colWidth / 6.5));
+    return clean.length > maxChars ? clean.substring(0, maxChars - 1) + '…' : clean;
   }
 
   // -------------------------------------------------------------
@@ -428,18 +432,23 @@
 
     let headHtml = `
       <tr>
-        <th class="col-user" rowspan="2">Team Member</th>
+        <th class="col-user" rowspan="2">
+          <span>Team Member</span>
+          <div class="col-resizer resizer-user" title="Drag to resize Employee column (Excel style)"></div>
+        </th>
         <th class="col-metric" rowspan="2" title="Total hours allocated for this month">Hours</th>
         ${days.map(d => `
           <th class="col-slot ${d.isToday ? 'is-today' : ''}" title="${d.dateStr}">
             <div class="slot-num">${d.num}</div>
             <div class="slot-name">${d.name}</div>
+            <div class="col-resizer resizer-day" title="Drag to resize Day columns (Excel style)"></div>
           </th>
         `).join('')}
       </tr>
       <tr></tr>
     `;
     el.scheduleHead.innerHTML = headHtml;
+    attachColumnResizers();
 
     let bodyHtml = '';
     let totalMonthHours = 0;
@@ -547,6 +556,143 @@
 
     if (!state.isViewOnly) {
       attachCellEvents();
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Excel-Style Column Resizing (Drag & Sliders)
+  // -------------------------------------------------------------
+
+  function attachColumnResizers() {
+    el.scheduleHead.querySelectorAll('.col-resizer').forEach(resizer => {
+      resizer.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isUserCol = resizer.classList.contains('resizer-user');
+        const startX = e.pageX;
+        const rootStyle = getComputedStyle(document.documentElement);
+        const startWidth = isUserCol 
+          ? parseInt(rootStyle.getPropertyValue('--user-col-width')) || 210
+          : parseInt(rootStyle.getPropertyValue('--day-col-width')) || 48;
+
+        resizer.classList.add('is-resizing');
+        document.body.classList.add('is-resizing-columns');
+
+        function onMouseMove(moveEvent) {
+          const deltaX = moveEvent.pageX - startX;
+          if (isUserCol) {
+            const newWidth = Math.max(160, Math.min(360, startWidth + deltaX));
+            document.documentElement.style.setProperty('--user-col-width', `${newWidth}px`);
+            localStorage.setItem('ixl_user_col_width', newWidth);
+          } else {
+            const newWidth = Math.max(40, Math.min(180, startWidth + deltaX));
+            setDayColumnWidth(newWidth, false);
+          }
+        }
+
+        function onMouseUp() {
+          resizer.classList.remove('is-resizing');
+          document.body.classList.remove('is-resizing-columns');
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+
+          if (!isUserCol) {
+            renderSchedule();
+          }
+        }
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+
+      // Double-click to auto-fit to standard
+      resizer.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (resizer.classList.contains('resizer-user')) {
+          document.documentElement.style.setProperty('--user-col-width', `210px`);
+          localStorage.setItem('ixl_user_col_width', 210);
+        } else {
+          setDayColumnWidth(48);
+          renderSchedule();
+        }
+      });
+    });
+  }
+
+  function setDayColumnWidth(width, rerenderTable = true) {
+    const w = Math.max(40, Math.min(180, Number(width)));
+    document.documentElement.style.setProperty('--day-col-width', `${w}px`);
+    localStorage.setItem('ixl_day_col_width', w);
+
+    const slider = document.getElementById('colWidthSlider');
+    if (slider) slider.value = w;
+
+    const label = document.getElementById('dayWidthLabel');
+    if (label) {
+      let desc = 'Custom';
+      if (w <= 52) desc = 'Compact';
+      else if (w <= 85) desc = 'Medium';
+      else if (w <= 125) desc = 'Wide';
+      else desc = 'Full';
+      label.textContent = `${w}px (${desc})`;
+    }
+
+    document.querySelectorAll('.density-btn').forEach(btn => {
+      btn.classList.toggle('active', Number(btn.getAttribute('data-width')) === w);
+    });
+
+    if (rerenderTable) {
+      // Re-evaluate compact label lengths
+      document.querySelectorAll('.task-chip').forEach(chip => {
+        const title = chip.getAttribute('title') || '';
+        const match = title.match(/\|\s*\d{4}-\d{2}-\d{2}:\s*(.*)$/);
+        if (match && match[1]) {
+          const raw = match[1].trim();
+          if (raw && raw !== 'Empty' && !raw.startsWith('⚠️')) {
+            chip.textContent = getCompactLabel(raw);
+          }
+        }
+      });
+    }
+  }
+
+  function initColumnWidths() {
+    const savedUserWidth = localStorage.getItem('ixl_user_col_width');
+    if (savedUserWidth) {
+      document.documentElement.style.setProperty('--user-col-width', `${savedUserWidth}px`);
+    }
+
+    const savedDayWidth = localStorage.getItem('ixl_day_col_width') || 48;
+    setDayColumnWidth(savedDayWidth, false);
+
+    // Preset density buttons
+    document.querySelectorAll('.density-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const w = Number(btn.getAttribute('data-width'));
+        setDayColumnWidth(w);
+      });
+    });
+
+    // Slider
+    const slider = document.getElementById('colWidthSlider');
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        setDayColumnWidth(e.target.value);
+      });
+    }
+
+    // Reset button
+    const resetBtn = document.getElementById('resetColWidthBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        document.documentElement.style.setProperty('--user-col-width', `210px`);
+        localStorage.setItem('ixl_user_col_width', 210);
+        setDayColumnWidth(48);
+        renderSchedule();
+        showToast('Column widths reset to standard');
+      });
     }
   }
 
@@ -1677,6 +1823,7 @@
 
   // Boot Application
   initTheme();
+  initColumnWidths();
   loadData();
 
 })();

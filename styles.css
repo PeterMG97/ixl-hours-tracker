@@ -28,6 +28,10 @@
   --danger-soft: #fef2f2;
   --danger-text: #991b1b;
 
+  /* Excel Column Width Custom Properties */
+  --day-col-width: 48px;
+  --user-col-width: 210px;
+
   /* Project Badge Colors */
   --badge-proj-bg: #e0f2fe;
   --badge-proj-text: #0369a1;
@@ -913,8 +917,9 @@ body {
   z-index: 25;
   text-align: left;
   padding: 6px 14px;
-  min-width: 200px;
-  max-width: 230px;
+  width: var(--user-col-width, 210px);
+  min-width: var(--user-col-width, 210px);
+  max-width: var(--user-col-width, 210px);
   border-right: 2px solid var(--border-light);
   white-space: nowrap;
 }
@@ -927,12 +932,14 @@ body {
 .schedule-table th.col-metric,
 .schedule-table td.col-metric {
   position: sticky;
-  left: 200px;
+  left: var(--user-col-width, 210px);
   background: #fafafa;
   z-index: 22;
   text-align: center;
   padding: 6px 6px;
+  width: 60px;
   min-width: 60px;
+  max-width: 60px;
   border-right: 2px solid var(--border-light);
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
@@ -946,13 +953,96 @@ body {
 
 /* Day Header Cell */
 .col-slot {
-  min-width: 44px;
-  max-width: 48px;
+  width: var(--day-col-width, 48px);
+  min-width: var(--day-col-width, 48px);
+  max-width: var(--day-col-width, 48px);
   padding: 4px 2px;
   text-align: center;
   border-bottom: 1px solid var(--border-subtle);
   border-right: 1px solid var(--border-subtle);
   vertical-align: middle;
+}
+
+/* Excel Drag-to-Resize Column Handles */
+.schedule-table th {
+  position: relative;
+}
+
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  bottom: 0;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 35;
+  transition: background 0.15s ease;
+}
+
+.col-resizer:hover,
+.col-resizer.is-resizing {
+  background: var(--primary, #3b82f6);
+}
+
+body.is-resizing-columns {
+  user-select: none !important;
+  cursor: col-resize !important;
+}
+
+/* Settings Column Width Controls */
+.settings-row-item.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.density-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.density-btn {
+  flex: 1;
+  text-align: center;
+  padding: 5px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.density-btn:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.density-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-hover);
+}
+
+[data-theme="dark"] .density-btn {
+  background: #1e293b;
+  border-color: var(--border-light);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .density-btn:hover {
+  background: rgba(37, 99, 235, 0.25);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .density-btn.active {
+  background: var(--primary);
+  color: white;
 }
 
 .schedule-table th.col-slot .slot-num {
