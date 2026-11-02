@@ -533,12 +533,15 @@
 
           const isWk = isWeekendForLocation(d.dow, sec.location);
 
-          // Requirement 9: Conditional formatting on days NOT filled up to Today
+          // Count all unfilled workdays for the currently viewed month
+          if (!isWk && !hasVal) {
+            totalUnfilledDays++;
+          }
+
+          // Visual highlight on past/today workdays that are still missing an allocation
           let isUnfilledPast = false;
           if (!isWk && d.isPastOrToday && !hasVal) {
             isUnfilledPast = true;
-            totalUnfilledDays++;
-            secUnfilledDays++;
           }
 
           const badgeClass = getProjectBadgeClass(projectName);
@@ -614,6 +617,14 @@
     el.statActiveEmployees.textContent = activeEmpCount;
     el.statCurrentMonthHours.textContent = `${totalMonthHours}h`;
     el.statUnfilledDays.textContent = `${totalUnfilledDays} days`;
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const [y, m] = state.currentMonth.split('-').map(Number);
+    const mName = monthNames[m - 1] || 'Month';
+    const labelHours = document.getElementById('labelCurrentMonthHours');
+    if (labelHours) labelHours.textContent = `${mName} Hours:`;
+    const labelUnfilled = document.getElementById('labelUnfilledDays');
+    if (labelUnfilled) labelUnfilled.textContent = `${mName} Unfilled:`;
 
     // Attach group header click listeners (toggle expand/shrink)
     el.scheduleBody.querySelectorAll('.group-header-row').forEach(row => {
