@@ -2931,6 +2931,24 @@ body.view-only .task-chip {
   color: #ffffff;
 }
 
+.contrib-cal-month-cell.is-disabled {
+  opacity: 0.28 !important;
+  cursor: not-allowed !important;
+  background: var(--bg-subtle, #f1f5f9) !important;
+  border-color: var(--border-light, #e2e8f0) !important;
+  color: var(--text-muted, #94a3b8) !important;
+  pointer-events: none;
+}
+
+.contrib-cal-nav-btn:disabled,
+.contrib-cal-nav-btn.is-disabled,
+.nav-arrow-btn:disabled,
+.nav-arrow-btn.is-disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
 .contrib-cal-month-cell.is-active .month-code,
 .contrib-cal-month-cell.is-active .month-name,
 .contrib-cal-month-cell.is-active .month-hours {
@@ -3013,6 +3031,20 @@ body.view-only .task-chip {
   background: #2563eb;
   border-color: #2563eb;
   color: #ffffff;
+}
+
+[data-theme="dark"] .contrib-cal-month-cell.is-disabled {
+  opacity: 0.25 !important;
+  background: #111827 !important;
+  border-color: #1e293b !important;
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .contrib-cal-nav-btn:disabled,
+[data-theme="dark"] .contrib-cal-nav-btn.is-disabled,
+[data-theme="dark"] .nav-arrow-btn:disabled,
+[data-theme="dark"] .nav-arrow-btn.is-disabled {
+  opacity: 0.3 !important;
 }
 
 [data-theme="dark"] .contrib-cal-footer {

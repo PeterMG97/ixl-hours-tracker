@@ -305,6 +305,12 @@ Assert-Test "6.49 Bulk refill is a pressable key button without (Monday - Friday
 $alstomLogoVerified = ($htmlContent.Contains('src="alstom-logo.png"')) -and (-not ($htmlContent -match '<div class="brand-avatar">\s*IXL\s*</div>')) -and (Test-Path (Join-Path $AppDir "alstom-logo.png"))
 Assert-Test "6.50 Top left brand features official Alstom logo replacing IXL blue icon" $alstomLogoVerified "Alstom logo image file present and configured in header brand area"
 
+$projectMiniCalendarVerified = ($htmlContent.Contains('id="projectCalendarTriggerBtn"')) -and ($htmlContent.Contains('id="projectCalendarPopover"')) -and ($htmlContent.Contains('id="projectPrevMonthBtn"')) -and ($htmlContent.Contains('id="projectNextMonthBtn"')) -and ($jsContent.Contains('renderProjectCalendarGrid')) -and ($jsContent.Contains('toggleProjectCalendarPopover')) -and ($jsContent.Contains('currentProjectMonth'))
+Assert-Test "6.51 Project monthly modal features mini calendar month picker with popover and month steppers" $projectMiniCalendarVerified "Project mini calendar markup and JS calendar engine verified"
+
+$calendarStartLimitVerified = ($jsContent.Contains("APP_START_MONTH = '2026-11'")) -and ($jsContent.Contains("ym < APP_START_MONTH")) -and ($cssContent.Contains('.contrib-cal-month-cell.is-disabled')) -and ($cssContent.Contains('.contrib-cal-nav-btn:disabled'))
+Assert-Test "6.52 Both calendars enforce Nov 2026 start date and disable earlier navigation" $calendarStartLimitVerified "Nov 2026 minimum month boundary enforced across both calendars with disabled steppers and cells"
+
 
 
 # -------------------------------------------------------------

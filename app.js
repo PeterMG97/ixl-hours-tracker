@@ -105,6 +105,7 @@
     popoverCategory: 'all',
     currentContribEmpId: null,
     currentContribMonth: null,
+    currentProjectMonth: null,
     contribFilter: 'all',
     isConnected: true,
     collapsedSections: (() => {
@@ -241,6 +242,20 @@
     contribDaysTableBody: document.getElementById('contribDaysTableBody'),
     contribFilterAll: document.getElementById('contribFilterAll'),
     contribFilterRecorded: document.getElementById('contribFilterRecorded'),
+
+    // Project Monthly Modal & Mini Calendar
+    projectMonthlyModal: document.getElementById('projectMonthlyModal'),
+    projectPrevMonthBtn: document.getElementById('projectPrevMonthBtn'),
+    projectNextMonthBtn: document.getElementById('projectNextMonthBtn'),
+    projectCalendarTriggerBtn: document.getElementById('projectCalendarTriggerBtn'),
+    projectModalMonthDisplay: document.getElementById('projectModalMonthDisplay'),
+    projectCalendarPopover: document.getElementById('projectCalendarPopover'),
+    projectCalPrevYearBtn: document.getElementById('projectCalPrevYearBtn'),
+    projectCalNextYearBtn: document.getElementById('projectCalNextYearBtn'),
+    projectCalYearDisplay: document.getElementById('projectCalYearDisplay'),
+    projectCalMonthsGrid: document.getElementById('projectCalMonthsGrid'),
+    projectCalCurrentMonthBtn: document.getElementById('projectCalCurrentMonthBtn'),
+    projectMonthSelect: document.getElementById('projectMonthSelect'),
 
     // Multi-Cell Selection Elements
     multiSelectBar: document.getElementById('multiSelectBar'),
@@ -3581,10 +3596,12 @@
   // Employee Monthly Contributions Modal (Triggered by double-click)
   // -------------------------------------------------------------
 
+  const APP_START_MONTH = '2026-11';
+
   let contribCalDisplayYear = 2026;
 
   function shiftMonthYM(ym, delta) {
-    if (!ym) ym = state.currentMonth || '2026-11';
+    if (!ym) ym = state.currentMonth || APP_START_MONTH;
     const parts = ym.split('-');
     let y = parseInt(parts[0], 10);
     let m = parseInt(parts[1], 10);
@@ -3597,25 +3614,30 @@
       m -= 12;
       y += 1;
     }
-    return `${y}-${String(m).padStart(2, '0')}`;
+    const result = `${y}-${String(m).padStart(2, '0')}`;
+    return (result < APP_START_MONTH) ? APP_START_MONTH : result;
   }
 
   function initContribMonthSelect() {
     if (!el.contribMonthSelect) return;
     const monthSet = new Set();
+    monthSet.add(APP_START_MONTH);
     if (el.monthSelect) {
       Array.from(el.monthSelect.options).forEach(opt => {
-        if (opt.value) monthSet.add(opt.value);
+        if (opt.value && opt.value >= APP_START_MONTH) monthSet.add(opt.value);
       });
     }
     Object.keys(state.allocations).forEach(k => {
       const lastUnder = k.lastIndexOf('_');
       const dt = k.substring(lastUnder + 1);
       if (dt && dt.length >= 7) {
-        monthSet.add(dt.substring(0, 7));
+        const ym = dt.substring(0, 7);
+        if (ym >= APP_START_MONTH) monthSet.add(ym);
       }
     });
-    if (state.currentContribMonth) monthSet.add(state.currentContribMonth);
+    if (state.currentContribMonth && state.currentContribMonth >= APP_START_MONTH) {
+      monthSet.add(state.currentContribMonth);
+    }
     const sorted = Array.from(monthSet).sort();
     el.contribMonthSelect.innerHTML = '';
     sorted.forEach(ym => {
@@ -3624,20 +3646,29 @@
       opt.textContent = formatMonthMY(ym);
       el.contribMonthSelect.appendChild(opt);
     });
-    el.contribMonthSelect.value = state.currentContribMonth || state.currentMonth;
+    el.contribMonthSelect.value = state.currentContribMonth || state.currentMonth || APP_START_MONTH;
   }
 
   function renderContribCalendarGrid() {
     if (!el.contribCalMonthsGrid || !el.contribCalYearDisplay) return;
+    if (contribCalDisplayYear < 2026) contribCalDisplayYear = 2026;
     el.contribCalYearDisplay.textContent = contribCalDisplayYear;
+
+    if (el.contribCalPrevYearBtn) {
+      const isMinYear = contribCalDisplayYear <= 2026;
+      el.contribCalPrevYearBtn.disabled = isMinYear;
+      el.contribCalPrevYearBtn.classList.toggle('is-disabled', isMinYear);
+    }
+
     const empId = state.currentContribEmpId;
-    const activeMonth = state.currentContribMonth || state.currentMonth;
+    const activeMonth = state.currentContribMonth || state.currentMonth || APP_START_MONTH;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     let html = '';
     for (let m = 1; m <= 12; m++) {
       const mmStr = String(m).padStart(2, '0');
       const ym = `${contribCalDisplayYear}-${mmStr}`;
+      const isBeforeStart = ym < APP_START_MONTH;
       const isActive = (ym === activeMonth);
       const monthName = monthNames[m - 1];
 
@@ -3659,8 +3690,11 @@
         ? `<span class="month-hours">${loggedHours}h</span>` 
         : '';
 
+      const disabledAttr = isBeforeStart ? 'disabled' : '';
+      const disabledClass = isBeforeStart ? 'is-disabled' : '';
+
       html += `
-        <button type="button" class="contrib-cal-month-cell ${isActive ? 'is-active' : ''}" data-ym="${ym}" title="${mmStr}/${contribCalDisplayYear} (${monthName})">
+        <button type="button" class="contrib-cal-month-cell ${isActive ? 'is-active' : ''} ${disabledClass}" data-ym="${ym}" title="${mmStr}/${contribCalDisplayYear} (${monthName}${isBeforeStart ? ' - Before Start' : ''})" ${disabledAttr}>
           <span class="month-code">${mmStr}/${contribCalDisplayYear}</span>
           <span class="month-name">${monthName}</span>
           ${hoursDisplay}
@@ -3672,8 +3706,9 @@
     el.contribCalMonthsGrid.querySelectorAll('.contrib-cal-month-cell').forEach(cell => {
       cell.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (cell.disabled || cell.classList.contains('is-disabled')) return;
         const chosenYm = cell.getAttribute('data-ym');
-        if (chosenYm) {
+        if (chosenYm && chosenYm >= APP_START_MONTH) {
           state.currentContribMonth = chosenYm;
           contribCalDisplayYear = parseInt(chosenYm.split('-')[0], 10);
           closeContribCalendarPopover();
@@ -3716,8 +3751,8 @@
     if (!emp) return;
     state.currentContribEmpId = empId;
     state.contribFilter = 'all';
-    state.currentContribMonth = state.currentMonth;
-    contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
+    state.currentContribMonth = (state.currentMonth && state.currentMonth >= APP_START_MONTH) ? state.currentMonth : APP_START_MONTH;
+    contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10) || 2026);
     closeContribCalendarPopover();
 
     if (el.contribFilterAll && el.contribFilterRecorded) {
@@ -3739,7 +3774,17 @@
     if (!emp) return;
     const sec = state.sections.find(s => s.id === emp.sectionId) || { name: 'Engineering Team', location: 'Cairo' };
 
-    const activeMonth = state.currentContribMonth || state.currentMonth;
+    const activeMonth = (state.currentContribMonth && state.currentContribMonth >= APP_START_MONTH)
+      ? state.currentContribMonth
+      : (state.currentMonth && state.currentMonth >= APP_START_MONTH ? state.currentMonth : APP_START_MONTH);
+    state.currentContribMonth = activeMonth;
+
+    if (el.contribPrevMonthBtn) {
+      const isAtStart = activeMonth <= APP_START_MONTH;
+      el.contribPrevMonthBtn.disabled = isAtStart;
+      el.contribPrevMonthBtn.classList.toggle('is-disabled', isAtStart);
+    }
+
     const days = getDaysInMonth(activeMonth);
     const defaultHours = emp.defaultHoursPerDay || (sec.location === 'Istanbul' ? 9 : 8);
 
@@ -3946,12 +3991,14 @@
   if (el.contribPrevMonthBtn) {
     el.contribPrevMonthBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const current = state.currentContribMonth || state.currentMonth;
-      state.currentContribMonth = shiftMonthYM(current, -1);
-      contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
-      renderEmployeeContributions();
-      if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
-        renderContribCalendarGrid();
+      const current = state.currentContribMonth || state.currentMonth || APP_START_MONTH;
+      if (current > APP_START_MONTH) {
+        state.currentContribMonth = shiftMonthYM(current, -1);
+        contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10));
+        renderEmployeeContributions();
+        if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
+          renderContribCalendarGrid();
+        }
       }
     });
   }
@@ -3959,9 +4006,9 @@
   if (el.contribNextMonthBtn) {
     el.contribNextMonthBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const current = state.currentContribMonth || state.currentMonth;
+      const current = state.currentContribMonth || state.currentMonth || APP_START_MONTH;
       state.currentContribMonth = shiftMonthYM(current, 1);
-      contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
+      contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10));
       renderEmployeeContributions();
       if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
         renderContribCalendarGrid();
@@ -3971,17 +4018,21 @@
 
   if (el.contribMonthSelect) {
     el.contribMonthSelect.addEventListener('change', () => {
-      state.currentContribMonth = el.contribMonthSelect.value;
-      contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
-      renderEmployeeContributions();
+      if (el.contribMonthSelect.value >= APP_START_MONTH) {
+        state.currentContribMonth = el.contribMonthSelect.value;
+        contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10));
+        renderEmployeeContributions();
+      }
     });
   }
 
   if (el.contribCalPrevYearBtn) {
     el.contribCalPrevYearBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      contribCalDisplayYear -= 1;
-      renderContribCalendarGrid();
+      if (contribCalDisplayYear > 2026) {
+        contribCalDisplayYear -= 1;
+        renderContribCalendarGrid();
+      }
     });
   }
 
@@ -3996,8 +4047,9 @@
   if (el.contribCalCurrentMonthBtn) {
     el.contribCalCurrentMonthBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      state.currentContribMonth = state.currentMonth;
-      contribCalDisplayYear = parseInt(state.currentMonth.split('-')[0], 10);
+      const targetMonth = (state.currentMonth && state.currentMonth >= APP_START_MONTH) ? state.currentMonth : APP_START_MONTH;
+      state.currentContribMonth = targetMonth;
+      contribCalDisplayYear = Math.max(2026, parseInt(targetMonth.split('-')[0], 10));
       closeContribCalendarPopover();
       renderEmployeeContributions();
     });
@@ -4041,15 +4093,139 @@
   }
 
   // -------------------------------------------------------------
-  // Project Monthly Data Modal (Triggered by double-clicking project name)
+  // Project Monthly Data Modal & Mini Calendar (Triggered by double-clicking project name)
   // -------------------------------------------------------------
   let currentProjectMonthlyName = null;
   let currentProjectMonthlyFilter = 'all';
+  let projectCalDisplayYear = 2026;
+
+  function initProjectMonthSelect() {
+    if (!el.projectMonthSelect) return;
+    const monthSet = new Set();
+    monthSet.add(APP_START_MONTH);
+    if (el.monthSelect) {
+      Array.from(el.monthSelect.options).forEach(opt => {
+        if (opt.value && opt.value >= APP_START_MONTH) monthSet.add(opt.value);
+      });
+    }
+    Object.keys(state.allocations).forEach(k => {
+      const lastUnder = k.lastIndexOf('_');
+      const dt = k.substring(lastUnder + 1);
+      if (dt && dt.length >= 7) {
+        const ym = dt.substring(0, 7);
+        if (ym >= APP_START_MONTH) monthSet.add(ym);
+      }
+    });
+    if (state.currentProjectMonth && state.currentProjectMonth >= APP_START_MONTH) {
+      monthSet.add(state.currentProjectMonth);
+    }
+    const sorted = Array.from(monthSet).sort();
+    el.projectMonthSelect.innerHTML = '';
+    sorted.forEach(ym => {
+      const opt = document.createElement('option');
+      opt.value = ym;
+      opt.textContent = formatMonthMY(ym);
+      el.projectMonthSelect.appendChild(opt);
+    });
+    el.projectMonthSelect.value = state.currentProjectMonth || state.currentMonth || APP_START_MONTH;
+  }
+
+  function renderProjectCalendarGrid() {
+    if (!el.projectCalMonthsGrid || !el.projectCalYearDisplay) return;
+    if (projectCalDisplayYear < 2026) projectCalDisplayYear = 2026;
+    el.projectCalYearDisplay.textContent = projectCalDisplayYear;
+
+    if (el.projectCalPrevYearBtn) {
+      const isMinYear = projectCalDisplayYear <= 2026;
+      el.projectCalPrevYearBtn.disabled = isMinYear;
+      el.projectCalPrevYearBtn.classList.toggle('is-disabled', isMinYear);
+    }
+
+    const pName = currentProjectMonthlyName;
+    const breakdown = pName ? getProjectLoggedBreakdown(pName) : { months: {}, totalHours: 0, totalDays: 0 };
+    const activeMonth = state.currentProjectMonth || state.currentMonth || APP_START_MONTH;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    let html = '';
+    for (let m = 1; m <= 12; m++) {
+      const mmStr = String(m).padStart(2, '0');
+      const ym = `${projectCalDisplayYear}-${mmStr}`;
+      const isBeforeStart = ym < APP_START_MONTH;
+      const isActive = (ym === activeMonth);
+      const monthName = monthNames[m - 1];
+
+      const mData = breakdown.months[ym];
+      const loggedHours = mData ? mData.hours : 0;
+      const hoursDisplay = loggedHours > 0 
+        ? `<span class="month-hours">${loggedHours}h</span>` 
+        : '';
+
+      const disabledAttr = isBeforeStart ? 'disabled' : '';
+      const disabledClass = isBeforeStart ? 'is-disabled' : '';
+
+      html += `
+        <button type="button" class="contrib-cal-month-cell ${isActive ? 'is-active' : ''} ${disabledClass}" data-ym="${ym}" title="${mmStr}/${projectCalDisplayYear} (${monthName}${isBeforeStart ? ' - Before Start Date Nov 2026' : ''})" ${disabledAttr}>
+          <span class="month-code">${mmStr}/${projectCalDisplayYear}</span>
+          <span class="month-name">${monthName}</span>
+          ${hoursDisplay}
+        </button>
+      `;
+    }
+    el.projectCalMonthsGrid.innerHTML = html;
+
+    el.projectCalMonthsGrid.querySelectorAll('.contrib-cal-month-cell').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (cell.disabled || cell.classList.contains('is-disabled')) return;
+        const chosenYm = cell.getAttribute('data-ym');
+        if (chosenYm && chosenYm >= APP_START_MONTH) {
+          state.currentProjectMonth = chosenYm;
+          projectCalDisplayYear = parseInt(chosenYm.split('-')[0], 10);
+          closeProjectCalendarPopover();
+          renderProjectMonthlyModal();
+        }
+      });
+    });
+  }
+
+  function openProjectCalendarPopover() {
+    if (!el.projectCalendarPopover) return;
+    const activeMonth = state.currentProjectMonth || state.currentMonth || APP_START_MONTH;
+    projectCalDisplayYear = Math.max(2026, parseInt(activeMonth.split('-')[0], 10) || 2026);
+    renderProjectCalendarGrid();
+    el.projectCalendarPopover.classList.remove('hidden');
+    if (el.projectCalendarTriggerBtn) {
+      el.projectCalendarTriggerBtn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  function closeProjectCalendarPopover() {
+    if (!el.projectCalendarPopover) return;
+    el.projectCalendarPopover.classList.add('hidden');
+    if (el.projectCalendarTriggerBtn) {
+      el.projectCalendarTriggerBtn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function toggleProjectCalendarPopover() {
+    if (!el.projectCalendarPopover) return;
+    if (el.projectCalendarPopover.classList.contains('hidden')) {
+      openProjectCalendarPopover();
+    } else {
+      closeProjectCalendarPopover();
+    }
+  }
 
   function openProjectMonthlyModal(projectName) {
     if (!projectName) return;
     currentProjectMonthlyName = projectName;
     currentProjectMonthlyFilter = 'all';
+    if (!state.currentProjectMonth || state.currentProjectMonth < APP_START_MONTH) {
+      state.currentProjectMonth = (state.currentMonth && state.currentMonth >= APP_START_MONTH) ? state.currentMonth : APP_START_MONTH;
+    }
+    projectCalDisplayYear = Math.max(2026, parseInt(state.currentProjectMonth.split('-')[0], 10) || 2026);
+    closeProjectCalendarPopover();
+    initProjectMonthSelect();
     renderProjectMonthlyModal();
     const modalEl = document.getElementById('projectMonthlyModal');
     if (modalEl) openModal(modalEl);
@@ -4059,6 +4235,11 @@
     if (!currentProjectMonthlyName) return;
     const pName = currentProjectMonthlyName;
     const pObj = state.projects.find(p => p.name === pName) || { name: pName, category: 'Project', initialHours: 0, wbs: '' };
+
+    const activeMonth = (state.currentProjectMonth && state.currentProjectMonth >= APP_START_MONTH)
+      ? state.currentProjectMonth
+      : (state.currentMonth && state.currentMonth >= APP_START_MONTH ? state.currentMonth : APP_START_MONTH);
+    state.currentProjectMonth = activeMonth;
 
     const baseline = Number(pObj.initialHours) || 0;
     const breakdown = getProjectLoggedBreakdown(pName);
@@ -4074,10 +4255,21 @@
     if (nameEl) nameEl.textContent = pName;
     const wbsEl = document.getElementById('projectModalWbsDisplay');
     if (wbsEl) wbsEl.textContent = pObj.wbs ? `WBS: ${pObj.wbs}` : 'No WBS Code';
+    
+    // Mini Calendar Header Month Display
     const monthEl = document.getElementById('projectModalMonthDisplay');
-    if (monthEl) monthEl.textContent = formatMonthMY(state.currentMonth);
+    if (monthEl) monthEl.textContent = formatMonthMY(activeMonth);
+    if (el.projectMonthSelect) el.projectMonthSelect.value = activeMonth;
+
+    if (el.projectPrevMonthBtn) {
+      const isAtStart = activeMonth <= APP_START_MONTH;
+      el.projectPrevMonthBtn.disabled = isAtStart;
+      el.projectPrevMonthBtn.classList.toggle('is-disabled', isAtStart);
+    }
 
     // Summary metric cards
+    const monthData = breakdown.months[activeMonth] || { hours: 0, days: 0 };
+
     const totalCombinedEl = document.getElementById('projectModalTotalCombined');
     if (totalCombinedEl) totalCombinedEl.textContent = `${totalCombined}h`;
 
@@ -4085,13 +4277,14 @@
     if (baselineHoursEl) baselineHoursEl.textContent = `${baseline}h`;
 
     const loggedHoursEl = document.getElementById('projectModalLoggedHours');
-    if (loggedHoursEl) loggedHoursEl.textContent = `${breakdown.totalHours}h`;
+    if (loggedHoursEl) loggedHoursEl.textContent = `${monthData.hours}h`;
 
     const loggedDaysEl = document.getElementById('projectModalLoggedDays');
-    if (loggedDaysEl) loggedDaysEl.textContent = `${breakdown.totalDays} workday${breakdown.totalDays === 1 ? '' : 's'} logged`;
+    if (loggedDaysEl) loggedDaysEl.textContent = `${monthData.days} workday${monthData.days === 1 ? '' : 's'} in ${formatMonthMY(activeMonth)} (Total: ${breakdown.totalHours}h)`;
 
     // Extract allocations for this project
-    const contributorMap = {};
+    const allContributorMap = {};
+    const monthContributorMap = {};
     const dayEntries = [];
 
     Object.keys(state.allocations).forEach(k => {
@@ -4108,11 +4301,19 @@
         const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
         const secLabel = sec.name ? `${sec.name} (${sec.location})` : 'Engineering Team';
 
-        if (!contributorMap[empId]) {
-          contributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
+        if (!allContributorMap[empId]) {
+          allContributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
         }
-        contributorMap[empId].hours += hrs;
-        contributorMap[empId].days += 1;
+        allContributorMap[empId].hours += hrs;
+        allContributorMap[empId].days += 1;
+
+        if (ym === activeMonth) {
+          if (!monthContributorMap[empId]) {
+            monthContributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
+          }
+          monthContributorMap[empId].hours += hrs;
+          monthContributorMap[empId].days += 1;
+        }
 
         const parsedDt = parseLocalDate(dt);
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -4130,10 +4331,12 @@
       }
     });
 
+    const activeContribCount = Object.keys(monthContributorMap).length;
+    const totalContribCount = Object.keys(allContributorMap).length;
     const contribCountEl = document.getElementById('projectModalContributorCount');
-    if (contribCountEl) contribCountEl.textContent = Object.keys(contributorMap).length;
+    if (contribCountEl) contribCountEl.textContent = activeContribCount > 0 ? activeContribCount : totalContribCount;
 
-    // Monthly Badges
+    // Monthly Badges with active month highlighted and interactive
     const monthKeys = Object.keys(breakdown.months).sort();
     const monthlyBadgesEl = document.getElementById('projectModalMonthlyBadges');
     if (monthlyBadgesEl) {
@@ -4142,24 +4345,44 @@
       } else {
         monthlyBadgesEl.innerHTML = monthKeys.map(ym => {
           const mData = breakdown.months[ym];
+          const isCurrentActive = (ym === activeMonth);
+          const activeBorder = isCurrentActive 
+            ? 'border:2px solid var(--primary); background:rgba(37,99,235,0.12);' 
+            : 'border:1px solid var(--border-light); background:var(--bg-subtle, #f1f5f9);';
           return `
-            <div class="month-breakdown-item" style="padding:4px 10px; background:var(--bg-subtle, #f1f5f9); border-radius:6px; border:1px solid var(--border-light);">
+            <button type="button" class="month-breakdown-item project-month-badge-btn" data-ym="${ym}" style="padding:5px 12px; border-radius:6px; cursor:pointer; font-family:inherit; text-align:left; ${activeBorder} display:inline-flex; align-items:center; gap:6px;">
               <span class="month-name" style="font-weight:700;">${formatYearMonth(ym, false)}:</span>
               <span class="month-val" style="color:var(--primary); font-weight:700;">${mData.hours}h (${mData.days}d)</span>
-            </div>
+              ${isCurrentActive ? '<span style="font-size:10px; background:var(--primary); color:#fff; border-radius:10px; padding:1px 6px; font-weight:600;">Selected</span>' : ''}
+            </button>
           `;
         }).join('');
+
+        monthlyBadgesEl.querySelectorAll('.project-month-badge-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const chosenYm = btn.getAttribute('data-ym');
+            if (chosenYm && chosenYm >= APP_START_MONTH) {
+              state.currentProjectMonth = chosenYm;
+              projectCalDisplayYear = parseInt(chosenYm.split('-')[0], 10);
+              renderProjectMonthlyModal();
+            }
+          });
+        });
       }
     }
 
-    // Team Contributors Badges
+    // Team Contributors Badges for active month (or all-time if none in active month)
     const teamChipsEl = document.getElementById('projectModalTeamChips');
     if (teamChipsEl) {
-      const contribs = Object.values(contributorMap).sort((a,b) => b.hours - a.hours);
-      if (contribs.length === 0) {
-        teamChipsEl.innerHTML = '<span class="text-sm text-muted">No team allocations recorded yet.</span>';
+      const displayContribs = activeContribCount > 0 
+        ? Object.values(monthContributorMap).sort((a,b) => b.hours - a.hours)
+        : Object.values(allContributorMap).sort((a,b) => b.hours - a.hours);
+
+      if (displayContribs.length === 0) {
+        teamChipsEl.innerHTML = `<span class="text-sm text-muted">No team allocations recorded for ${formatMonthMY(activeMonth)}.</span>`;
       } else {
-        teamChipsEl.innerHTML = contribs.map(c => `
+        teamChipsEl.innerHTML = displayContribs.map(c => `
           <div class="user-chip" style="padding:4px 10px; border-radius:6px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-light); font-size:11px; display:inline-flex; align-items:center; gap:6px;">
             <div class="user-mini-avatar" style="width:20px; height:20px; font-size:9px;">${getInitials(c.name)}</div>
             <strong>${c.name}</strong>
@@ -4187,6 +4410,10 @@
     dayEntries.sort((a, b) => b.dateStr.localeCompare(a.dateStr) || a.empName.localeCompare(b.empName));
 
     renderProjectDaysTable(dayEntries);
+
+    if (el.projectCalendarPopover && !el.projectCalendarPopover.classList.contains('hidden')) {
+      renderProjectCalendarGrid();
+    }
   }
 
   function renderProjectDaysTable(dayEntries) {
@@ -4226,9 +4453,96 @@
   if (projMonthFilterEl) {
     projMonthFilterEl.addEventListener('change', () => {
       currentProjectMonthlyFilter = projMonthFilterEl.value;
+      if (projMonthFilterEl.value !== 'all' && projMonthFilterEl.value >= APP_START_MONTH) {
+        state.currentProjectMonth = projMonthFilterEl.value;
+        projectCalDisplayYear = parseInt(projMonthFilterEl.value.split('-')[0], 10);
+      }
       renderProjectMonthlyModal();
     });
   }
+
+  // Mini Calendar Popover & Month Navigation for Project Modal
+  if (el.projectCalendarTriggerBtn) {
+    el.projectCalendarTriggerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleProjectCalendarPopover();
+    });
+  }
+
+  if (el.projectPrevMonthBtn) {
+    el.projectPrevMonthBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const current = state.currentProjectMonth || state.currentMonth || APP_START_MONTH;
+      if (current > APP_START_MONTH) {
+        state.currentProjectMonth = shiftMonthYM(current, -1);
+        projectCalDisplayYear = Math.max(2026, parseInt(state.currentProjectMonth.split('-')[0], 10));
+        renderProjectMonthlyModal();
+      }
+    });
+  }
+
+  if (el.projectNextMonthBtn) {
+    el.projectNextMonthBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const current = state.currentProjectMonth || state.currentMonth || APP_START_MONTH;
+      state.currentProjectMonth = shiftMonthYM(current, 1);
+      projectCalDisplayYear = Math.max(2026, parseInt(state.currentProjectMonth.split('-')[0], 10));
+      renderProjectMonthlyModal();
+    });
+  }
+
+  if (el.projectMonthSelect) {
+    el.projectMonthSelect.addEventListener('change', () => {
+      if (el.projectMonthSelect.value >= APP_START_MONTH) {
+        state.currentProjectMonth = el.projectMonthSelect.value;
+        projectCalDisplayYear = Math.max(2026, parseInt(state.currentProjectMonth.split('-')[0], 10));
+        renderProjectMonthlyModal();
+      }
+    });
+  }
+
+  if (el.projectCalPrevYearBtn) {
+    el.projectCalPrevYearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (projectCalDisplayYear > 2026) {
+        projectCalDisplayYear -= 1;
+        renderProjectCalendarGrid();
+      }
+    });
+  }
+
+  if (el.projectCalNextYearBtn) {
+    el.projectCalNextYearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      projectCalDisplayYear += 1;
+      renderProjectCalendarGrid();
+    });
+  }
+
+  if (el.projectCalCurrentMonthBtn) {
+    el.projectCalCurrentMonthBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetMonth = (state.currentMonth && state.currentMonth >= APP_START_MONTH) ? state.currentMonth : APP_START_MONTH;
+      state.currentProjectMonth = targetMonth;
+      projectCalDisplayYear = Math.max(2026, parseInt(targetMonth.split('-')[0], 10));
+      closeProjectCalendarPopover();
+      renderProjectMonthlyModal();
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (el.projectCalendarPopover && !el.projectCalendarPopover.classList.contains('hidden')) {
+      if (!el.projectCalendarPopover.contains(e.target) && !el.projectCalendarTriggerBtn.contains(e.target)) {
+        closeProjectCalendarPopover();
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && el.projectCalendarPopover && !el.projectCalendarPopover.classList.contains('hidden')) {
+      closeProjectCalendarPopover();
+    }
+  });
 
   // -------------------------------------------------------------
   // Month Controls & Navigation
