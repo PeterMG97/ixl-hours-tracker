@@ -102,18 +102,25 @@ body {
 }
 
 .brand-avatar {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  color: white;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  width: 34px;
+  background: #ffffff;
+  width: auto;
+  min-width: 34px;
   height: 34px;
+  padding: 3px 8px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.brand-logo-img {
+  height: 26px;
+  width: auto;
+  max-width: 90px;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-info h2 {
@@ -625,6 +632,11 @@ body {
 [data-theme="dark"] .app-header {
   background: var(--card-bg);
   border-bottom-color: var(--border-light);
+}
+[data-theme="dark"] .brand-avatar {
+  background: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 [data-theme="dark"] .status-beacon {
   background: #1e293b;
