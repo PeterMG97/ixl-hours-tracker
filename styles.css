@@ -1613,16 +1613,17 @@ td.col-slot.is-selected-cell .task-chip {
 .user-row.active-user-row {
   position: relative;
   z-index: 5;
+  box-shadow: 0 0 0 2px #10b981, 0 4px 14px rgba(16, 185, 129, 0.2) !important;
 }
 .has-focused-user .user-row.active-user-row td.col-user,
 .user-row.active-user-row td.col-user {
   background: #ecfdf5 !important;
-  border-left: 3px solid #10b981 !important;
+  border-left: 4px solid #10b981 !important;
 }
 [data-theme="dark"] .has-focused-user .user-row.active-user-row td.col-user,
 [data-theme="dark"] .user-row.active-user-row td.col-user {
   background: #064e3b !important;
-  border-left: 3px solid #10b981 !important;
+  border-left: 4px solid #10b981 !important;
 }
 
 /* Other employees' cells: washed out white-blank / hazy out-of-focus */
