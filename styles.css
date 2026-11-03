@@ -1626,55 +1626,10 @@ td.col-slot.is-selected-cell .task-chip {
   border-left: 4px solid #10b981 !important;
 }
 
-/* Other employees' cells: washed out white-blank / hazy out-of-focus */
+/* Other employees' cells: preserved full visibility per user preference */
 .has-focused-user .user-row.unfocused-row td.col-slot,
 .user-row.unfocused-row td.col-slot {
-  background: #fbfcfd !important;
-  border-color: #f1f5f9 !important;
-  pointer-events: none !important;
-  user-select: none !important;
-  transition: opacity 0.25s ease, filter 0.25s ease;
-}
-.has-focused-user .user-row.unfocused-row td.col-slot .task-chip,
-.user-row.unfocused-row td.col-slot .task-chip {
-  opacity: 0.04 !important;
-  filter: blur(2px) grayscale(100%) !important;
-  pointer-events: none !important;
-}
-[data-theme="dark"] .has-focused-user .user-row.unfocused-row td.col-slot,
-[data-theme="dark"] .user-row.unfocused-row td.col-slot {
-  background: #090e17 !important;
-  border-color: #111827 !important;
-}
-[data-theme="dark"] .has-focused-user .user-row.unfocused-row td.col-slot .task-chip,
-[data-theme="dark"] .user-row.unfocused-row td.col-slot .task-chip {
-  opacity: 0.03 !important;
-  filter: blur(2px) grayscale(100%) !important;
-}
-.has-focused-user .user-row.unfocused-row td.col-slot.slot-unfilled-alert,
-.user-row.unfocused-row td.col-slot.slot-unfilled-alert {
-  background-color: #fbfcfd !important;
-  border-color: #f1f5f9 !important;
-  animation: none !important;
-}
-[data-theme="dark"] .has-focused-user .user-row.unfocused-row td.col-slot.slot-unfilled-alert,
-[data-theme="dark"] .user-row.unfocused-row td.col-slot.slot-unfilled-alert {
-  background-color: #090e17 !important;
-  border-color: #111827 !important;
-}
-.has-focused-user .user-row.unfocused-row td.col-user,
-.user-row.unfocused-row td.col-user {
-  opacity: 0.45;
-  transition: opacity 0.25s ease;
-}
-.has-focused-user .user-row.unfocused-row td.col-metric,
-.user-row.unfocused-row td.col-metric {
-  opacity: 0.35;
-  transition: opacity 0.25s ease;
-}
-.has-focused-user .user-row.unfocused-row:hover td.col-user,
-.user-row.unfocused-row:hover td.col-user {
-  opacity: 0.85;
+  /* Normal visibility preserved - no blanking or hazing */
 }
 
 /* Requirement 9: Conditional Formatting on Unfilled Days up to Today */
