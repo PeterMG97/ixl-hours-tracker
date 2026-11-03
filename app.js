@@ -140,6 +140,7 @@
 
     // Schedule Table
     tableScrollArea: document.querySelector('.table-scroll-area'),
+    scheduleTable: document.getElementById('scheduleTable'),
     scheduleHead: document.getElementById('scheduleHead'),
     scheduleBody: document.getElementById('scheduleBody'),
     statActiveEmployees: document.getElementById('statActiveEmployees'),
@@ -371,6 +372,8 @@
 
     if (!state.isViewOnly && !state.currentUserId) {
       setTimeout(() => openUserSelectModal(), 500);
+    } else if (state.currentUserId && state.currentUserId !== 'view-all') {
+      scrollToActiveUserRow();
     }
   }
 
@@ -586,8 +589,26 @@
         closeModal(el.userSelectModal);
         renderSchedule();
         if (emp) showToast(`Logged in as ${emp.name}`);
+        scrollToActiveUserRow();
       });
     });
+  }
+
+  function scrollToActiveUserRow() {
+    if (!state.currentUserId || state.currentUserId === 'view-all') return;
+    setTimeout(() => {
+      const currentEmp = state.employees.find(e => e.id === state.currentUserId);
+      if (currentEmp && currentEmp.sectionId && state.collapsedSections.has(currentEmp.sectionId)) {
+        state.collapsedSections.delete(currentEmp.sectionId);
+        renderSchedule();
+      }
+      setTimeout(() => {
+        const myRow = document.querySelector('.user-row.active-user-row');
+        if (myRow) {
+          myRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 80);
+    }, 150);
   }
 
   el.searchUserPickerInput.addEventListener('input', (e) => {
@@ -718,12 +739,13 @@
     const isViewAll = (state.currentUserId === 'view-all');
     const isFocusedMode = !!state.currentUserId && !isViewAll && !(state.isAdmin && isCurrentUserPeter());
 
-    if (el.scheduleTable) {
-      if (isFocusedMode) {
-        el.scheduleTable.classList.add('has-focused-user');
-      } else {
-        el.scheduleTable.classList.remove('has-focused-user');
-      }
+    const tableEl = el.scheduleTable || document.getElementById('scheduleTable');
+    if (isFocusedMode) {
+      document.body.classList.add('has-focused-user');
+      if (tableEl) tableEl.classList.add('has-focused-user');
+    } else {
+      document.body.classList.remove('has-focused-user');
+      if (tableEl) tableEl.classList.remove('has-focused-user');
     }
 
     state.sections.forEach(sec => {
@@ -815,6 +837,7 @@
                 <div>
                   <div class="user-name-line">
                     <strong style="font-size:11px;" class="user-name-text">${emp.name}</strong>
+                    ${isSelf ? '<span class="my-row-badge">My Row</span>' : ''}
                     <span class="emp-unfilled-pill ${empUnfilledDays === 0 ? 'is-all-filled' : ''}" 
                           title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${mName} (excluding ${sec.location} holidays)">
                       ${empUnfilledDays} unfilled
