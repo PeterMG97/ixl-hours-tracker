@@ -279,6 +279,24 @@
     return new Date(y, m - 1, d, 12, 0, 0);
   }
 
+  // User-facing date formatting: DD/MM/YYYY
+  function formatDateDMY(dateInput) {
+    if (!dateInput) return '';
+    if (typeof dateInput === 'string') {
+      const match = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        const [, y, m, d] = match;
+        return `${d}/${m}/${y}`;
+      }
+    }
+    const dt = (dateInput instanceof Date) ? dateInput : new Date(dateInput);
+    if (isNaN(dt.getTime())) return String(dateInput);
+    const d = String(dt.getDate()).padStart(2, '0');
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const y = dt.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+
   // Detect current system date or anchor to November 1, 2026
   const realDate = new Date();
   if (realDate.getFullYear() === 2026) {
@@ -714,7 +732,7 @@
         </th>
         <th class="col-metric" rowspan="2" title="Total hours allocated for this month">Hours</th>
         ${days.map(d => `
-          <th class="col-slot ${d.isToday ? 'is-today' : ''}" title="${d.dateStr}">
+          <th class="col-slot ${d.isToday ? 'is-today' : ''}" title="${formatDateDMY(d.dateStr)}">
             <div class="slot-num">${d.num}</div>
             <div class="slot-name">${d.name}</div>
             <div class="col-resizer resizer-day" title="Drag to resize Day columns (Excel style)"></div>
@@ -801,7 +819,7 @@
               <button class="task-chip ${badgeClass}" 
                       data-emp-id="${emp.id}" 
                       data-date="${d.dateStr}"
-                      title="${emp.name} | ${d.dateStr}: ${projectName || (isUnfilledPast ? 'Unfilled workday' : 'Empty')}">
+                      title="${emp.name} | ${formatDateDMY(d.dateStr)}: ${projectName || (isUnfilledPast ? 'Unfilled workday' : 'Empty')}">
                 ${shortLabel}
               </button>
             </td>
@@ -2032,7 +2050,7 @@
     const alloc = state.allocations[key];
 
     el.popoverTitle.textContent = emp.name;
-    el.popoverSubtitle.textContent = dateStr;
+    el.popoverSubtitle.textContent = formatDateDMY(dateStr);
     const baseH = alloc && alloc.hours !== undefined ? alloc.hours : (emp ? (emp.defaultHoursPerDay || 8) : 8);
     el.popoverHoursInput.value = Math.min(12, Math.max(1, Number(baseH) || 8));
     el.projectSearchInput.value = '';
@@ -2565,7 +2583,7 @@
 
       return `
         <tr data-date="${item.dateStr}">
-          <td><strong>${item.dateStr}</strong></td>
+          <td><strong>${formatDateDMY(item.dateStr)}</strong></td>
           <td>${dayNames[item.dow]}</td>
           <td>${scheduleTag}</td>
           <td>
@@ -2607,7 +2625,7 @@
         syncToServer();
         renderSchedule();
         renderNoProjectTable();
-        showToast(`Saved ${dateStr} as ${chosenProj}`);
+        showToast(`Saved ${formatDateDMY(dateStr)} as ${chosenProj}`);
       });
     });
   }
@@ -3735,7 +3753,7 @@
 
           return `
             <tr class="${rowClass}">
-              <td><strong>${e.dateStr}</strong></td>
+              <td><strong>${formatDateDMY(e.dateStr)}</strong></td>
               <td>${e.dowName}</td>
               <td>${badgeHtml}</td>
               <td>${categoryBadge}</td>

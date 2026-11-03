@@ -293,6 +293,9 @@ Assert-Test "6.45 Project breakdown shows logged hours by month with monthly bre
 $viewOnlyBlueBannerRemoved = ($cssContent.Contains('body.view-only #userPermissionBanner')) -and ($cssContent.Contains('body.view-only .user-permission-banner')) -and ($jsContent.Contains('if (state.isViewOnly) {'))
 Assert-Test "6.46 Blue user permission banner completely removed in view-only mode" $viewOnlyBlueBannerRemoved "User permission banner is hidden via CSS display:none !important and JS guard in view-only mode"
 
+$dmyDateFormatVerified = ($jsContent.Contains('formatDateDMY')) -and ($htmlContent.Contains('Start Date (DD/MM/YYYY)')) -and ($htmlContent.Contains('Date (DD/MM/YYYY)')) -and ($jsContent.Contains('formatDateDMY(d.dateStr)'))
+Assert-Test "6.47 User-facing date displays formatted as DD/MM/YYYY across tables, popovers, and tooltips" $dmyDateFormatVerified "formatDateDMY implemented and applied across schedule, popover, NO PROJECT and contributions tables"
+
 
 
 # -------------------------------------------------------------
