@@ -281,6 +281,10 @@ Assert-Test "6.41 Default hours per day indicator removed under employee names i
 $verticalAutoScrollAdmin = ($jsContent.Contains('inBottomZone')) -and ($jsContent.Contains('inTopZone')) -and ($jsContent.Contains('scrollArea.scrollTop += deltaY')) -and ($jsContent.Contains('scrollArea.scrollTop -= deltaY'))
 Assert-Test "6.42 Admin mode enables up/down vertical auto-scrolling when dragging near top/bottom screen borders" $verticalAutoScrollAdmin "Vertical auto-scroll up/down with dynamic row range expansion in Admin mode verified"
 
+$viewOnlyNoEditSwitch = (-not $htmlContent.Contains('Switch to Edit Mode')) -and ($htmlContent.Contains('id="topbarViewOnlyBtn"')) -and ($htmlContent.Contains('id="switchToViewModeBtn"')) -and ($jsContent.Contains('switchToViewMode'))
+Assert-Test "6.43 View-only mode has no option to switch to edit, edit mode has option to switch to view-only" $viewOnlyNoEditSwitch "View-only link is strictly read-only with no switch to edit, while edit mode allows switching to view-only"
+
+
 # -------------------------------------------------------------
 # SUMMARY REPORT
 # -------------------------------------------------------------

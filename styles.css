@@ -536,6 +536,27 @@ body {
   background: var(--primary-soft);
 }
 
+.btn-mode-switch {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  cursor: pointer;
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn-mode-switch:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
 /* Action Toolbar */
 /* Theme Selector in Header */
 .theme-control {
@@ -645,6 +666,16 @@ body {
   background: #111827;
   border-color: var(--border-medium);
   color: #60a5fa;
+}
+[data-theme="dark"] .btn-mode-switch {
+  background: #111827;
+  border-color: var(--border-medium);
+  color: #60a5fa;
+}
+[data-theme="dark"] .btn-mode-switch:hover {
+  background: #1e293b;
+  border-color: var(--primary);
+  color: #93c5fd;
 }
 [data-theme="dark"] .btn-ghost {
   background: #1e293b;
@@ -957,8 +988,18 @@ body {
   padding: 6px 24px;
   font-size: 12px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 8px;
+}
+[data-theme="dark"] .mode-alert-banner {
+  background: rgba(245, 158, 11, 0.12);
+  border-bottom-color: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+}
+body.view-only #topbarViewOnlyBtn,
+body.view-only #switchToViewModeBtn {
+  display: none !important;
 }
 .banner-link {
   color: #1d4ed8;

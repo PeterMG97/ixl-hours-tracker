@@ -261,7 +261,9 @@
     // Theme & Toast
     themeSelect: document.getElementById('themeSelect'),
     toast: document.getElementById('toast'),
-    copyViewLinkBtn: document.getElementById('copyViewLinkBtn')
+    copyViewLinkBtn: document.getElementById('copyViewLinkBtn'),
+    topbarViewOnlyBtn: document.getElementById('topbarViewOnlyBtn'),
+    switchToViewModeBtn: document.getElementById('switchToViewModeBtn')
   };
 
   // Timezone-safe date helper functions (avoids UTC offset shifts in GMT+2 / GMT+3)
@@ -296,6 +298,9 @@
     el.viewModeBanner.classList.remove('hidden');
     el.adminToggleBtn.classList.add('hidden');
     el.topbarBulkFillBtn.classList.add('hidden');
+    if (el.topbarViewOnlyBtn) el.topbarViewOnlyBtn.classList.add('hidden');
+    if (el.switchToViewModeBtn) el.switchToViewModeBtn.classList.add('hidden');
+    if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
     document.getElementById('userIdentityCard').style.display = 'none';
   }
 
@@ -2586,7 +2591,7 @@
           <td><span class="pill ${getProjectBadgeClass(p.name)}">${p.category || 'Project'}</span></td>
           <td><strong>${p.name}</strong></td>
           <td>
-            <input type="text" class="form-control form-control-sm wbs-code-input" data-proj-id="${p.id}" value="${safeWbs}" placeholder="Enter WBS code..." title="Click to edit WBS code">
+            <input type="text" class="form-control form-control-sm wbs-code-input" data-proj-id="${p.id}" value="${safeWbs}" placeholder="Enter WBS code..." ${state.isViewOnly ? 'disabled title="Editing disabled in View-Only mode"' : 'title="Click to edit WBS code"'}>
           </td>
           <td><strong>${baseline}h</strong></td>
           <td>${logged}h</td>
@@ -3540,8 +3545,21 @@
   });
 
   // -------------------------------------------------------------
-  // Requirement 6: Copy View-Only Link
+  // Requirement 6: Mode Switching & View-Only Link
   // -------------------------------------------------------------
+
+  function switchToViewMode() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('mode', 'view');
+    window.location.href = url.toString();
+  }
+
+  if (el.topbarViewOnlyBtn) {
+    el.topbarViewOnlyBtn.addEventListener('click', switchToViewMode);
+  }
+  if (el.switchToViewModeBtn) {
+    el.switchToViewModeBtn.addEventListener('click', switchToViewMode);
+  }
 
   el.copyViewLinkBtn.addEventListener('click', () => {
     const url = new URL(window.location.href);
