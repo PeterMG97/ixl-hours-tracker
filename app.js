@@ -461,6 +461,16 @@
       }
       return;
     }
+
+    if (state.currentUserId === 'view-all') {
+      el.currentUserNameDisplay.textContent = 'View All';
+      el.userAvatarInitials.textContent = 'ALL';
+      el.userPermissionBanner.classList.remove('admin-active-banner');
+      el.userPermissionBanner.classList.remove('hidden');
+      el.userPermissionBanner.innerHTML = `<span><strong>View All (Read Only):</strong> Viewing all employee schedules. Editing is disabled. Choose your name above to start editing.</span>`;
+      return;
+    }
+
     const currentEmp = state.employees.find(e => e.id === state.currentUserId);
     if (currentEmp) {
       el.currentUserNameDisplay.textContent = currentEmp.name;
@@ -498,11 +508,29 @@
   }
 
   function renderUserSelectGrid(query) {
-    const q = query.toLowerCase();
+    const q = (query || '').toLowerCase().trim();
+    const isViewAllSelected = (state.currentUserId === 'view-all');
+
+    let viewAllCardHtml = '';
+    if (!q || 'view all'.includes(q) || 'all'.includes(q) || 'read only'.includes(q)) {
+      viewAllCardHtml = `
+        <div class="user-select-card view-all-card ${isViewAllSelected ? 'active-selected' : ''}" data-emp-id="view-all">
+          <div class="user-avatar-circle view-all-avatar">ALL</div>
+          <div class="card-info">
+            <strong style="display:flex; align-items:center; gap:6px;">
+              View All (Read Only)
+              <span class="view-all-pill">View All</span>
+            </strong>
+            <span>All employees &bull; Editing disabled</span>
+          </div>
+        </div>
+      `;
+    }
+
     const activeEmps = state.employees.filter(e => e.active !== false && e.name.toLowerCase().includes(q));
     activeEmps.sort((a,b) => a.name.localeCompare(b.name));
 
-    el.userSelectGrid.innerHTML = activeEmps.map(emp => {
+    const empsHtml = activeEmps.map(emp => {
       const sec = state.sections.find(s => s.id === emp.sectionId) || {};
       const isSelected = (emp.id === state.currentUserId);
       return `
@@ -516,9 +544,24 @@
       `;
     }).join('');
 
+    el.userSelectGrid.innerHTML = viewAllCardHtml + empsHtml;
+
     el.userSelectGrid.querySelectorAll('.user-select-card').forEach(card => {
       card.addEventListener('click', () => {
         const empId = card.getAttribute('data-emp-id');
+        if (empId === 'view-all') {
+          state.currentUserId = 'view-all';
+          persistUserIdentity('view-all', 'View All');
+          state.isAdmin = false;
+          removeStoredItem('ixl_is_admin');
+          updateAdminUI();
+          updateUserDisplay();
+          closeModal(el.userSelectModal);
+          renderSchedule();
+          showToast('Viewing all employees (Read Only)');
+          return;
+        }
+
         const emp = state.employees.find(e => e.id === empId);
         state.currentUserId = empId;
         persistUserIdentity(empId, emp ? emp.name : '');
@@ -651,6 +694,17 @@
     let userUnfilledDays = 0;
     let userFound = false;
 
+    const isViewAll = (state.currentUserId === 'view-all');
+    const isFocusedMode = !!state.currentUserId && !isViewAll && !(state.isAdmin && isCurrentUserPeter());
+
+    if (el.scheduleTable) {
+      if (isFocusedMode) {
+        el.scheduleTable.classList.add('has-focused-user');
+      } else {
+        el.scheduleTable.classList.remove('has-focused-user');
+      }
+    }
+
     state.sections.forEach(sec => {
       const secEmployees = state.employees.filter(e => e.sectionId === sec.id && e.active !== false);
       secEmployees.sort((a,b) => a.name.localeCompare(b.name));
@@ -667,7 +721,8 @@
         let empUnfilledDays = 0;
 
         const isSelf = (state.currentUserId === emp.id);
-        const canEditThisRow = !state.isViewOnly && ((state.isAdmin && isCurrentUserPeter()) || isSelf);
+        const canEditThisRow = !state.isViewOnly && !isViewAll && ((state.isAdmin && isCurrentUserPeter()) || isSelf);
+        const isUnfocused = isFocusedMode && !isSelf;
 
         let cellsHtml = '';
         days.forEach(d => {
@@ -730,7 +785,7 @@
         }
 
         secRowsHtml += `
-          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
+          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${isUnfocused ? 'unfocused-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
               data-emp-id="${emp.id}" 
               data-section-id="${sec.id}">
             <td class="col-user" data-emp-id="${emp.id}" title="Double-click to view monthly contributions for ${emp.name}">
@@ -1154,7 +1209,10 @@
           e.stopPropagation();
           return;
         }
-        if (state.isViewOnly) return;
+        if (state.isViewOnly || state.currentUserId === 'view-all') {
+          showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
+          return;
+        }
         const empId = slot.getAttribute('data-emp-id');
         const dateStr = slot.getAttribute('data-date');
         if (!empId || !dateStr) return;
@@ -1316,7 +1374,7 @@
 
   function handleCellMouseDown(slot, e) {
     if (e.button !== 0) return; // Left mouse button only
-    if (state.isViewOnly) return;
+    if (state.isViewOnly || state.currentUserId === 'view-all') return;
 
     const empId = slot.getAttribute('data-emp-id');
     const dateStr = slot.getAttribute('data-date');
@@ -2200,6 +2258,11 @@
 
     // Row Lock Permission Check: If not Admin, lock employee select to themselves
     if (!state.isAdmin) {
+      if (state.currentUserId === 'view-all') {
+        showToast('View All mode is read-only. Please choose your name first to edit.', 'warning');
+        openUserSelectModal();
+        return;
+      }
       if (state.currentUserId) {
         el.bulkEmployeeSelect.value = state.currentUserId;
         el.bulkEmployeeSelect.disabled = true;
@@ -3656,7 +3719,7 @@
       const hasOpenModal = document.querySelector('.modal:not(.hidden)');
       if (hasOpenModal) return;
 
-      if (state.isViewOnly) return;
+      if (state.isViewOnly || state.currentUserId === 'view-all') return;
 
       if (state.selectedCells && state.selectedCells.size > 0) {
         const isAdmin = state.isAdmin && isCurrentUserPeter();

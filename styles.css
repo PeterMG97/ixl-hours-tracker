@@ -1608,6 +1608,44 @@ td.col-slot.is-selected-cell .task-chip {
   border-color: transparent;
 }
 
+/* Focused User Spotlight & Hazy Unfocused Rows */
+.has-focused-user .user-row.active-user-row {
+  position: relative;
+  z-index: 5;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
+}
+.has-focused-user .user-row.active-user-row td.col-user {
+  background: #ecfdf5 !important;
+  border-left: 3px solid #10b981 !important;
+}
+[data-theme="dark"] .has-focused-user .user-row.active-user-row td.col-user {
+  background: #064e3b !important;
+  border-left: 3px solid #10b981 !important;
+}
+
+.has-focused-user .user-row.unfocused-row td.col-slot {
+  opacity: 0.12;
+  filter: blur(1px);
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+[data-theme="dark"] .has-focused-user .user-row.unfocused-row td.col-slot {
+  opacity: 0.08;
+  filter: blur(1px);
+}
+.has-focused-user .user-row.unfocused-row td.col-user {
+  opacity: 0.65;
+  transition: opacity 0.25s ease;
+}
+.has-focused-user .user-row.unfocused-row td.col-metric {
+  opacity: 0.50;
+  transition: opacity 0.25s ease;
+}
+.has-focused-user .user-row.unfocused-row:hover td.col-user {
+  opacity: 1;
+}
+
 /* Requirement 9: Conditional Formatting on Unfilled Days up to Today */
 .slot-unfilled-alert {
   background-color: var(--missing-bg) !important;
@@ -2012,6 +2050,55 @@ body.view-only .task-chip {
 .user-select-card .card-info span {
   font-size: 10px;
   color: var(--text-muted);
+}
+
+/* User Selection Modal: View All (Read Only) Card */
+.user-select-card.view-all-card {
+  grid-column: 1 / -1;
+  background: var(--surface-bg);
+  border: 1px dashed var(--border-medium);
+  margin-bottom: 6px;
+}
+.user-select-card.view-all-card:hover {
+  background: var(--card-bg);
+  border-color: var(--primary);
+}
+.user-select-card.view-all-card.active-selected {
+  border: 1px solid var(--primary);
+  background: var(--primary-soft);
+}
+.user-avatar-circle.view-all-avatar {
+  background: #475569;
+  color: #f8fafc;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.view-all-pill {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  letter-spacing: 0.5px;
+}
+[data-theme="dark"] .user-select-card.view-all-card {
+  background: #162032;
+  border-color: var(--border-medium);
+}
+[data-theme="dark"] .user-select-card.view-all-card:hover {
+  background: #1e293b;
+  border-color: var(--primary);
+}
+[data-theme="dark"] .user-select-card.view-all-card.active-selected {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: #3b82f6;
+}
+[data-theme="dark"] .view-all-pill {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
 }
 
 /* Forms */
