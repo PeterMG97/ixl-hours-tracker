@@ -116,6 +116,12 @@
     })()
   };
 
+  if (state.currentUserId === 'view-all') {
+    state.currentUserId = null;
+    removeStoredItem('ixl_current_user_id');
+    removeStoredItem('ixl_current_user_name');
+  }
+
   // DOM Elements Cache
   const el = {
     connectionLamp: document.getElementById('connectionLamp'),
@@ -333,6 +339,8 @@
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('mode') === 'view' || window.location.pathname.endsWith('/view')) {
     state.isViewOnly = true;
+    state.currentUserId = null; // Generic non-specific profile in view-only mode
+    state.isAdmin = false;
     document.body.classList.add('view-only');
     el.viewModeBanner.classList.remove('hidden');
     if (el.userPermissionBanner) el.userPermissionBanner.classList.add('hidden');
@@ -408,7 +416,7 @@
 
     if (!state.isViewOnly && !state.currentUserId) {
       setTimeout(() => openUserSelectModal(), 500);
-    } else if (state.currentUserId && state.currentUserId !== 'view-all') {
+    } else if (!state.isViewOnly && state.currentUserId && state.currentUserId !== 'view-all') {
       scrollToActiveUserRow();
     }
   }
@@ -493,6 +501,8 @@
         el.userPermissionBanner.classList.remove('admin-active-banner');
         el.userPermissionBanner.classList.add('hidden');
       }
+      const idCard = document.getElementById('userIdentityCard');
+      if (idCard) idCard.style.display = 'none';
       return;
     }
 
@@ -557,23 +567,9 @@
 
   function renderUserSelectGrid(query) {
     const q = (query || '').toLowerCase().trim();
-    const isViewAllSelected = (state.currentUserId === 'view-all');
 
-    let viewAllCardHtml = '';
-    if (!q || 'view all'.includes(q) || 'all'.includes(q) || 'read only'.includes(q)) {
-      viewAllCardHtml = `
-        <div class="user-select-card view-all-card ${isViewAllSelected ? 'active-selected' : ''}" data-emp-id="view-all">
-          <div class="user-avatar-circle view-all-avatar">ALL</div>
-          <div class="card-info">
-            <strong style="display:flex; align-items:center; gap:6px;">
-              View All (Read Only)
-              <span class="view-all-pill">View All</span>
-            </strong>
-            <span>All employees &bull; Editing disabled</span>
-          </div>
-        </div>
-      `;
-    }
+    // Note: view-all-card and 'View All (Read Only)' removed from employee list per user request.
+    // Generic read-only schedule is accessed via View-Only mode (?mode=view).
 
     const activeEmps = state.employees.filter(e => e.active !== false && e.name.toLowerCase().includes(q));
     activeEmps.sort((a,b) => a.name.localeCompare(b.name));
@@ -592,7 +588,7 @@
       `;
     }).join('');
 
-    el.userSelectGrid.innerHTML = viewAllCardHtml + empsHtml;
+    el.userSelectGrid.innerHTML = empsHtml;
 
     el.userSelectGrid.querySelectorAll('.user-select-card').forEach(card => {
       card.addEventListener('click', () => {
@@ -631,7 +627,7 @@
   }
 
   function scrollToActiveUserRow() {
-    if (!state.currentUserId || state.currentUserId === 'view-all') return;
+    if (state.isViewOnly || !state.currentUserId || state.currentUserId === 'view-all') return;
     setTimeout(() => {
       const currentEmp = state.employees.find(e => e.id === state.currentUserId);
       if (currentEmp && currentEmp.sectionId && state.collapsedSections.has(currentEmp.sectionId)) {
@@ -777,7 +773,7 @@
     let userFound = false;
 
     const isViewAll = (state.currentUserId === 'view-all');
-    const isFocusedMode = !!state.currentUserId && !isViewAll && !(state.isAdmin && isCurrentUserPeter());
+    const isFocusedMode = !state.isViewOnly && !!state.currentUserId && !isViewAll && !(state.isAdmin && isCurrentUserPeter());
 
     const tableEl = el.scheduleTable || document.getElementById('scheduleTable');
     if (isFocusedMode) {
@@ -803,7 +799,7 @@
         let empMonthHours = 0;
         let empUnfilledDays = 0;
 
-        const isSelf = (state.currentUserId === emp.id);
+        const isSelf = !state.isViewOnly && (state.currentUserId === emp.id);
         const canEditThisRow = !state.isViewOnly && !isViewAll && ((state.isAdmin && isCurrentUserPeter()) || isSelf);
         const isUnfocused = isFocusedMode && !isSelf;
 
