@@ -610,6 +610,9 @@
     const days = getDaysInMonth(state.currentMonth);
     el.monthSelect.value = state.currentMonth;
     const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const [y, m] = state.currentMonth.split('-').map(Number);
+    const mName = monthNames[m - 1] || 'Month';
 
     let headHtml = `
       <tr>
@@ -728,7 +731,13 @@
               <div class="user-cell-content" data-emp-id="${emp.id}">
                 <div class="user-mini-avatar">${getInitials(emp.name)}</div>
                 <div>
-                  <strong style="display:block; font-size:11px;" class="user-name-text">${emp.name}</strong>
+                  <div class="user-name-line">
+                    <strong style="font-size:11px;" class="user-name-text">${emp.name}</strong>
+                    <span class="emp-unfilled-pill ${empUnfilledDays === 0 ? 'is-all-filled' : ''}" 
+                          title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${mName} (excluding ${sec.location} holidays)">
+                      ${empUnfilledDays} unfilled
+                    </span>
+                  </div>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
                     ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">${empNoProjCount} NO PROJ</button>` : ''}

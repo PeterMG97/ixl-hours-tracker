@@ -266,6 +266,9 @@ Assert-Test "6.36 Left click hold and drag range multi-cell selection implemente
 $verticalAdminSelect = ($jsContent.Contains('activate2DSelection')) -and ($jsContent.Contains('getSelectedUniqueEmployees')) -and ($jsContent.Contains('minRow')) -and ($jsContent.Contains('maxRow'))
 Assert-Test "6.37 Admin mode enables 2D vertical and horizontal multi-cell selection across team members" $verticalAdminSelect "2D vertical row and horizontal date box selection in Admin mode verified"
 
+$unfilledBadgeRenders = ($jsContent.Contains('emp-unfilled-pill')) -and ($jsContent.Contains('empUnfilledDays')) -and ($cssContent.Contains('.emp-unfilled-pill')) -and ($cssContent.Contains('.user-name-line'))
+Assert-Test "6.38 Small unfilled days/month badge renders beside each person's name excluding holidays" $unfilledBadgeRenders "Unfilled days indication placed beside employee name"
+
 # -------------------------------------------------------------
 # SUMMARY REPORT
 # -------------------------------------------------------------

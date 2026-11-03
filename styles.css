@@ -365,6 +365,36 @@ body {
 }
 
 /* Inline badge on employee row in schedule table */
+.user-name-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.emp-unfilled-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.emp-unfilled-pill.is-all-filled {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
 .emp-no-proj-badge {
   display: inline-block;
   background: #fee2e2;
@@ -2177,6 +2207,18 @@ body.view-only .task-chip {
 
 [data-theme="dark"] .btn-no-proj-alert.clean:hover {
   background: rgba(16, 185, 129, 0.25);
+}
+
+[data-theme="dark"] .emp-unfilled-pill {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .emp-unfilled-pill.is-all-filled {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 [data-theme="dark"] .emp-no-proj-badge {
