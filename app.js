@@ -3412,7 +3412,7 @@
 
     const sortedMonths = Array.from(monthSet).sort();
     if (sel.options.length !== sortedMonths.length + 1) {
-      sel.innerHTML = '<option value="all">All Months (Monthly Breakdown)</option>';
+      sel.innerHTML = '<option value="all">All Months</option>';
       sortedMonths.forEach(ym => {
         const opt = document.createElement('option');
         opt.value = ym;
@@ -3455,7 +3455,7 @@
     const monthLabelEl = document.getElementById('analyticsMonthLabel');
     if (monthLabelEl) {
       if (selectedMonth === 'all') {
-        monthLabelEl.textContent = 'All Months Breakdown';
+        monthLabelEl.textContent = 'All Months';
       } else {
         monthLabelEl.textContent = formatYearMonth(selectedMonth, false);
       }
@@ -3525,63 +3525,13 @@
       const baseline = Number(pObj.initialHours) || 0;
       const data = projMap[pName] || { days: 0, hours: 0, months: {} };
       const totalHrs = baseline + data.hours;
-      const monthKeys = Object.keys(data.months).sort();
 
-      let loggedDaysHtml = '0';
-      let loggedHoursHtml = '0h';
-
-      if (selectedMonth === 'all') {
-        if (monthKeys.length === 0) {
-          loggedDaysHtml = '<span class="text-muted">0</span>';
-          loggedHoursHtml = '<span class="text-muted">0h</span>';
-        } else if (monthKeys.length === 1) {
-          const ym = monthKeys[0];
-          const mLabel = formatYearMonth(ym, true);
-          const mData = data.months[ym];
-          loggedDaysHtml = `
-            <div class="month-breakdown-item">
-              <span class="month-name">${mLabel}:</span>
-              <span class="month-val">${mData.days}d</span>
-            </div>`;
-          loggedHoursHtml = `
-            <div class="month-breakdown-item">
-              <span class="month-name">${mLabel}:</span>
-              <span class="month-val"><strong>${mData.hours}h</strong></span>
-            </div>`;
-        } else {
-          loggedDaysHtml = `
-            <div class="month-breakdown-list">
-              ${monthKeys.map(ym => `
-                <div class="month-breakdown-item">
-                  <span class="month-name">${formatYearMonth(ym, true)}:</span>
-                  <span class="month-val">${data.months[ym].days}d</span>
-                </div>
-              `).join('')}
-              <div class="month-breakdown-total">
-                <span>Total:</span>
-                <strong>${data.days}d</strong>
-              </div>
-            </div>`;
-
-          loggedHoursHtml = `
-            <div class="month-breakdown-list">
-              ${monthKeys.map(ym => `
-                <div class="month-breakdown-item">
-                  <span class="month-name">${formatYearMonth(ym, true)}:</span>
-                  <span class="month-val"><strong>${data.months[ym].hours}h</strong></span>
-                </div>
-              `).join('')}
-              <div class="month-breakdown-total">
-                <span>Total Logged:</span>
-                <strong>${data.hours}h</strong>
-              </div>
-            </div>`;
-        }
-      } else {
-        const mData = data.months[selectedMonth] || { days: 0, hours: 0 };
-        loggedDaysHtml = mData.days > 0 ? `<strong>${mData.days}</strong>` : '<span class="text-muted">0</span>';
-        loggedHoursHtml = mData.hours > 0 ? `<strong>${mData.hours}h</strong>` : '<span class="text-muted">0h</span>';
-      }
+      const loggedDaysHtml = data.days > 0 
+        ? `<strong>${data.days} ${data.days === 1 ? 'day' : 'days'}</strong>` 
+        : '<span class="text-muted">0 days</span>';
+      const loggedHoursHtml = data.hours > 0 
+        ? `<strong>${data.hours}h</strong>` 
+        : '<span class="text-muted">0h</span>';
 
       return `
         <tr data-proj-name="${pName}" title="Double-click to view monthly data for ${pName}" style="cursor:pointer;">
