@@ -997,8 +997,6 @@ body {
   border-bottom-color: rgba(245, 158, 11, 0.25);
   color: #fde68a;
 }
-body.view-only #topbarViewOnlyBtn,
-body.view-only #switchToViewModeBtn,
 body.view-only #userPermissionBanner,
 body.view-only .user-permission-banner {
   display: none !important;
