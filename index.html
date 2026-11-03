@@ -70,6 +70,15 @@
           <button class="today-shortcut-btn" id="jumpTodayBtn">Today</button>
         </div>
 
+        <!-- Month-End Completeness Audit Trigger -->
+        <button class="btn-header-action" id="openAuditBtn" title="Month-End Completeness Audit" aria-label="Month-End Completeness Audit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+          </svg>
+          <span>Audit</span>
+        </button>
+
         <!-- Settings & Tools Trigger (3 horizontal lines) -->
         <button class="btn-settings-toggle" id="toggleSettingsSidebarBtn" title="Settings &amp; Tools" aria-label="Settings and Tools">
           <svg class="hamburger-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -1067,6 +1076,101 @@
     </div>
   </div>
 
+  <!-- Month-End Completeness Audit Modal -->
+  <div id="auditModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+          </svg>
+          <div>
+            <h3 id="auditModalTitle" style="margin:0; font-size:16px;">Month-End Completeness Audit</h3>
+            <span class="text-xs text-muted">Verify all team members have completed their hours before month closing</span>
+          </div>
+        </div>
+        <button class="modal-close" id="closeAuditModalBtn" aria-label="Close Audit Modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Month Selector & Export Action Bar -->
+        <div class="audit-control-bar">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label for="auditMonthSelect" style="font-size:12px; font-weight:600; color:var(--text-muted); margin:0;">Audit Month:</label>
+            <select id="auditMonthSelect" class="form-select" style="width:200px; font-size:12px; padding:4px 8px;">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn btn-sm btn-secondary" id="auditExportCsvBtn" title="Export audit report as CSV">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="audit-kpi-grid">
+          <div class="audit-kpi-card">
+            <span class="audit-kpi-label">Active Team</span>
+            <strong class="audit-kpi-val" id="auditKpiActiveEmp">0</strong>
+            <span class="audit-kpi-sub">Engineers</span>
+          </div>
+          <div class="audit-kpi-card success">
+            <span class="audit-kpi-label">Fully Logged</span>
+            <strong class="audit-kpi-val" id="auditKpiCompletedEmp">0</strong>
+            <span class="audit-kpi-sub" id="auditKpiCompletionRate">0%</span>
+          </div>
+          <div class="audit-kpi-card warning">
+            <span class="audit-kpi-label">Incomplete</span>
+            <strong class="audit-kpi-val" id="auditKpiIncompleteEmp">0</strong>
+            <span class="audit-kpi-sub">Needs attention</span>
+          </div>
+          <div class="audit-kpi-card danger">
+            <span class="audit-kpi-label">Missing Days</span>
+            <strong class="audit-kpi-val" id="auditKpiTotalMissingDays">0</strong>
+            <span class="audit-kpi-sub">Unfilled across team</span>
+          </div>
+        </div>
+
+        <!-- Filter Tabs & Search -->
+        <div class="audit-filter-row">
+          <div class="audit-tabs" id="auditFilterTabs">
+            <button type="button" class="audit-tab-btn active" data-filter="all">All (<span id="auditTabCountAll">0</span>)</button>
+            <button type="button" class="audit-tab-btn" data-filter="incomplete">Incomplete (<span id="auditTabCountIncomplete">0</span>)</button>
+            <button type="button" class="audit-tab-btn" data-filter="complete">Completed (<span id="auditTabCountComplete">0</span>)</button>
+          </div>
+          <input type="text" id="auditSearchInput" class="form-control form-control-sm" placeholder="Filter by team member..." style="width:210px;">
+        </div>
+
+        <!-- Audit Details Table -->
+        <div class="audit-table-wrap">
+          <table class="table-compact audit-table">
+            <thead>
+              <tr>
+                <th style="width:200px;">Team Member</th>
+                <th style="width:130px;">Office &bull; Section</th>
+                <th style="width:105px; text-align:right;">Logged Hours</th>
+                <th style="width:115px; text-align:center;">Status</th>
+                <th>Unfilled Workdays (DD/MM/YYYY)</th>
+                <th style="width:130px; text-align:center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="text-xs text-muted" id="auditFooterSummary">Audit reflects all recorded hours and official office weekends (Cairo: Fri-Sat, Istanbul: Sat-Sun).</span>
+        <button type="button" class="btn btn-secondary modal-close" id="auditDoneBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings & Tools Expandable Side Drawer (Right Side) -->
   <div id="settingsSidebarOverlay" class="settings-drawer-overlay hidden"></div>
   <aside id="settingsSidebar" class="settings-drawer">
@@ -1121,6 +1225,15 @@
           <div class="action-card-text">
             <strong>Project Analytics</strong>
             <span>Hours breakdown &amp; monthly totals</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+
+        <button class="settings-action-card" id="settingsAuditBtn">
+          <span class="action-card-icon"></span>
+          <div class="action-card-text">
+            <strong>Month-End Audit</strong>
+            <span>Check missing workdays before closing</span>
           </div>
           <span class="action-card-arrow">›</span>
         </button>

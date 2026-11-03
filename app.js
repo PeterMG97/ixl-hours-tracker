@@ -100,6 +100,7 @@
     selectedCell: null,
     pendingAdminCell: null,
     selectedCells: new Set(),
+    activeKeyboardCell: null,
     selectedEmpId: null,
     isMultiEditing: false,
     popoverCategory: 'all',
@@ -268,6 +269,23 @@
     periodResultDays: document.getElementById('periodResultDays'),
     periodResultContributors: document.getElementById('periodResultContributors'),
     periodResultContributorsList: document.getElementById('periodResultContributorsList'),
+
+    // Live Save & Audit Elements
+    openAuditBtn: document.getElementById('openAuditBtn'),
+    settingsAuditBtn: document.getElementById('settingsAuditBtn'),
+    auditModal: document.getElementById('auditModal'),
+    closeAuditModalBtn: document.getElementById('closeAuditModalBtn'),
+    auditDoneBtn: document.getElementById('auditDoneBtn'),
+    auditMonthSelect: document.getElementById('auditMonthSelect'),
+    auditExportCsvBtn: document.getElementById('auditExportCsvBtn'),
+    auditKpiActiveEmp: document.getElementById('auditKpiActiveEmp'),
+    auditKpiCompletedEmp: document.getElementById('auditKpiCompletedEmp'),
+    auditKpiCompletionRate: document.getElementById('auditKpiCompletionRate'),
+    auditKpiIncompleteEmp: document.getElementById('auditKpiIncompleteEmp'),
+    auditKpiTotalMissingDays: document.getElementById('auditKpiTotalMissingDays'),
+    auditSearchInput: document.getElementById('auditSearchInput'),
+    auditTableBody: document.getElementById('auditTableBody'),
+    auditFooterSummary: document.getElementById('auditFooterSummary'),
 
     // Custom DD/MM/YYYY Calendar Popover
     dmyCalendarPopover: document.getElementById('dmyCalendarPopover'),
@@ -509,14 +527,37 @@
     state.employees.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  let lastSyncTimeStr = '';
+
+  function setSaveStatus(status, detailMsg = '') {
+    if (!el.connectionLamp || !el.connectionText) return;
+    if (status === 'saving') {
+      el.connectionLamp.className = 'beacon-dot beacon-amber';
+      el.connectionText.textContent = 'Saving...';
+      if (el.connectionBadge) el.connectionBadge.title = 'Saving changes to database...';
+    } else if (status === 'saved') {
+      const now = new Date();
+      lastSyncTimeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      el.connectionLamp.className = 'beacon-dot beacon-green';
+      el.connectionText.textContent = 'Saved';
+      if (el.connectionBadge) {
+        el.connectionBadge.title = `All changes saved to database (Last: ${lastSyncTimeStr})`;
+      }
+    } else if (status === 'offline') {
+      el.connectionLamp.className = 'beacon-dot beacon-red';
+      el.connectionText.textContent = 'Offline';
+      if (el.connectionBadge) {
+        el.connectionBadge.title = detailMsg || 'Offline: changes cached in browser local storage';
+      }
+    }
+  }
+
   function setConnectionStatus(connected) {
     state.isConnected = connected;
     if (connected) {
-      el.connectionLamp.className = 'beacon-dot beacon-green';
-      el.connectionText.textContent = 'Synced';
+      setSaveStatus('saved');
     } else {
-      el.connectionLamp.className = 'beacon-dot beacon-red';
-      el.connectionText.textContent = 'Offline';
+      setSaveStatus('offline');
     }
   }
 
@@ -535,6 +576,7 @@
   async function syncToServer() {
     if (state.isViewOnly) return;
     sortAllData();
+    setSaveStatus('saving');
     try {
       const payload = {
         sections: state.sections,
@@ -552,12 +594,15 @@
       });
       if (res.ok) {
         setConnectionStatus(true);
+        setSaveStatus('saved');
       } else {
         setConnectionStatus(false);
+        setSaveStatus('offline', 'Sync warning: changes saved locally in browser.');
         showToast('Sync warning: changes saved locally in browser.', 'warning');
       }
     } catch (e) {
       setConnectionStatus(false);
+      setSaveStatus('offline', 'Offline: Changes cached locally.');
       showToast('Offline: Changes cached locally.', 'warning');
     }
   }
@@ -1064,6 +1109,11 @@
       attachCellEvents();
     }
 
+    if (state.activeKeyboardCell) {
+      const slot = el.scheduleBody.querySelector(`td.col-slot[data-emp-id="${state.activeKeyboardCell.empId}"][data-date="${state.activeKeyboardCell.dateStr}"]`);
+      if (slot) slot.classList.add('keyboard-focused-cell');
+    }
+
     renderSectionDrawerControls();
   }
 
@@ -1421,6 +1471,7 @@
           }
         }
 
+        setKeyboardFocusedCell(empId, dateStr);
         openCellPopover(empId, dateStr, targetBtn);
       });
     });
@@ -4849,6 +4900,16 @@
     });
   });
 
+  function setKeyboardFocusedCell(empId, dateStr) {
+    if (!empId || !dateStr) return;
+    state.activeKeyboardCell = { empId, dateStr };
+    document.querySelectorAll('.keyboard-focused-cell').forEach(c => c.classList.remove('keyboard-focused-cell'));
+    const slot = document.querySelector(`td.col-slot[data-emp-id="${empId}"][data-date="${dateStr}"]`);
+    if (slot) {
+      slot.classList.add('keyboard-focused-cell');
+    }
+  }
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeCellPopover();
@@ -4858,19 +4919,88 @@
       return;
     }
 
+    // Ignore keyboard shortcuts if active inside input fields
+    const activeEl = document.activeElement;
+    const isInput = activeEl && (
+      activeEl.tagName === 'INPUT' ||
+      activeEl.tagName === 'TEXTAREA' ||
+      activeEl.tagName === 'SELECT' ||
+      activeEl.isContentEditable
+    );
+    if (isInput) return;
+
+    const hasOpenModal = document.querySelector('.modal:not(.hidden)');
+    if (hasOpenModal) return;
+
+    // Excel-Style Keyboard Arrow Navigation
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      const visibleRows = Array.from(document.querySelectorAll('#scheduleBody tr.user-row:not(.is-collapsed-row)'));
+      if (visibleRows.length === 0) return;
+
+      let rIdx = -1;
+      let cIdx = -1;
+
+      if (state.activeKeyboardCell) {
+        rIdx = visibleRows.findIndex(r => r.getAttribute('data-emp-id') === state.activeKeyboardCell.empId);
+        if (rIdx !== -1) {
+          const slots = Array.from(visibleRows[rIdx].querySelectorAll('td.col-slot'));
+          cIdx = slots.findIndex(s => s.getAttribute('data-date') === state.activeKeyboardCell.dateStr);
+        }
+      }
+
+      if (rIdx === -1 || cIdx === -1) {
+        if (state.currentUserId && state.currentUserId !== 'view-all') {
+          rIdx = visibleRows.findIndex(r => r.getAttribute('data-emp-id') === state.currentUserId);
+          if (rIdx === -1) rIdx = 0;
+        } else {
+          rIdx = 0;
+        }
+        cIdx = 0;
+      } else {
+        const slotsCount = visibleRows[rIdx].querySelectorAll('td.col-slot').length;
+        if (e.key === 'ArrowRight') {
+          cIdx = Math.min(slotsCount - 1, cIdx + 1);
+        } else if (e.key === 'ArrowLeft') {
+          cIdx = Math.max(0, cIdx - 1);
+        } else if (e.key === 'ArrowDown') {
+          rIdx = Math.min(visibleRows.length - 1, rIdx + 1);
+        } else if (e.key === 'ArrowUp') {
+          rIdx = Math.max(0, rIdx - 1);
+        }
+      }
+
+      const targetRow = visibleRows[rIdx];
+      if (!targetRow) return;
+      const targetEmpId = targetRow.getAttribute('data-emp-id');
+      const targetSlots = Array.from(targetRow.querySelectorAll('td.col-slot'));
+      const targetSlot = targetSlots[Math.min(cIdx, targetSlots.length - 1)];
+      if (!targetSlot) return;
+      const targetDateStr = targetSlot.getAttribute('data-date');
+
+      setKeyboardFocusedCell(targetEmpId, targetDateStr);
+      targetSlot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      return;
+    }
+
+    // Enter or Space opens cell popover
+    if ((e.key === 'Enter' || e.key === ' ') && state.activeKeyboardCell) {
+      const isPopoverOpen = el.cellPopover && !el.cellPopover.classList.contains('hidden');
+      if (!isPopoverOpen) {
+        e.preventDefault();
+        const slot = document.querySelector(`td.col-slot[data-emp-id="${state.activeKeyboardCell.empId}"][data-date="${state.activeKeyboardCell.dateStr}"]`);
+        if (slot) {
+          const btn = slot.querySelector('button.task-chip');
+          if (btn) {
+            openCellPopover(state.activeKeyboardCell.empId, state.activeKeyboardCell.dateStr, btn);
+          }
+        }
+        return;
+      }
+    }
+
+    // Delete or Backspace clears cell allocation
     if (e.key === 'Delete' || e.key === 'Backspace') {
-      const activeEl = document.activeElement;
-      const isInput = activeEl && (
-        activeEl.tagName === 'INPUT' ||
-        activeEl.tagName === 'TEXTAREA' ||
-        activeEl.tagName === 'SELECT' ||
-        activeEl.isContentEditable
-      );
-      if (isInput) return;
-
-      const hasOpenModal = document.querySelector('.modal:not(.hidden)');
-      if (hasOpenModal) return;
-
       if (state.isViewOnly || state.currentUserId === 'view-all') return;
 
       if (state.selectedCells && state.selectedCells.size > 0) {
@@ -4888,6 +5018,25 @@
         }
         e.preventDefault();
         batchApplyToSelectedCells('', 0);
+        return;
+      }
+
+      if (state.activeKeyboardCell) {
+        const isAdmin = state.isAdmin && isCurrentUserPeter();
+        const isSelf = state.activeKeyboardCell.empId === state.currentUserId;
+        if (!isAdmin && !isSelf) {
+          showToast('Permission denied: You can only clear your own allocations', 'warning');
+          return;
+        }
+        e.preventDefault();
+        const key = `${state.activeKeyboardCell.empId}_${state.activeKeyboardCell.dateStr}`;
+        if (state.allocations[key]) {
+          delete state.allocations[key];
+          syncToServer();
+          renderSchedule();
+          setKeyboardFocusedCell(state.activeKeyboardCell.empId, state.activeKeyboardCell.dateStr);
+          showToast('Cleared allocation');
+        }
       }
     }
   });
@@ -5187,10 +5336,316 @@
     }
   });
 
+  // =========================================================================
+  // Month-End Completeness Audit Module
+  // =========================================================================
+  let auditActiveFilter = 'all';
+  let auditCurrentYm = '2026-11';
+  let auditCachedData = [];
+
+  function openAuditModal(targetYm) {
+    if (!el.auditModal) return;
+    auditCurrentYm = targetYm || state.currentMonth || APP_START_MONTH;
+    if (auditCurrentYm < APP_START_MONTH) auditCurrentYm = APP_START_MONTH;
+    auditActiveFilter = 'all';
+    if (el.auditSearchInput) el.auditSearchInput.value = '';
+
+    populateAuditMonthSelect();
+    renderAuditData();
+    openModal(el.auditModal);
+  }
+
+  function closeAuditModal() {
+    if (el.auditModal) closeModal(el.auditModal);
+  }
+
+  function populateAuditMonthSelect() {
+    if (!el.auditMonthSelect) return;
+    const months = [
+      { ym: '2026-11', label: '11/2026 - November 2026 (Start)' },
+      { ym: '2026-12', label: '12/2026 - December 2026' },
+      { ym: '2027-01', label: '01/2027 - January 2027' },
+      { ym: '2027-02', label: '02/2027 - February 2027' },
+      { ym: '2027-03', label: '03/2027 - March 2027' },
+      { ym: '2027-04', label: '04/2027 - April 2027' },
+      { ym: '2027-05', label: '05/2027 - May 2027' },
+      { ym: '2027-06', label: '06/2027 - June 2027' },
+      { ym: '2027-07', label: '07/2027 - July 2027' },
+      { ym: '2027-08', label: '08/2027 - August 2027' },
+      { ym: '2027-09', label: '09/2027 - September 2027' },
+      { ym: '2027-10', label: '10/2027 - October 2027' },
+      { ym: '2027-11', label: '11/2027 - November 2027' },
+      { ym: '2027-12', label: '12/2027 - December 2027' }
+    ];
+
+    el.auditMonthSelect.innerHTML = months.map(m =>
+      `<option value="${m.ym}" ${m.ym === auditCurrentYm ? 'selected' : ''}>${m.label}</option>`
+    ).join('');
+  }
+
+  function calculateAuditData(monthYm) {
+    const [yStr, mStr] = monthYm.split('-');
+    const year = parseInt(yStr, 10);
+    const month = parseInt(mStr, 10);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const activeEmployees = state.employees.filter(e => e.active !== false);
+    activeEmployees.sort((a, b) => a.name.localeCompare(b.name));
+
+    const records = [];
+
+    activeEmployees.forEach(emp => {
+      const sec = state.sections.find(s => s.id === emp.sectionId) || {};
+      const loc = sec.location || 'Cairo';
+      let totalLoggedHours = 0;
+      let totalWorkdays = 0;
+      const unfilledDates = [];
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dStr = String(d).padStart(2, '0');
+        const dateStr = `${monthYm}-${dStr}`;
+        const dt = new Date(year, month - 1, d);
+        const dow = dt.getDay(); // 0 = Sun, 1 = Mon ... 5 = Fri, 6 = Sat
+        const isHoli = isWeekendForLocation(dow, loc);
+
+        if (!isHoli) {
+          totalWorkdays++;
+          const key = `${emp.id}_${dateStr}`;
+          const alloc = state.allocations[key];
+          if (alloc && alloc.project && alloc.project.trim() !== '') {
+            if (alloc.project !== 'Day OFF' && alloc.project !== 'NO PROJECT' && alloc.project !== 'NO STATUS') {
+              totalLoggedHours += Number(alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8));
+            }
+          } else {
+            unfilledDates.push(dateStr);
+          }
+        }
+      }
+
+      records.push({
+        empId: emp.id,
+        name: emp.name,
+        sectionName: sec.name || 'Team',
+        location: loc,
+        totalLoggedHours,
+        totalWorkdays,
+        unfilledCount: unfilledDates.length,
+        unfilledDates,
+        isComplete: (unfilledDates.length === 0)
+      });
+    });
+
+    return records;
+  }
+
+  function renderAuditData() {
+    if (!el.auditTableBody) return;
+
+    auditCachedData = calculateAuditData(auditCurrentYm);
+
+    const totalActive = auditCachedData.length;
+    const completedCount = auditCachedData.filter(r => r.isComplete).length;
+    const incompleteCount = totalActive - completedCount;
+    const totalMissingDays = auditCachedData.reduce((acc, r) => acc + r.unfilledCount, 0);
+    const completionRate = totalActive > 0 ? Math.round((completedCount / totalActive) * 100) : 0;
+
+    if (el.auditKpiActiveEmp) el.auditKpiActiveEmp.textContent = totalActive;
+    if (el.auditKpiCompletedEmp) el.auditKpiCompletedEmp.textContent = completedCount;
+    if (el.auditKpiCompletionRate) el.auditKpiCompletionRate.textContent = `${completionRate}% of team`;
+    if (el.auditKpiIncompleteEmp) el.auditKpiIncompleteEmp.textContent = incompleteCount;
+    if (el.auditKpiTotalMissingDays) el.auditKpiTotalMissingDays.textContent = totalMissingDays;
+
+    const tabAll = document.getElementById('auditTabCountAll');
+    const tabIncomp = document.getElementById('auditTabCountIncomplete');
+    const tabComp = document.getElementById('auditTabCountComplete');
+    if (tabAll) tabAll.textContent = totalActive;
+    if (tabIncomp) tabIncomp.textContent = incompleteCount;
+    if (tabComp) tabComp.textContent = completedCount;
+
+    const searchQuery = (el.auditSearchInput ? el.auditSearchInput.value : '').toLowerCase().trim();
+    const filtered = auditCachedData.filter(r => {
+      if (auditActiveFilter === 'incomplete' && r.isComplete) return false;
+      if (auditActiveFilter === 'complete' && !r.isComplete) return false;
+      if (searchQuery) {
+        const matchesName = r.name.toLowerCase().includes(searchQuery);
+        const matchesSec = r.sectionName.toLowerCase().includes(searchQuery);
+        const matchesLoc = r.location.toLowerCase().includes(searchQuery);
+        if (!matchesName && !matchesSec && !matchesLoc) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      el.auditTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">
+            No team members match the current filter or search criteria.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let rowsHtml = '';
+    filtered.forEach(r => {
+      const statusBadge = r.isComplete
+        ? `<span class="audit-badge-complete">
+             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+             Complete
+           </span>`
+        : `<span class="audit-badge-incomplete">
+             ${r.unfilledCount} day${r.unfilledCount === 1 ? '' : 's'} missing
+           </span>`;
+
+      const missingDatesChips = r.unfilledDates.slice(0, 8).map(d =>
+        `<span class="audit-missing-date-chip">${formatDateDMY(d)}</span>`
+      ).join('');
+
+      const overflowCount = r.unfilledDates.length - 8;
+      const overflowBadge = overflowCount > 0 ? `<span class="audit-missing-date-chip" style="background:#f1f5f9; color:#475569;">+${overflowCount} more</span>` : '';
+
+      const canQuickFill = !state.isViewOnly && ((state.isAdmin && isCurrentUserPeter()) || state.currentUserId === r.empId);
+
+      rowsHtml += `
+        <tr>
+          <td>
+            <strong>${r.name}</strong>
+          </td>
+          <td>
+            <span class="text-xs text-muted">${r.location} &bull; ${r.sectionName.replace(/ - Cairo| - Istanbul/g, '')}</span>
+          </td>
+          <td style="text-align:right; font-weight:700;">
+            ${r.totalLoggedHours}h
+          </td>
+          <td style="text-align:center;">
+            ${statusBadge}
+          </td>
+          <td>
+            <div class="audit-missing-pills">
+              ${r.isComplete ? '<span class="text-xs text-muted" style="color:#059669;">All ' + r.totalWorkdays + ' workdays logged</span>' : (missingDatesChips + overflowBadge)}
+            </div>
+          </td>
+          <td style="text-align:center;">
+            <div style="display:inline-flex; gap:4px;">
+              <button type="button" class="btn btn-xs btn-ghost audit-view-row-btn" data-emp-id="${r.empId}" title="Highlight ${r.name}'s row in schedule">
+                View
+              </button>
+              ${canQuickFill && !r.isComplete ? `<button type="button" class="btn btn-xs btn-primary audit-quick-fill-btn" data-emp-id="${r.empId}" title="Bulk fill ${r.name}">Fill</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    el.auditTableBody.innerHTML = rowsHtml;
+
+    // View row click
+    el.auditTableBody.querySelectorAll('.audit-view-row-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const empId = btn.getAttribute('data-emp-id');
+        closeAuditModal();
+        if (state.currentMonth !== auditCurrentYm) {
+          state.currentMonth = auditCurrentYm;
+          if (el.monthSelect) el.monthSelect.value = auditCurrentYm;
+          renderSchedule();
+        }
+        setTimeout(() => {
+          const row = document.querySelector(`tr.user-row[data-emp-id="${empId}"]`);
+          if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('flash-row');
+            setTimeout(() => row.classList.remove('flash-row'), 2000);
+          }
+        }, 150);
+      });
+    });
+
+    // Quick fill click
+    el.auditTableBody.querySelectorAll('.audit-quick-fill-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const empId = btn.getAttribute('data-emp-id');
+        closeAuditModal();
+        openBulkFillModal(empId);
+      });
+    });
+  }
+
+  function exportAuditToCsv() {
+    const data = calculateAuditData(auditCurrentYm);
+    if (!data || data.length === 0) return;
+
+    const headers = ['Employee Name', 'Location', 'Section', 'Total Logged Hours', 'Status', 'Unfilled Workdays Count', 'Missing Dates'];
+    const rows = [headers.join(',')];
+
+    data.forEach(r => {
+      const statusText = r.isComplete ? 'Complete' : 'Incomplete';
+      const missingStr = r.unfilledDates.map(d => formatDateDMY(d)).join('; ');
+      const cleanName = `"${r.name.replace(/"/g, '""')}"`;
+      const cleanSec = `"${r.sectionName.replace(/"/g, '""')}"`;
+      const cleanMissing = `"${missingStr.replace(/"/g, '""')}"`;
+
+      rows.push([cleanName, r.location, cleanSec, r.totalLoggedHours, statusText, r.unfilledCount, cleanMissing].join(','));
+    });
+
+    const csvContent = '\uFEFF' + rows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Audit_Completeness_${auditCurrentYm}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Audit report exported for ${auditCurrentYm}`, 'success');
+  }
+
+  function initAuditEvents() {
+    if (el.openAuditBtn) {
+      el.openAuditBtn.addEventListener('click', () => openAuditModal());
+    }
+    if (el.settingsAuditBtn) {
+      el.settingsAuditBtn.addEventListener('click', () => {
+        toggleSettingsDrawer(false);
+        openAuditModal();
+      });
+    }
+    if (el.closeAuditModalBtn) {
+      el.closeAuditModalBtn.addEventListener('click', () => closeAuditModal());
+    }
+    if (el.auditDoneBtn) {
+      el.auditDoneBtn.addEventListener('click', () => closeAuditModal());
+    }
+    if (el.auditMonthSelect) {
+      el.auditMonthSelect.addEventListener('change', () => {
+        auditCurrentYm = el.auditMonthSelect.value;
+        renderAuditData();
+      });
+    }
+    if (el.auditExportCsvBtn) {
+      el.auditExportCsvBtn.addEventListener('click', () => exportAuditToCsv());
+    }
+    if (el.auditSearchInput) {
+      el.auditSearchInput.addEventListener('input', () => renderAuditData());
+    }
+    const filterTabs = document.querySelectorAll('#auditFilterTabs .audit-tab-btn');
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        auditActiveFilter = tab.getAttribute('data-filter') || 'all';
+        renderAuditData();
+      });
+    });
+  }
+
   // Boot Application
   initTheme();
   initColumnWidths();
   initDmyDateInputs();
+  initAuditEvents();
   loadData();
 
 })();

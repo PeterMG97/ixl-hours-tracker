@@ -325,6 +325,25 @@ $dmyDatePickerVerified = ($htmlContent.Contains('id="dmyCalendarPopover"')) -and
     ($cssContent.Contains('.dmy-cal-day-cell.is-selected'))
 Assert-Test "6.54 Custom DD/MM/YYYY datepicker component, inputs, calendar popover, and start boundary limit (01/11/2026)" $dmyDatePickerVerified "Custom DD/MM/YYYY datepicker, calendar popover, masked inputs, and start limit verified"
 
+$keyboardNavVerified = ($jsContent.Contains('activeKeyboardCell')) -and `
+    ($jsContent.Contains('setKeyboardFocusedCell')) -and `
+    ($jsContent.Contains('ArrowRight')) -and `
+    ($cssContent.Contains('.keyboard-focused-cell'))
+Assert-Test "6.55 Excel-Style Keyboard Navigation across schedule grid cells" $keyboardNavVerified "Arrow keys navigation, Enter/Space popover trigger, and keyboard outline verified"
+
+$monthAuditVerified = ($htmlContent.Contains('id="auditModal"')) -and `
+    ($htmlContent.Contains('id="openAuditBtn"')) -and `
+    ($jsContent.Contains('calculateAuditData')) -and `
+    ($jsContent.Contains('exportAuditToCsv')) -and `
+    ($cssContent.Contains('.audit-kpi-card'))
+Assert-Test "6.56 Month-End Completeness Audit module with team KPIs and CSV export" $monthAuditVerified "Audit modal, team completeness metrics, missing days breakdown, and CSV export verified"
+
+$liveSyncVerified = ($jsContent.Contains('setSaveStatus')) -and `
+    ($cssContent.Contains('.beacon-amber')) -and `
+    ($cssContent.Contains('pulse-amber')) -and `
+    ($jsContent.Contains("setSaveStatus('saving')"))
+Assert-Test "6.57 Live Auto-Save Sync Indicator with dynamic saving and saved status states" $liveSyncVerified "Pulsing amber saving state, timestamped saved status, and dynamic beacon verified"
+
 
 
 
