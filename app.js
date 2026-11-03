@@ -288,6 +288,11 @@
         const [, y, m, d] = match;
         return `${d}/${m}/${y}`;
       }
+      const monthMatch = dateInput.match(/^(\d{4})-(\d{2})$/);
+      if (monthMatch) {
+        const [, y, m] = monthMatch;
+        return `${m}/${y}`;
+      }
     }
     const dt = (dateInput instanceof Date) ? dateInput : new Date(dateInput);
     if (isNaN(dt.getTime())) return String(dateInput);
@@ -295,6 +300,23 @@
     const m = String(dt.getMonth() + 1).padStart(2, '0');
     const y = dt.getFullYear();
     return `${d}/${m}/${y}`;
+  }
+
+  // User-facing month formatting: MM/YYYY
+  function formatMonthMY(monthInput) {
+    if (!monthInput) return '';
+    if (typeof monthInput === 'string') {
+      const match = monthInput.match(/^(\d{4})-(\d{2})/);
+      if (match) {
+        const [, y, m] = match;
+        return `${m}/${y}`;
+      }
+    }
+    const dt = (monthInput instanceof Date) ? monthInput : new Date(monthInput);
+    if (isNaN(dt.getTime())) return String(monthInput);
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const y = dt.getFullYear();
+    return `${m}/${y}`;
   }
 
   // Detect current system date or anchor to November 1, 2026
@@ -664,10 +686,14 @@
     if (parts.length < 2) return yearMonth;
     const y = Number(parts[0]);
     const m = Number(parts[1]);
+    const mm = String(m).padStart(2, '0');
     const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const fullNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const name = short ? shortNames[m - 1] : fullNames[m - 1];
-    return `${name || m} ${y}`;
+    if (short) {
+      return `${mm}/${y}`;
+    }
+    return `${mm}/${y} (${name || m} ${y})`;
   }
 
   function isWeekendForLocation(dow, location) {
@@ -852,7 +878,7 @@
                   <div class="user-name-line">
                     <strong style="font-size:11px;" class="user-name-text">${emp.name}</strong>
                     <span class="emp-unfilled-pill ${empUnfilledDays === 0 ? 'is-all-filled' : ''}" 
-                          title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${mName} (excluding ${sec.location} holidays)">
+                          title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${formatMonthMY(state.currentMonth)} (${mName}) (excluding ${sec.location} holidays)">
                       ${empUnfilledDays} unfilled
                     </span>
                   </div>
@@ -3639,7 +3665,7 @@
     if (el.contribAvatar) el.contribAvatar.textContent = getInitials(emp.name);
     if (el.contribEmpNameDisplay) el.contribEmpNameDisplay.textContent = emp.name;
     if (el.contribSectionDisplay) el.contribSectionDisplay.textContent = `${sec.name} (${sec.location})`;
-    if (el.contribMonthDisplay) el.contribMonthDisplay.textContent = state.currentMonth;
+    if (el.contribMonthDisplay) el.contribMonthDisplay.textContent = formatMonthMY(state.currentMonth);
 
     if (el.contribTotalHours) el.contribTotalHours.textContent = `${totalRecordedHours}h`;
     const avgHours = loggedWorkdaysCount > 0 ? (totalRecordedHours / loggedWorkdaysCount).toFixed(1) : '0';
@@ -3659,7 +3685,7 @@
     if (el.contribProjectChips) {
       const projKeys = Object.keys(projectHoursMap).sort((a, b) => projectHoursMap[b].hours - projectHoursMap[a].hours);
       if (projKeys.length === 0) {
-        el.contribProjectChips.innerHTML = `<span class="text-sm text-muted">No recorded project contributions for ${state.currentMonth} yet.</span>`;
+        el.contribProjectChips.innerHTML = `<span class="text-sm text-muted">No recorded project contributions for ${formatMonthMY(state.currentMonth)} yet.</span>`;
       } else {
         el.contribProjectChips.innerHTML = projKeys.map(pName => {
           const item = projectHoursMap[pName];
