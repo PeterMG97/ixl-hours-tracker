@@ -290,6 +290,9 @@ Assert-Test "6.44 Choosing name focuses user row and hazes other cells; View All
 $monthlyBreakdownVerified = ($htmlContent.Contains('id="analyticsMonthFilterSelect"')) -and ($htmlContent.Contains('id="filterAnalyticsInput"')) -and ($cssContent.Contains('.month-breakdown-list')) -and ($cssContent.Contains('.month-breakdown-item')) -and ($jsContent.Contains('initAnalyticsMonthDropdown')) -and ($jsContent.Contains('formatYearMonth')) -and ($jsContent.Contains('getProjectLoggedBreakdown'))
 Assert-Test "6.45 Project breakdown shows logged hours by month with monthly breakdown list and month filter" $monthlyBreakdownVerified "Month-by-month hours breakdown, month filter dropdown, and search filtering verified"
 
+$viewOnlyBlueBannerRemoved = ($cssContent.Contains('body.view-only #userPermissionBanner')) -and ($cssContent.Contains('body.view-only .user-permission-banner')) -and ($jsContent.Contains('if (state.isViewOnly) {'))
+Assert-Test "6.46 Blue user permission banner completely removed in view-only mode" $viewOnlyBlueBannerRemoved "User permission banner is hidden via CSS display:none !important and JS guard in view-only mode"
+
 
 
 # -------------------------------------------------------------

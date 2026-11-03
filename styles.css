@@ -998,7 +998,9 @@ body {
   color: #fde68a;
 }
 body.view-only #topbarViewOnlyBtn,
-body.view-only #switchToViewModeBtn {
+body.view-only #switchToViewModeBtn,
+body.view-only #userPermissionBanner,
+body.view-only .user-permission-banner {
   display: none !important;
 }
 .banner-link {

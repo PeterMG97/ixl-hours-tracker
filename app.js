@@ -296,6 +296,7 @@
     state.isViewOnly = true;
     document.body.classList.add('view-only');
     el.viewModeBanner.classList.remove('hidden');
+    if (el.userPermissionBanner) el.userPermissionBanner.classList.add('hidden');
     el.adminToggleBtn.classList.add('hidden');
     el.topbarBulkFillBtn.classList.add('hidden');
     if (el.topbarViewOnlyBtn) el.topbarViewOnlyBtn.classList.add('hidden');
@@ -448,6 +449,14 @@
   // -------------------------------------------------------------
 
   function updateUserDisplay() {
+    if (state.isViewOnly) {
+      if (el.userPermissionBanner) {
+        el.userPermissionBanner.classList.remove('admin-active-banner');
+        el.userPermissionBanner.classList.add('hidden');
+      }
+      return;
+    }
+
     if (!state.currentUserId) {
       el.currentUserNameDisplay.textContent = 'Select Your Name';
       el.userAvatarInitials.textContent = '?';
