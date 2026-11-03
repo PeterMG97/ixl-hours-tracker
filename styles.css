@@ -3088,3 +3088,8 @@ body.view-only .task-chip {
   border-color: rgba(59, 130, 246, 0.45) !important;
   color: #93c5fd !important;
 }
+
+[data-theme="dark"] #projectPeriodResultsArea > div > div {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}

@@ -263,6 +263,11 @@
     projectRangeSummaryBadge: document.getElementById('projectRangeSummaryBadge'),
     projectRangeSummaryText: document.getElementById('projectRangeSummaryText'),
     projectRangeCard: document.getElementById('projectRangeCard'),
+    projectPeriodResultsArea: document.getElementById('projectPeriodResultsArea'),
+    periodResultHours: document.getElementById('periodResultHours'),
+    periodResultDays: document.getElementById('periodResultDays'),
+    periodResultContributors: document.getElementById('periodResultContributors'),
+    periodResultContributorsList: document.getElementById('periodResultContributorsList'),
 
     // Multi-Cell Selection Elements
     multiSelectBar: document.getElementById('multiSelectBar'),
@@ -4312,6 +4317,7 @@
     const baseline = Number(pObj.initialHours) || 0;
     const breakdown = getProjectLoggedBreakdown(pName);
     const totalCombined = baseline + breakdown.totalHours;
+    const monthKeys = Object.keys(breakdown.months).sort();
 
     // Header updates
     const pill = document.getElementById('projectModalCategoryPill');
@@ -4335,6 +4341,7 @@
       el.projectPrevMonthBtn.classList.toggle('is-disabled', isAtStart);
     }
 
+    // Top Summary Metric Cards (Normal Old View for the selected month)
     const totalCombinedEl = document.getElementById('projectModalTotalCombined');
     const baselineHoursEl = document.getElementById('projectModalBaselineHours');
     const loggedHoursEl = document.getElementById('projectModalLoggedHours');
@@ -4342,149 +4349,87 @@
     const contribCountEl = document.getElementById('projectModalContributorCount');
     const teamChipsEl = document.getElementById('projectModalTeamChips');
 
-    const isCustomRange = Boolean(projectRangeStart && projectRangeEnd);
+    const monthData = breakdown.months[activeMonth] || { hours: 0, days: 0 };
 
-    if (isCustomRange) {
-      // Custom Date Range Calculation & Display
-      const rangeData = getProjectAllocationsForRange(pName, projectRangeStart, projectRangeEnd);
+    if (totalCombinedEl) totalCombinedEl.textContent = `${totalCombined}h`;
+    if (baselineHoursEl) baselineHoursEl.textContent = `${baseline}h`;
+    if (loggedHoursEl) loggedHoursEl.textContent = `${monthData.hours}h`;
+    if (loggedDaysEl) loggedDaysEl.textContent = `${monthData.days} workday${monthData.days === 1 ? '' : 's'} in ${formatMonthMY(activeMonth)} (Total: ${breakdown.totalHours}h)`;
 
-      if (el.projectRangeCard) el.projectRangeCard.classList.add('has-active-range');
-      if (el.projectRangeSummaryBadge && el.projectRangeSummaryText) {
-        el.projectRangeSummaryBadge.classList.remove('hidden');
-        el.projectRangeSummaryText.innerHTML = `Period (<strong>${formatDateDMY(projectRangeStart)}</strong> &ndash; <strong>${formatDateDMY(projectRangeEnd)}</strong>): <strong>${rangeData.totalHours}h</strong> allocated &bull; <strong>${rangeData.totalDays} workday${rangeData.totalDays === 1 ? '' : 's'}</strong> &bull; <strong>${Object.keys(rangeData.contributorMap).length} active contributor${Object.keys(rangeData.contributorMap).length === 1 ? '' : 's'}</strong>`;
-      }
+    // Extract allocations for this project
+    const allContributorMap = {};
+    const monthContributorMap = {};
+    const dayEntries = [];
 
-      if (totalCombinedEl) totalCombinedEl.textContent = `${baseline + rangeData.totalHours}h`;
-      if (baselineHoursEl) baselineHoursEl.textContent = `${baseline}h`;
-      if (loggedHoursEl) loggedHoursEl.textContent = `${rangeData.totalHours}h`;
-      if (loggedDaysEl) loggedDaysEl.textContent = `${rangeData.totalDays} workday${rangeData.totalDays === 1 ? '' : 's'} (${formatDateDMY(projectRangeStart)} - ${formatDateDMY(projectRangeEnd)})`;
-      if (contribCountEl) contribCountEl.textContent = Object.keys(rangeData.contributorMap).length;
+    Object.keys(state.allocations).forEach(k => {
+      const item = state.allocations[k];
+      if (item && item.project === pName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
+        const lastUnder = k.lastIndexOf('_');
+        const empId = k.substring(0, lastUnder);
+        const dt = k.substring(lastUnder + 1);
+        const ym = dt.substring(0, 7);
+        const hrs = Number(item.hours) || 8;
 
-      // Team Contributors Badges for custom period
-      if (teamChipsEl) {
-        const contribs = Object.values(rangeData.contributorMap).sort((a,b) => b.hours - a.hours);
-        if (contribs.length === 0) {
-          teamChipsEl.innerHTML = `<span class="text-sm text-muted">No team allocations recorded for ${formatDateDMY(projectRangeStart)} &ndash; ${formatDateDMY(projectRangeEnd)}.</span>`;
-        } else {
-          teamChipsEl.innerHTML = contribs.map(c => `
-            <div class="user-chip" style="padding:4px 10px; border-radius:6px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-light); font-size:11px; display:inline-flex; align-items:center; gap:6px;">
-              <div class="user-mini-avatar" style="width:20px; height:20px; font-size:9px;">${getInitials(c.name)}</div>
-              <strong>${c.name}</strong>
-              <span style="color:var(--text-muted); font-size:10px;">(${c.section})</span>
-              <span style="background:rgba(0,0,0,0.08); padding:1px 6px; border-radius:8px; font-weight:700;">${c.hours}h (${c.days}d)</span>
-            </div>
-          `).join('');
+        const emp = state.employees.find(e => e.id === empId);
+        const empName = emp ? emp.name : empId;
+        const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+        const secLabel = sec.name ? `${sec.name} (${sec.location})` : 'Engineering Team';
+
+        if (!allContributorMap[empId]) {
+          allContributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
         }
-      }
+        allContributorMap[empId].hours += hrs;
+        allContributorMap[empId].days += 1;
 
-      rangeData.dayEntries.sort((a, b) => b.dateStr.localeCompare(a.dateStr) || a.empName.localeCompare(b.empName));
-      renderProjectDaysTable(rangeData.dayEntries);
-
-    } else {
-      // Monthly view
-      if (el.projectRangeCard) el.projectRangeCard.classList.remove('has-active-range');
-      if (el.projectRangeSummaryBadge) el.projectRangeSummaryBadge.classList.add('hidden');
-
-      const monthData = breakdown.months[activeMonth] || { hours: 0, days: 0 };
-
-      if (totalCombinedEl) totalCombinedEl.textContent = `${totalCombined}h`;
-      if (baselineHoursEl) baselineHoursEl.textContent = `${baseline}h`;
-      if (loggedHoursEl) loggedHoursEl.textContent = `${monthData.hours}h`;
-      if (loggedDaysEl) loggedDaysEl.textContent = `${monthData.days} workday${monthData.days === 1 ? '' : 's'} in ${formatMonthMY(activeMonth)} (Total: ${breakdown.totalHours}h)`;
-
-      // Extract allocations for this project
-      const allContributorMap = {};
-      const monthContributorMap = {};
-      const dayEntries = [];
-
-      Object.keys(state.allocations).forEach(k => {
-        const item = state.allocations[k];
-        if (item && item.project === pName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
-          const lastUnder = k.lastIndexOf('_');
-          const empId = k.substring(0, lastUnder);
-          const dt = k.substring(lastUnder + 1);
-          const ym = dt.substring(0, 7);
-          const hrs = Number(item.hours) || 8;
-
-          const emp = state.employees.find(e => e.id === empId);
-          const empName = emp ? emp.name : empId;
-          const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
-          const secLabel = sec.name ? `${sec.name} (${sec.location})` : 'Engineering Team';
-
-          if (!allContributorMap[empId]) {
-            allContributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
+        if (ym === activeMonth) {
+          if (!monthContributorMap[empId]) {
+            monthContributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
           }
-          allContributorMap[empId].hours += hrs;
-          allContributorMap[empId].days += 1;
-
-          if (ym === activeMonth) {
-            if (!monthContributorMap[empId]) {
-              monthContributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
-            }
-            monthContributorMap[empId].hours += hrs;
-            monthContributorMap[empId].days += 1;
-          }
-
-          const parsedDt = parseLocalDate(dt);
-          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-          const dowName = dayNames[parsedDt.getDay()] || '';
-
-          dayEntries.push({
-            dateStr: dt,
-            ym: ym,
-            dowName: dowName,
-            empId: empId,
-            empName: empName,
-            sectionLabel: secLabel,
-            hours: hrs
-          });
+          monthContributorMap[empId].hours += hrs;
+          monthContributorMap[empId].days += 1;
         }
-      });
 
-      const activeContribCount = Object.keys(monthContributorMap).length;
-      const totalContribCount = Object.keys(allContributorMap).length;
-      if (contribCountEl) contribCountEl.textContent = activeContribCount > 0 ? activeContribCount : totalContribCount;
+        const parsedDt = parseLocalDate(dt);
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dowName = dayNames[parsedDt.getDay()] || '';
 
-      // Team Contributors Badges for active month (or all-time if none in active month)
-      if (teamChipsEl) {
-        const displayContribs = activeContribCount > 0 
-          ? Object.values(monthContributorMap).sort((a,b) => b.hours - a.hours)
-          : Object.values(allContributorMap).sort((a,b) => b.hours - a.hours);
-
-        if (displayContribs.length === 0) {
-          teamChipsEl.innerHTML = `<span class="text-sm text-muted">No team allocations recorded for ${formatMonthMY(activeMonth)}.</span>`;
-        } else {
-          teamChipsEl.innerHTML = displayContribs.map(c => `
-            <div class="user-chip" style="padding:4px 10px; border-radius:6px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-light); font-size:11px; display:inline-flex; align-items:center; gap:6px;">
-              <div class="user-mini-avatar" style="width:20px; height:20px; font-size:9px;">${getInitials(c.name)}</div>
-              <strong>${c.name}</strong>
-              <span style="color:var(--text-muted); font-size:10px;">(${c.section})</span>
-              <span style="background:rgba(0,0,0,0.08); padding:1px 6px; border-radius:8px; font-weight:700;">${c.hours}h (${c.days}d)</span>
-            </div>
-          `).join('');
-        }
+        dayEntries.push({
+          dateStr: dt,
+          ym: ym,
+          dowName: dowName,
+          empId: empId,
+          empName: empName,
+          sectionLabel: secLabel,
+          hours: hrs
+        });
       }
+    });
 
-      // Month filter dropdown
-      const filterSelect = document.getElementById('projectModalMonthFilter');
-      if (filterSelect) {
-        const currentSelected = filterSelect.value || currentProjectMonthlyFilter || 'all';
-        filterSelect.innerHTML = '<option value="all">All Recorded Months</option>' + monthKeys.map(ym => `
-          <option value="${ym}">${formatYearMonth(ym, false)}</option>
+    const activeContribCount = Object.keys(monthContributorMap).length;
+    const totalContribCount = Object.keys(allContributorMap).length;
+    if (contribCountEl) contribCountEl.textContent = activeContribCount > 0 ? activeContribCount : totalContribCount;
+
+    // Team Contributors Badges for active month (or all-time if none in active month)
+    if (teamChipsEl) {
+      const displayContribs = activeContribCount > 0 
+        ? Object.values(monthContributorMap).sort((a,b) => b.hours - a.hours)
+        : Object.values(allContributorMap).sort((a,b) => b.hours - a.hours);
+
+      if (displayContribs.length === 0) {
+        teamChipsEl.innerHTML = `<span class="text-sm text-muted">No team allocations recorded for ${formatMonthMY(activeMonth)}.</span>`;
+      } else {
+        teamChipsEl.innerHTML = displayContribs.map(c => `
+          <div class="user-chip" style="padding:4px 10px; border-radius:6px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-light); font-size:11px; display:inline-flex; align-items:center; gap:6px;">
+            <div class="user-mini-avatar" style="width:20px; height:20px; font-size:9px;">${getInitials(c.name)}</div>
+            <strong>${c.name}</strong>
+            <span style="color:var(--text-muted); font-size:10px;">(${c.section})</span>
+            <span style="background:rgba(0,0,0,0.08); padding:1px 6px; border-radius:8px; font-weight:700;">${c.hours}h (${c.days}d)</span>
+          </div>
         `).join('');
-        if (Array.from(filterSelect.options).some(o => o.value === currentSelected)) {
-          filterSelect.value = currentSelected;
-        } else {
-          filterSelect.value = 'all';
-        }
       }
-
-      dayEntries.sort((a, b) => b.dateStr.localeCompare(a.dateStr) || a.empName.localeCompare(b.empName));
-      renderProjectDaysTable(dayEntries);
     }
 
     // Monthly Badges with active month highlighted and interactive
-    const monthKeys = Object.keys(breakdown.months).sort();
     const monthlyBadgesEl = document.getElementById('projectModalMonthlyBadges');
     if (monthlyBadgesEl) {
       if (monthKeys.length === 0) {
@@ -4492,7 +4437,7 @@
       } else {
         monthlyBadgesEl.innerHTML = monthKeys.map(ym => {
           const mData = breakdown.months[ym];
-          const isCurrentActive = (ym === activeMonth && !isCustomRange);
+          const isCurrentActive = (ym === activeMonth);
           const activeBorder = isCurrentActive 
             ? 'border:2px solid var(--primary); background:rgba(37,99,235,0.12);' 
             : 'border:1px solid var(--border-light); background:var(--bg-subtle, #f1f5f9);';
@@ -4510,10 +4455,6 @@
             e.stopPropagation();
             const chosenYm = btn.getAttribute('data-ym');
             if (chosenYm && chosenYm >= APP_START_MONTH) {
-              projectRangeStart = null;
-              projectRangeEnd = null;
-              if (el.projectRangeStartDate) el.projectRangeStartDate.value = '';
-              if (el.projectRangeEndDate) el.projectRangeEndDate.value = '';
               state.currentProjectMonth = chosenYm;
               projectCalDisplayYear = parseInt(chosenYm.split('-')[0], 10);
               renderProjectMonthlyModal();
@@ -4522,6 +4463,73 @@
         });
       }
     }
+
+    // Period Calculator handling
+    const isCustomRange = Boolean(projectRangeStart && projectRangeEnd);
+    const periodResultsArea = document.getElementById('projectPeriodResultsArea');
+    const periodResultHours = document.getElementById('periodResultHours');
+    const periodResultDays = document.getElementById('periodResultDays');
+    const periodResultContributors = document.getElementById('periodResultContributors');
+    const periodResultContributorsList = document.getElementById('periodResultContributorsList');
+
+    let tableRows = dayEntries;
+
+    if (isCustomRange) {
+      const rangeData = getProjectAllocationsForRange(pName, projectRangeStart, projectRangeEnd);
+      if (el.projectRangeCard) el.projectRangeCard.classList.add('has-active-range');
+      if (el.projectRangeSummaryBadge && el.projectRangeSummaryText) {
+        el.projectRangeSummaryBadge.classList.remove('hidden');
+        el.projectRangeSummaryText.innerHTML = `Period (<strong>${formatDateDMY(projectRangeStart)}</strong> &ndash; <strong>${formatDateDMY(projectRangeEnd)}</strong>): <strong>${rangeData.totalHours}h</strong> &bull; <strong>${rangeData.totalDays} days</strong>`;
+      }
+      if (periodResultsArea) periodResultsArea.classList.remove('hidden');
+      if (periodResultHours) periodResultHours.textContent = `${rangeData.totalHours}h`;
+      if (periodResultDays) periodResultDays.textContent = `${rangeData.totalDays} workday${rangeData.totalDays === 1 ? '' : 's'}`;
+      const contribCount = Object.keys(rangeData.contributorMap).length;
+      if (periodResultContributors) periodResultContributors.textContent = `${contribCount} team member${contribCount === 1 ? '' : 's'}`;
+      if (periodResultContributorsList) {
+        const sortedContribs = Object.values(rangeData.contributorMap).sort((a,b) => b.hours - a.hours);
+        if (sortedContribs.length === 0) {
+          periodResultContributorsList.innerHTML = `<span>No hours allocated to ${pName} between ${formatDateDMY(projectRangeStart)} and ${formatDateDMY(projectRangeEnd)}.</span>`;
+        } else {
+          periodResultContributorsList.innerHTML = `<span style="font-weight:600; color:var(--text-main);">Period Contributors:</span> ` + sortedContribs.map(c => `<strong>${c.name}</strong> (${c.hours}h, ${c.days}d)`).join(' &bull; ');
+        }
+      }
+
+      // Filter table to show custom range records
+      tableRows = rangeData.dayEntries;
+
+    } else {
+      if (el.projectRangeCard) el.projectRangeCard.classList.remove('has-active-range');
+      if (el.projectRangeSummaryBadge) el.projectRangeSummaryBadge.classList.add('hidden');
+      if (periodResultsArea) periodResultsArea.classList.add('hidden');
+    }
+
+    // Month filter dropdown for detailed records table
+    const filterSelect = document.getElementById('projectModalMonthFilter');
+    if (filterSelect) {
+      let optionsHtml = '<option value="all">All Recorded Months</option>';
+      if (isCustomRange) {
+        optionsHtml = `<option value="period" selected>Custom Period (${formatDateDMY(projectRangeStart)} - ${formatDateDMY(projectRangeEnd)})</option>` + optionsHtml;
+      }
+      optionsHtml += monthKeys.map(ym => `
+        <option value="${ym}">${formatYearMonth(ym, false)}</option>
+      `).join('');
+      filterSelect.innerHTML = optionsHtml;
+
+      if (isCustomRange) {
+        filterSelect.value = 'period';
+      } else {
+        const currentSelected = filterSelect.value || currentProjectMonthlyFilter || 'all';
+        if (Array.from(filterSelect.options).some(o => o.value === currentSelected)) {
+          filterSelect.value = currentSelected;
+        } else {
+          filterSelect.value = 'all';
+        }
+      }
+    }
+
+    tableRows.sort((a, b) => b.dateStr.localeCompare(a.dateStr) || a.empName.localeCompare(b.empName));
+    renderProjectDaysTable(tableRows);
 
     if (el.projectCalendarPopover && !el.projectCalendarPopover.classList.contains('hidden')) {
       renderProjectCalendarGrid();
