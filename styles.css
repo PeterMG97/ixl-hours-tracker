@@ -1017,7 +1017,8 @@ body {
   color: #fde68a;
 }
 body.view-only #userPermissionBanner,
-body.view-only .user-permission-banner {
+body.view-only .user-permission-banner,
+body.view-only .control-strip {
   display: none !important;
 }
 .banner-link {

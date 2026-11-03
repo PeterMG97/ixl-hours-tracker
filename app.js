@@ -541,6 +541,8 @@
       }
       const idCard = document.getElementById('userIdentityCard');
       if (idCard) idCard.style.display = 'none';
+      const controlStrip = document.querySelector('.control-strip');
+      if (controlStrip) controlStrip.classList.add('hidden');
       return;
     }
 
