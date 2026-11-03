@@ -851,7 +851,6 @@
                 <div>
                   <div class="user-name-line">
                     <strong style="font-size:11px;" class="user-name-text">${emp.name}</strong>
-                    ${isSelf ? '<span class="my-row-badge">My Row</span>' : ''}
                     <span class="emp-unfilled-pill ${empUnfilledDays === 0 ? 'is-all-filled' : ''}" 
                           title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${mName} (excluding ${sec.location} holidays)">
                       ${empUnfilledDays} unfilled
