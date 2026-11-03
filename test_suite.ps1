@@ -311,6 +311,10 @@ Assert-Test "6.51 Project monthly modal features mini calendar month picker with
 $calendarStartLimitVerified = ($jsContent.Contains("APP_START_MONTH = '2026-11'")) -and ($jsContent.Contains("ym < APP_START_MONTH")) -and ($cssContent.Contains('.contrib-cal-month-cell.is-disabled')) -and ($cssContent.Contains('.contrib-cal-nav-btn:disabled'))
 Assert-Test "6.52 Both calendars enforce Nov 2026 start date and disable earlier navigation" $calendarStartLimitVerified "Nov 2026 minimum month boundary enforced across both calendars with disabled steppers and cells"
 
+$projectDateRangeVerified = ($htmlContent.Contains('id="projectRangeStartDate"')) -and ($htmlContent.Contains('id="projectRangeEndDate"')) -and ($htmlContent.Contains('id="projectApplyRangeBtn"')) -and ($htmlContent.Contains('id="projectRangeSummaryBadge"')) -and ($jsContent.Contains('getProjectAllocationsForRange')) -and ($jsContent.Contains('projectRangeStart')) -and ($cssContent.Contains('.project-range-card'))
+Assert-Test "6.53 Project analytics provides custom date range filtering (Start/End Date) in edit and view-only modes" $projectDateRangeVerified "Project custom date range inputs and allocation calculation engine verified"
+
+
 
 
 # -------------------------------------------------------------

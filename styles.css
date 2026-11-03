@@ -3057,3 +3057,28 @@ body.view-only .task-chip {
 [data-theme="dark"] .contrib-cal-footer {
   border-top-color: #334155;
 }
+
+/* Project Custom Date Range Period Query Styles */
+.project-range-card {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.project-range-card.has-active-range {
+  border-color: var(--primary) !important;
+  background: rgba(37, 99, 235, 0.05) !important;
+}
+
+.project-range-summary-badge {
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .project-range-card.has-active-range {
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+[data-theme="dark"] .project-range-summary-badge {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+  color: #93c5fd !important;
+}
