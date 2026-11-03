@@ -299,6 +299,9 @@ Assert-Test "6.47 User-facing date displays formatted as DD/MM/YYYY across table
 $contribMiniCalendarVerified = ($htmlContent.Contains('id="contribCalendarTriggerBtn"')) -and ($htmlContent.Contains('id="contribCalendarPopover"')) -and ($htmlContent.Contains('id="contribPrevMonthBtn"')) -and ($htmlContent.Contains('id="contribNextMonthBtn"')) -and ($jsContent.Contains('renderContribCalendarGrid')) -and ($jsContent.Contains('toggleContribCalendarPopover')) -and ($jsContent.Contains('shiftMonthYM')) -and ($cssContent.Contains('.contrib-calendar-popover'))
 Assert-Test "6.48 Employee contributions header features mini calendar month picker and navigation" $contribMiniCalendarVerified "Mini calendar month picker, year stepper, and prev/next month navigation verified"
 
+$bulkRefillKeyVerified = ($htmlContent.Contains('id="openBulkFillBtn"')) -and ($htmlContent.Contains('class="btn-bulk-refill"')) -and ($htmlContent.Contains('Bulk Refill')) -and (-not $htmlContent.Contains('(Monday - Friday)')) -and ($cssContent.Contains('.btn-bulk-refill'))
+Assert-Test "6.49 Bulk refill is a pressable key button without (Monday - Friday) text" $bulkRefillKeyVerified "openBulkFillBtn styled as pressable key with Bulk Refill label and (Monday - Friday) removed"
+
 
 
 # -------------------------------------------------------------
