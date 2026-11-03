@@ -269,6 +269,15 @@
     periodResultContributors: document.getElementById('periodResultContributors'),
     periodResultContributorsList: document.getElementById('periodResultContributorsList'),
 
+    // Custom DD/MM/YYYY Calendar Popover
+    dmyCalendarPopover: document.getElementById('dmyCalendarPopover'),
+    dmyCalPrevBtn: document.getElementById('dmyCalPrevBtn'),
+    dmyCalTitle: document.getElementById('dmyCalTitle'),
+    dmyCalNextBtn: document.getElementById('dmyCalNextBtn'),
+    dmyCalDaysGrid: document.getElementById('dmyCalDaysGrid'),
+    dmyCalStartBtn: document.getElementById('dmyCalStartBtn'),
+    dmyCalCloseBtn: document.getElementById('dmyCalCloseBtn'),
+
     // Multi-Cell Selection Elements
     multiSelectBar: document.getElementById('multiSelectBar'),
     multiSelectCount: document.getElementById('multiSelectCount'),
@@ -344,6 +353,41 @@
     const m = String(dt.getMonth() + 1).padStart(2, '0');
     const y = dt.getFullYear();
     return `${d}/${m}/${y}`;
+  }
+
+  // Parse any date input (DD/MM/YYYY, D/M/YYYY, DD-MM-YYYY, DD.MM.YYYY, or YYYY-MM-DD) to ISO YYYY-MM-DD
+  function parseDateInputToISO(val) {
+    if (!val || typeof val !== 'string') return '';
+    const trimmed = val.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const parts = trimmed.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{4})$/);
+    if (parts) {
+      const d = parseInt(parts[1], 10);
+      const m = parseInt(parts[2], 10);
+      const y = parseInt(parts[3], 10);
+      if (m < 1 || m > 12) return '';
+      if (y < 2000 || y > 2100) return '';
+      const daysInM = new Date(y, m, 0).getDate();
+      if (d < 1 || d > daysInM) return '';
+      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+    return '';
+  }
+
+  // Format ISO YYYY-MM-DD to DD/MM/YYYY
+  function formatISOToDMY(iso) {
+    if (!iso || typeof iso !== 'string') return '';
+    const trimmed = iso.trim();
+    const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      return `${match[3]}/${match[2]}/${match[1]}`;
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+      return trimmed;
+    }
+    return formatDateDMY(trimmed);
   }
 
   // User-facing month formatting: MM/YYYY
@@ -2396,8 +2440,8 @@
 
     // Date range defaults
     const startDt = defaultDate || state.todayStr || "2026-11-01";
-    el.bulkFromDate.value = startDt;
-    el.bulkToDate.value = startDt;
+    el.bulkFromDate.value = formatISOToDMY(startDt);
+    el.bulkToDate.value = formatISOToDMY(startDt);
 
     // Projects list
     el.bulkProjectSelect.innerHTML = `
@@ -2451,8 +2495,10 @@
     const empId = el.bulkEmployeeSelect.value;
     const emp = state.employees.find(e => e.id === empId);
     const sec = state.sections.find(s => s.id === emp.sectionId) || {};
-    const fromStr = el.bulkFromDate.value;
-    const toStr = el.bulkToDate.value;
+    const rawFrom = el.bulkFromDate ? el.bulkFromDate.value : '';
+    const rawTo = el.bulkToDate ? el.bulkToDate.value : '';
+    const fromStr = parseDateInputToISO(rawFrom);
+    const toStr = parseDateInputToISO(rawTo);
     const proj = el.bulkProjectSelect.value;
     const rawBulkH = el.bulkHoursInput.value;
     const hours = sanitizeDayHours(proj, rawBulkH, emp ? emp.defaultHoursPerDay : 8);
@@ -2465,11 +2511,16 @@
     const holidayOption = document.querySelector('input[name="bulkHolidayOption"]:checked').value;
 
     if (!fromStr || !toStr) {
-      alert('Please choose both Start Date and End Date.');
+      showToast('Please enter both Start Date and End Date in DD/MM/YYYY format.', 'warning');
+      return;
+    }
+    if (fromStr < APP_START_MONTH + '-01') {
+      showToast('Start Date cannot be before 01/11/2026 (app start date).', 'warning');
+      if (el.bulkFromDate) el.bulkFromDate.value = '01/11/2026';
       return;
     }
     if (fromStr > toStr) {
-      alert('Start Date cannot be after End Date.');
+      showToast('Start Date cannot be after End Date.', 'warning');
       return;
     }
 
@@ -4540,8 +4591,10 @@
   // Custom Date Range Period Handlers (Start Date & End Date)
   if (el.projectApplyRangeBtn) {
     el.projectApplyRangeBtn.addEventListener('click', () => {
-      const startVal = el.projectRangeStartDate ? el.projectRangeStartDate.value : '';
-      const endVal = el.projectRangeEndDate ? el.projectRangeEndDate.value : '';
+      const rawStart = el.projectRangeStartDate ? el.projectRangeStartDate.value : '';
+      const rawEnd = el.projectRangeEndDate ? el.projectRangeEndDate.value : '';
+      const startVal = parseDateInputToISO(rawStart);
+      const endVal = parseDateInputToISO(rawEnd);
       if (!startVal || !endVal) {
         showToast('Please specify both Start Date and End Date (DD/MM/YYYY).', 'warning');
         return;
@@ -4553,7 +4606,7 @@
       let finalStart = startVal;
       if (finalStart < APP_START_MONTH + '-01') {
         finalStart = APP_START_MONTH + '-01';
-        if (el.projectRangeStartDate) el.projectRangeStartDate.value = finalStart;
+        if (el.projectRangeStartDate) el.projectRangeStartDate.value = formatISOToDMY(finalStart);
         showToast('Start Date adjusted to ' + formatDateDMY(finalStart) + ' (app start date).', 'info');
       }
       projectRangeStart = finalStart;
@@ -4785,7 +4838,8 @@
   }
 
   function closeModal(modalEl) {
-    modalEl.classList.add('hidden');
+    if (modalEl) modalEl.classList.add('hidden');
+    closeDmyCalendar();
   }
 
   document.querySelectorAll('.modal-close').forEach(btn => {
@@ -4883,9 +4937,260 @@
     document.documentElement.setAttribute('data-theme', effective);
   }
 
+  // =========================================================================
+  // Custom DD/MM/YYYY Date Picker & Calendar Popover Engine
+  // =========================================================================
+  let dmyActiveInput = null;
+  let dmyActiveAnchor = null;
+  let dmyCalYear = 2026;
+  let dmyCalMonth = 11; // 1 to 12
+  const DMY_APP_START_YM = '2026-11';
+  const DMY_APP_START_DATE = '2026-11-01';
+
+  function closeDmyCalendar() {
+    if (el.dmyCalendarPopover) {
+      el.dmyCalendarPopover.classList.add('hidden');
+    }
+    dmyActiveInput = null;
+    dmyActiveAnchor = null;
+  }
+
+  function openDmyCalendar(inputEl, anchorEl) {
+    if (!inputEl || !el.dmyCalendarPopover) return;
+    dmyActiveInput = inputEl;
+    dmyActiveAnchor = anchorEl || inputEl;
+
+    // Determine initial month/year from input value or fallback to Nov 2026
+    const parsedIso = parseDateInputToISO(inputEl.value);
+    if (parsedIso && parsedIso >= DMY_APP_START_DATE) {
+      const [y, m] = parsedIso.split('-').map(Number);
+      dmyCalYear = y;
+      dmyCalMonth = m;
+    } else {
+      dmyCalYear = 2026;
+      dmyCalMonth = 11;
+    }
+
+    renderDmyCalendar();
+    positionDmyCalendar();
+    el.dmyCalendarPopover.classList.remove('hidden');
+  }
+
+  function positionDmyCalendar() {
+    if (!el.dmyCalendarPopover || !dmyActiveAnchor) return;
+    const rect = dmyActiveAnchor.getBoundingClientRect();
+    const popWidth = 280;
+    const popHeight = 310;
+
+    let top = rect.bottom + 4;
+    let left = rect.left;
+
+    // Flip upwards if below viewport
+    if (top + popHeight > window.innerHeight && rect.top > popHeight + 10) {
+      top = rect.top - popHeight - 4;
+    }
+
+    // Keep within horizontal boundaries
+    if (left + popWidth > window.innerWidth - 10) {
+      left = window.innerWidth - popWidth - 10;
+    }
+    if (left < 10) left = 10;
+
+    el.dmyCalendarPopover.style.top = `${Math.round(top)}px`;
+    el.dmyCalendarPopover.style.left = `${Math.round(left)}px`;
+  }
+
+  function renderDmyCalendar() {
+    if (!el.dmyCalendarPopover || !el.dmyCalDaysGrid || !el.dmyCalTitle) return;
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    el.dmyCalTitle.textContent = `${monthNames[dmyCalMonth - 1]} ${dmyCalYear}`;
+
+    // Disable prev button if already at Nov 2026
+    const currentYm = `${dmyCalYear}-${String(dmyCalMonth).padStart(2, '0')}`;
+    if (el.dmyCalPrevBtn) {
+      el.dmyCalPrevBtn.disabled = (currentYm <= DMY_APP_START_YM);
+    }
+
+    // Active input's selected ISO date
+    const selectedIso = dmyActiveInput ? parseDateInputToISO(dmyActiveInput.value) : '';
+    const todayIso = state.todayStr || new Date().toISOString().slice(0, 10);
+
+    // Days in this month
+    const totalDays = new Date(dmyCalYear, dmyCalMonth, 0).getDate();
+
+    // First day of month (0 = Sun, 1 = Mon ... 6 = Sat)
+    // European week starts on Monday (Monday = 0, Sunday = 6)
+    const firstDayDow = new Date(dmyCalYear, dmyCalMonth - 1, 1).getDay();
+    const startOffset = (firstDayDow === 0) ? 6 : firstDayDow - 1;
+
+    let html = '';
+
+    // Empty offset slots
+    for (let i = 0; i < startOffset; i++) {
+      html += '<div class="dmy-cal-empty-cell"></div>';
+    }
+
+    // Day buttons
+    for (let d = 1; d <= totalDays; d++) {
+      const dStr = String(d).padStart(2, '0');
+      const mStr = String(dmyCalMonth).padStart(2, '0');
+      const iso = `${dmyCalYear}-${mStr}-${dStr}`;
+      const dmy = `${dStr}/${mStr}/${dmyCalYear}`;
+
+      const isDisabled = (iso < DMY_APP_START_DATE);
+      const isSelected = (iso === selectedIso);
+      const isToday = (iso === todayIso);
+
+      const dayDow = new Date(dmyCalYear, dmyCalMonth - 1, d).getDay();
+      const isWeekend = (dayDow === 0 || dayDow === 6);
+
+      const classes = [
+        'dmy-cal-day-cell',
+        isDisabled ? 'is-disabled' : '',
+        isSelected ? 'is-selected' : '',
+        isToday ? 'is-today' : '',
+        isWeekend ? 'is-weekend' : ''
+      ].filter(Boolean).join(' ');
+
+      html += `<button type="button" class="${classes}" data-dmy="${dmy}" data-iso="${iso}" ${isDisabled ? 'disabled' : ''}>${d}</button>`;
+    }
+
+    el.dmyCalDaysGrid.innerHTML = html;
+
+    // Bind day clicks
+    el.dmyCalDaysGrid.querySelectorAll('.dmy-cal-day-cell:not(.is-disabled)').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const chosenDmy = btn.getAttribute('data-dmy');
+        if (dmyActiveInput && chosenDmy) {
+          dmyActiveInput.value = chosenDmy;
+          dmyActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+          dmyActiveInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        closeDmyCalendar();
+      });
+    });
+  }
+
+  // Navigation handlers
+  if (el.dmyCalPrevBtn) {
+    el.dmyCalPrevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentYm = `${dmyCalYear}-${String(dmyCalMonth).padStart(2, '0')}`;
+      if (currentYm > DMY_APP_START_YM) {
+        dmyCalMonth--;
+        if (dmyCalMonth < 1) {
+          dmyCalMonth = 12;
+          dmyCalYear--;
+        }
+        renderDmyCalendar();
+      }
+    });
+  }
+
+  if (el.dmyCalNextBtn) {
+    el.dmyCalNextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dmyCalMonth++;
+      if (dmyCalMonth > 12) {
+        dmyCalMonth = 1;
+        dmyCalYear++;
+      }
+      renderDmyCalendar();
+    });
+  }
+
+  if (el.dmyCalStartBtn) {
+    el.dmyCalStartBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (dmyActiveInput) {
+        dmyActiveInput.value = '01/11/2026';
+        dmyActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+        dmyActiveInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      closeDmyCalendar();
+    });
+  }
+
+  if (el.dmyCalCloseBtn) {
+    el.dmyCalCloseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeDmyCalendar();
+    });
+  }
+
+  // Auto-masking and calendar toggle attachment
+  function initDmyDateInputs() {
+    document.querySelectorAll('.dmy-date-input').forEach(input => {
+      let lastVal = input.value || '';
+      input.addEventListener('input', (e) => {
+        if (e.inputType === 'deleteContentBackward') {
+          lastVal = input.value;
+          return;
+        }
+        let raw = input.value.replace(/[^\d]/g, '');
+        if (raw.length > 8) raw = raw.slice(0, 8);
+        let formatted = raw;
+        if (raw.length >= 5) {
+          formatted = `${raw.slice(0, 2)}/${raw.slice(2, 4)}/${raw.slice(4)}`;
+        } else if (raw.length >= 3) {
+          formatted = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+        }
+        input.value = formatted;
+        lastVal = input.value;
+      });
+
+      // Clicking input opens calendar
+      input.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDmyCalendar(input, input);
+      });
+    });
+
+    // Calendar toggle buttons
+    document.querySelectorAll('.dmy-cal-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetId = btn.getAttribute('data-target');
+        const targetInput = targetId ? document.getElementById(targetId) : null;
+        if (targetInput) {
+          if (dmyActiveInput === targetInput && el.dmyCalendarPopover && !el.dmyCalendarPopover.classList.contains('hidden')) {
+            closeDmyCalendar();
+          } else {
+            openDmyCalendar(targetInput, btn);
+          }
+        }
+      });
+    });
+  }
+
+  // Global document click to close popover if clicked outside
+  document.addEventListener('click', (e) => {
+    if (el.dmyCalendarPopover && !el.dmyCalendarPopover.classList.contains('hidden')) {
+      if (!el.dmyCalendarPopover.contains(e.target) &&
+          !e.target.closest('.dmy-cal-toggle-btn') &&
+          !e.target.closest('.dmy-date-input')) {
+        closeDmyCalendar();
+      }
+    }
+  });
+
+  // Reposition on window resize
+  window.addEventListener('resize', () => {
+    if (el.dmyCalendarPopover && !el.dmyCalendarPopover.classList.contains('hidden')) {
+      positionDmyCalendar();
+    }
+  });
+
   // Boot Application
   initTheme();
   initColumnWidths();
+  initDmyDateInputs();
   loadData();
 
 })();

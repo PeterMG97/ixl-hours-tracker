@@ -314,6 +314,17 @@ Assert-Test "6.52 Both calendars enforce Nov 2026 start date and disable earlier
 $projectDateRangeVerified = ($htmlContent.Contains('id="projectRangeStartDate"')) -and ($htmlContent.Contains('id="projectRangeEndDate"')) -and ($htmlContent.Contains('id="projectApplyRangeBtn"')) -and ($htmlContent.Contains('id="projectRangeSummaryBadge"')) -and ($jsContent.Contains('getProjectAllocationsForRange')) -and ($jsContent.Contains('projectRangeStart')) -and ($cssContent.Contains('.project-range-card'))
 Assert-Test "6.53 Project analytics provides custom date range filtering (Start/End Date) in edit and view-only modes" $projectDateRangeVerified "Project custom date range inputs and allocation calculation engine verified"
 
+$dmyDatePickerVerified = ($htmlContent.Contains('id="dmyCalendarPopover"')) -and `
+    ($htmlContent.Contains('dmy-date-input')) -and `
+    ($htmlContent.Contains('dmy-cal-toggle-btn')) -and `
+    ($jsContent.Contains('openDmyCalendar')) -and `
+    ($jsContent.Contains('parseDateInputToISO')) -and `
+    ($jsContent.Contains('formatISOToDMY')) -and `
+    ($jsContent.Contains('DMY_APP_START_DATE')) -and `
+    ($cssContent.Contains('.dmy-calendar-popover')) -and `
+    ($cssContent.Contains('.dmy-cal-day-cell.is-selected'))
+Assert-Test "6.54 Custom DD/MM/YYYY datepicker component, inputs, calendar popover, and start boundary limit (01/11/2026)" $dmyDatePickerVerified "Custom DD/MM/YYYY datepicker, calendar popover, masked inputs, and start limit verified"
+
 
 
 
