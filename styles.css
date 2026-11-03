@@ -1629,7 +1629,7 @@ td.col-slot.is-selected-cell .task-chip {
 /* Other employees' cells: preserved full visibility per user preference */
 .has-focused-user .user-row.unfocused-row td.col-slot,
 .user-row.unfocused-row td.col-slot {
-  /* Normal visibility preserved - no blanking or hazing */
+  opacity: 1;
 }
 
 /* Requirement 9: Conditional Formatting on Unfilled Days up to Today */
