@@ -2749,32 +2749,14 @@
       const logged = breakdown.totalHours;
       const total = baseline + logged;
       const safeWbs = (p.wbs || '').replace(/"/g, '&quot;');
-      const monthKeys = Object.keys(breakdown.months).sort();
-
-      let loggedDisplay = `${logged}h`;
-      if (monthKeys.length > 1) {
-        loggedDisplay = `
-          <div class="month-breakdown-list">
-            ${monthKeys.map(ym => `
-              <div class="month-breakdown-item">
-                <span class="month-name">${formatYearMonth(ym, true)}:</span>
-                <span class="month-val"><strong>${breakdown.months[ym].hours}h</strong></span>
-              </div>
-            `).join('')}
-            <div class="month-breakdown-total">
-              <span>Total:</span>
-              <strong>${logged}h</strong>
-            </div>
-          </div>
-        `;
-      } else if (monthKeys.length === 1) {
-        loggedDisplay = `<span class="logged-month-pill" title="${formatYearMonth(monthKeys[0], false)}"><strong>${formatYearMonth(monthKeys[0], true)}:</strong> ${logged}h</span>`;
-      }
+      const loggedDisplay = logged > 0 ? `<strong>${logged}h</strong>` : '<span class="text-muted">0h</span>';
 
       return `
-        <tr>
+        <tr data-proj-name="${p.name}" data-proj-id="${p.id}" class="project-mgmt-row" title="Double-click to view monthly data for ${p.name}">
           <td><span class="pill ${getProjectBadgeClass(p.name)}">${p.category || 'Project'}</span></td>
-          <td><strong>${p.name}</strong></td>
+          <td class="col-proj-name" data-proj-name="${p.name}" style="cursor:pointer;" title="Double-click to view monthly data for ${p.name}">
+            <strong>${p.name}</strong>
+          </td>
           <td>
             <input type="text" class="form-control form-control-sm wbs-code-input" data-proj-id="${p.id}" value="${safeWbs}" placeholder="Enter WBS code..." ${state.isViewOnly ? 'disabled title="Editing disabled in View-Only mode"' : 'title="Click to edit WBS code"'}>
           </td>
@@ -2794,6 +2776,15 @@
         </tr>
       `;
     }).join('');
+
+    // Double-click row or project name to view monthly data
+    tbody.querySelectorAll('tr.project-mgmt-row').forEach(row => {
+      row.addEventListener('dblclick', (e) => {
+        if (e.target.closest('input') || e.target.closest('button')) return;
+        const pName = row.getAttribute('data-proj-name');
+        if (pName) openProjectMonthlyModal(pName);
+      });
+    });
 
     // Requirement: WBS Code editable by everyone without requiring admin rights
     tbody.querySelectorAll('.wbs-code-input').forEach(input => {
@@ -3555,8 +3546,8 @@
       }
 
       return `
-        <tr>
-          <td><strong>${pName}</strong></td>
+        <tr data-proj-name="${pName}" title="Double-click to view monthly data for ${pName}" style="cursor:pointer;">
+          <td class="col-proj-name" data-proj-name="${pName}"><strong>${pName}</strong></td>
           <td><span class="pill ${getProjectBadgeClass(pName)}">${pObj.category || 'Project'}</span></td>
           <td><code>${pObj.wbs || '-'}</code></td>
           <td>${baseline}h</td>
@@ -3566,6 +3557,13 @@
         </tr>
       `;
     }).join('') || '<tr><td colspan="7" class="text-center" style="padding:16px; color:var(--text-muted);">No active allocations found matching your filter.</td></tr>';
+
+    pTbody.querySelectorAll('tr').forEach(row => {
+      row.addEventListener('dblclick', () => {
+        const pName = row.getAttribute('data-proj-name');
+        if (pName) openProjectMonthlyModal(pName);
+      });
+    });
   }
 
   // -------------------------------------------------------------
@@ -3806,6 +3804,196 @@
       if (row && row.getAttribute('data-emp-id')) {
         openEmployeeContributions(row.getAttribute('data-emp-id'));
       }
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Project Monthly Data Modal (Triggered by double-clicking project name)
+  // -------------------------------------------------------------
+  let currentProjectMonthlyName = null;
+  let currentProjectMonthlyFilter = 'all';
+
+  function openProjectMonthlyModal(projectName) {
+    if (!projectName) return;
+    currentProjectMonthlyName = projectName;
+    currentProjectMonthlyFilter = 'all';
+    renderProjectMonthlyModal();
+    const modalEl = document.getElementById('projectMonthlyModal');
+    if (modalEl) openModal(modalEl);
+  }
+
+  function renderProjectMonthlyModal() {
+    if (!currentProjectMonthlyName) return;
+    const pName = currentProjectMonthlyName;
+    const pObj = state.projects.find(p => p.name === pName) || { name: pName, category: 'Project', initialHours: 0, wbs: '' };
+
+    const baseline = Number(pObj.initialHours) || 0;
+    const breakdown = getProjectLoggedBreakdown(pName);
+    const totalCombined = baseline + breakdown.totalHours;
+
+    // Header updates
+    const pill = document.getElementById('projectModalCategoryPill');
+    if (pill) {
+      pill.textContent = pObj.category || 'Project';
+      pill.className = `pill ${getProjectBadgeClass(pName)}`;
+    }
+    const nameEl = document.getElementById('projectModalNameDisplay');
+    if (nameEl) nameEl.textContent = pName;
+    const wbsEl = document.getElementById('projectModalWbsDisplay');
+    if (wbsEl) wbsEl.textContent = pObj.wbs ? `WBS: ${pObj.wbs}` : 'No WBS Code';
+    const monthEl = document.getElementById('projectModalMonthDisplay');
+    if (monthEl) monthEl.textContent = formatMonthMY(state.currentMonth);
+
+    // Summary metric cards
+    const totalCombinedEl = document.getElementById('projectModalTotalCombined');
+    if (totalCombinedEl) totalCombinedEl.textContent = `${totalCombined}h`;
+
+    const baselineHoursEl = document.getElementById('projectModalBaselineHours');
+    if (baselineHoursEl) baselineHoursEl.textContent = `${baseline}h`;
+
+    const loggedHoursEl = document.getElementById('projectModalLoggedHours');
+    if (loggedHoursEl) loggedHoursEl.textContent = `${breakdown.totalHours}h`;
+
+    const loggedDaysEl = document.getElementById('projectModalLoggedDays');
+    if (loggedDaysEl) loggedDaysEl.textContent = `${breakdown.totalDays} workday${breakdown.totalDays === 1 ? '' : 's'} logged`;
+
+    // Extract allocations for this project
+    const contributorMap = {};
+    const dayEntries = [];
+
+    Object.keys(state.allocations).forEach(k => {
+      const item = state.allocations[k];
+      if (item && item.project === pName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
+        const lastUnder = k.lastIndexOf('_');
+        const empId = k.substring(0, lastUnder);
+        const dt = k.substring(lastUnder + 1);
+        const ym = dt.substring(0, 7);
+        const hrs = Number(item.hours) || 8;
+
+        const emp = state.employees.find(e => e.id === empId);
+        const empName = emp ? emp.name : empId;
+        const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+        const secLabel = sec.name ? `${sec.name} (${sec.location})` : 'Engineering Team';
+
+        if (!contributorMap[empId]) {
+          contributorMap[empId] = { name: empName, section: secLabel, hours: 0, days: 0 };
+        }
+        contributorMap[empId].hours += hrs;
+        contributorMap[empId].days += 1;
+
+        const parsedDt = parseLocalDate(dt);
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dowName = dayNames[parsedDt.getDay()] || '';
+
+        dayEntries.push({
+          dateStr: dt,
+          ym: ym,
+          dowName: dowName,
+          empId: empId,
+          empName: empName,
+          sectionLabel: secLabel,
+          hours: hrs
+        });
+      }
+    });
+
+    const contribCountEl = document.getElementById('projectModalContributorCount');
+    if (contribCountEl) contribCountEl.textContent = Object.keys(contributorMap).length;
+
+    // Monthly Badges
+    const monthKeys = Object.keys(breakdown.months).sort();
+    const monthlyBadgesEl = document.getElementById('projectModalMonthlyBadges');
+    if (monthlyBadgesEl) {
+      if (monthKeys.length === 0) {
+        monthlyBadgesEl.innerHTML = '<span class="text-sm text-muted">No monthly hours logged yet.</span>';
+      } else {
+        monthlyBadgesEl.innerHTML = monthKeys.map(ym => {
+          const mData = breakdown.months[ym];
+          return `
+            <div class="month-breakdown-item" style="padding:4px 10px; background:var(--bg-subtle, #f1f5f9); border-radius:6px; border:1px solid var(--border-light);">
+              <span class="month-name" style="font-weight:700;">${formatYearMonth(ym, false)}:</span>
+              <span class="month-val" style="color:var(--primary); font-weight:700;">${mData.hours}h (${mData.days}d)</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Team Contributors Badges
+    const teamChipsEl = document.getElementById('projectModalTeamChips');
+    if (teamChipsEl) {
+      const contribs = Object.values(contributorMap).sort((a,b) => b.hours - a.hours);
+      if (contribs.length === 0) {
+        teamChipsEl.innerHTML = '<span class="text-sm text-muted">No team allocations recorded yet.</span>';
+      } else {
+        teamChipsEl.innerHTML = contribs.map(c => `
+          <div class="user-chip" style="padding:4px 10px; border-radius:6px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-light); font-size:11px; display:inline-flex; align-items:center; gap:6px;">
+            <div class="user-mini-avatar" style="width:20px; height:20px; font-size:9px;">${getInitials(c.name)}</div>
+            <strong>${c.name}</strong>
+            <span style="color:var(--text-muted); font-size:10px;">(${c.section})</span>
+            <span style="background:rgba(0,0,0,0.08); padding:1px 6px; border-radius:8px; font-weight:700;">${c.hours}h (${c.days}d)</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Month filter dropdown
+    const filterSelect = document.getElementById('projectModalMonthFilter');
+    if (filterSelect) {
+      const currentSelected = filterSelect.value || currentProjectMonthlyFilter || 'all';
+      filterSelect.innerHTML = '<option value="all">All Recorded Months</option>' + monthKeys.map(ym => `
+        <option value="${ym}">${formatYearMonth(ym, false)}</option>
+      `).join('');
+      if (Array.from(filterSelect.options).some(o => o.value === currentSelected)) {
+        filterSelect.value = currentSelected;
+      } else {
+        filterSelect.value = 'all';
+      }
+    }
+
+    dayEntries.sort((a, b) => b.dateStr.localeCompare(a.dateStr) || a.empName.localeCompare(b.empName));
+
+    renderProjectDaysTable(dayEntries);
+  }
+
+  function renderProjectDaysTable(dayEntries) {
+    const tbody = document.getElementById('projectDaysTableBody');
+    if (!tbody) return;
+
+    const filterSelect = document.getElementById('projectModalMonthFilter');
+    const selectedMonth = filterSelect ? filterSelect.value : 'all';
+
+    let filtered = dayEntries;
+    if (selectedMonth && selectedMonth !== 'all') {
+      filtered = dayEntries.filter(e => e.ym === selectedMonth);
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:24px;">No allocation records found for this period.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(item => `
+      <tr>
+        <td><strong>${formatDateDMY(item.dateStr)}</strong></td>
+        <td>${item.dowName}</td>
+        <td>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div class="user-mini-avatar" style="width:20px; height:20px; font-size:9px;">${getInitials(item.empName)}</div>
+            <strong>${item.empName}</strong>
+          </div>
+        </td>
+        <td>${item.sectionLabel}</td>
+        <td style="text-align:right;"><strong>${item.hours}h</strong></td>
+      </tr>
+    `).join('');
+  }
+
+  const projMonthFilterEl = document.getElementById('projectModalMonthFilter');
+  if (projMonthFilterEl) {
+    projMonthFilterEl.addEventListener('change', () => {
+      currentProjectMonthlyFilter = projMonthFilterEl.value;
+      renderProjectMonthlyModal();
     });
   }
 

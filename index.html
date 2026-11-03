@@ -823,6 +823,94 @@
     </div>
   </div>
 
+    <!-- Project Monthly Data Modal (Triggered by double-clicking project name) -->
+  <div id="projectMonthlyModal" class="modal hidden">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div class="modal-title-group" style="display:flex; align-items:center; gap:12px;">
+          <div class="project-mini-avatar pill" id="projectModalCategoryPill" style="padding: 6px 12px; font-weight: 700; font-size: 12px;">Project</div>
+          <div>
+            <h3 id="projectModalNameDisplay" style="margin:0;">Project Name</h3>
+            <p class="modal-subtitle" style="margin:2px 0 0 0;">
+              <span id="projectModalWbsDisplay"></span> &bull; Monthly Data for <strong id="projectModalMonthDisplay"></strong>
+            </p>
+          </div>
+        </div>
+        <button class="modal-close-icon modal-close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top:16px;">
+        <!-- Top Summary Metric Cards -->
+        <div class="contrib-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:18px;">
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Total Combined Hours</div>
+            <div id="projectModalTotalCombined" style="font-size:24px; font-weight:700; color:var(--primary); margin-top:4px;">0h</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Baseline + Logged</div>
+          </div>
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Baseline Hours</div>
+            <div id="projectModalBaselineHours" style="font-size:24px; font-weight:700; color:var(--text-main); margin-top:4px;">0h</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Initial baseline</div>
+          </div>
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Total Logged Hours</div>
+            <div id="projectModalLoggedHours" style="font-size:24px; font-weight:700; color:#059669; margin-top:4px;">0h</div>
+            <div id="projectModalLoggedDays" style="font-size:11px; color:var(--text-muted); margin-top:2px;">0 days logged</div>
+          </div>
+          <div class="metric-card" style="padding:12px 14px; border-radius:8px; background:var(--bg-subtle, #f8fafc); border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Active Contributors</div>
+            <div id="projectModalContributorCount" style="font-size:24px; font-weight:700; color:var(--text-main); margin-top:4px;">0</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Team members</div>
+          </div>
+        </div>
+
+        <!-- Monthly Logged Breakdown Badges -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:8px; color:var(--text-main);">Hours by Month:</div>
+          <div id="projectModalMonthlyBadges" class="month-breakdown-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        </div>
+
+        <!-- Team Contributors Badges -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:8px; color:var(--text-main);">Hours by Team Member:</div>
+          <div id="projectModalTeamChips" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        </div>
+
+        <!-- Detailed Days Log Header & Filter -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:13px; font-weight:600; color:var(--text-main);">Detailed Allocation Records:</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label for="projectModalMonthFilter" style="font-size:11px; color:var(--text-muted); margin:0;">Filter Period:</label>
+            <select id="projectModalMonthFilter" class="form-select form-select-sm" style="min-width:180px;">
+              <option value="all">All Recorded Months</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Detailed Day-by-Day Table -->
+        <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+          <table class="data-table" id="projectDaysTable" style="width:100%;">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Date (DD/MM/YYYY)</th>
+                <th style="width: 80px;">Day</th>
+                <th>Team Member</th>
+                <th style="width: 200px;">Section / Team</th>
+                <th style="width: 110px; text-align:right;">Recorded Hours</th>
+              </tr>
+            </thead>
+            <tbody id="projectDaysTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="text-xs text-muted">Double-click any project name in the projects list to inspect monthly data.</span>
+        <button class="btn btn-secondary modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings & Tools Expandable Side Drawer (Right Side) -->
   <div id="settingsSidebarOverlay" class="settings-drawer-overlay hidden"></div>
   <aside id="settingsSidebar" class="settings-drawer">
