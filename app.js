@@ -774,9 +774,6 @@
     const settingsActiveCount = document.getElementById('settingsTeamActiveCount');
     if (settingsActiveCount) settingsActiveCount.textContent = activeEmpCount;
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const [y, m] = state.currentMonth.split('-').map(Number);
-    const mName = monthNames[m - 1] || 'Month';
     const labelHours = document.getElementById('labelCurrentMonthHours');
     if (labelHours) labelHours.textContent = `${mName} Hours:`;
     const labelUnfilled = document.getElementById('labelUnfilledDays');
