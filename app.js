@@ -614,6 +614,18 @@
     return days;
   }
 
+  function formatYearMonth(yearMonth, short = false) {
+    if (!yearMonth) return '';
+    const parts = yearMonth.split('-');
+    if (parts.length < 2) return yearMonth;
+    const y = Number(parts[0]);
+    const m = Number(parts[1]);
+    const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fullNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const name = short ? shortNames[m - 1] : fullNames[m - 1];
+    return `${name || m} ${y}`;
+  }
+
   function isWeekendForLocation(dow, location) {
     if (location && location.toLowerCase().includes('istanbul')) {
       // Istanbul: Saturday (6) and Sunday (0)
@@ -2624,11 +2636,32 @@
     let hrs = 0;
     Object.keys(state.allocations).forEach(k => {
       const item = state.allocations[k];
-      if (item && item.project === projectName) {
+      if (item && item.project === projectName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
         hrs += Number(item.hours) || 8;
       }
     });
     return hrs;
+  }
+
+  function getProjectLoggedBreakdown(projectName) {
+    const months = {};
+    let totalHours = 0;
+    let totalDays = 0;
+    Object.keys(state.allocations).forEach(k => {
+      const item = state.allocations[k];
+      if (item && item.project === projectName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
+        const lastUnder = k.lastIndexOf('_');
+        const dt = k.substring(lastUnder + 1);
+        const ym = dt.substring(0, 7);
+        const hrs = Number(item.hours) || 8;
+        if (!months[ym]) months[ym] = { hours: 0, days: 0 };
+        months[ym].hours += hrs;
+        months[ym].days += 1;
+        totalHours += hrs;
+        totalDays += 1;
+      }
+    });
+    return { months, totalHours, totalDays };
   }
 
   function renderProjectsModal() {
@@ -2645,9 +2678,31 @@
 
     tbody.innerHTML = filtered.map(p => {
       const baseline = Number(p.initialHours) || 0;
-      const logged = calculateProjectLoggedHours(p.name);
+      const breakdown = getProjectLoggedBreakdown(p.name);
+      const logged = breakdown.totalHours;
       const total = baseline + logged;
       const safeWbs = (p.wbs || '').replace(/"/g, '&quot;');
+      const monthKeys = Object.keys(breakdown.months).sort();
+
+      let loggedDisplay = `${logged}h`;
+      if (monthKeys.length > 1) {
+        loggedDisplay = `
+          <div class="month-breakdown-list">
+            ${monthKeys.map(ym => `
+              <div class="month-breakdown-item">
+                <span class="month-name">${formatYearMonth(ym, true)}:</span>
+                <span class="month-val"><strong>${breakdown.months[ym].hours}h</strong></span>
+              </div>
+            `).join('')}
+            <div class="month-breakdown-total">
+              <span>Total:</span>
+              <strong>${logged}h</strong>
+            </div>
+          </div>
+        `;
+      } else if (monthKeys.length === 1) {
+        loggedDisplay = `<span class="logged-month-pill" title="${formatYearMonth(monthKeys[0], false)}"><strong>${formatYearMonth(monthKeys[0], true)}:</strong> ${logged}h</span>`;
+      }
 
       return `
         <tr>
@@ -2657,7 +2712,7 @@
             <input type="text" class="form-control form-control-sm wbs-code-input" data-proj-id="${p.id}" value="${safeWbs}" placeholder="Enter WBS code..." ${state.isViewOnly ? 'disabled title="Editing disabled in View-Only mode"' : 'title="Click to edit WBS code"'}>
           </td>
           <td><strong>${baseline}h</strong></td>
-          <td>${logged}h</td>
+          <td>${loggedDisplay}</td>
           <td><strong style="color:var(--primary); font-size:12px;">${total}h</strong></td>
           <td>
             <div style="display:flex; gap:6px;">
@@ -3262,42 +3317,106 @@
   // Analytics & Monthly Rollup
   // -------------------------------------------------------------
 
+  function initAnalyticsMonthDropdown() {
+    const sel = document.getElementById('analyticsMonthFilterSelect');
+    if (!sel) return;
+    const currentVal = sel.value || 'all';
+
+    const monthSet = new Set();
+    if (el.monthSelect) {
+      Array.from(el.monthSelect.options).forEach(opt => {
+        if (opt.value) monthSet.add(opt.value);
+      });
+    }
+    Object.keys(state.allocations).forEach(k => {
+      const lastUnder = k.lastIndexOf('_');
+      const dt = k.substring(lastUnder + 1);
+      if (dt && dt.length >= 7) {
+        monthSet.add(dt.substring(0, 7));
+      }
+    });
+
+    const sortedMonths = Array.from(monthSet).sort();
+    if (sel.options.length !== sortedMonths.length + 1) {
+      sel.innerHTML = '<option value="all">All Months (Monthly Breakdown)</option>';
+      sortedMonths.forEach(ym => {
+        const opt = document.createElement('option');
+        opt.value = ym;
+        opt.textContent = formatYearMonth(ym, false);
+        sel.appendChild(opt);
+      });
+    }
+
+    if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+      sel.value = currentVal;
+    } else {
+      sel.value = 'all';
+    }
+  }
+
   document.getElementById('openAnalyticsBtn').addEventListener('click', () => {
+    initAnalyticsMonthDropdown();
     renderAnalyticsModal();
     openModal(el.analyticsModal);
   });
 
+  const analyticsMonthFilterEl = document.getElementById('analyticsMonthFilterSelect');
+  if (analyticsMonthFilterEl) {
+    analyticsMonthFilterEl.addEventListener('change', () => {
+      renderAnalyticsModal();
+    });
+  }
+
+  const filterAnalyticsInputEl = document.getElementById('filterAnalyticsInput');
+  if (filterAnalyticsInputEl) {
+    filterAnalyticsInputEl.addEventListener('input', () => {
+      renderAnalyticsModal();
+    });
+  }
+
   function renderAnalyticsModal() {
-    document.getElementById('analyticsMonthLabel').textContent = el.monthSelect.options[el.monthSelect.selectedIndex].text;
-    const days = getDaysInMonth(state.currentMonth);
-    const dateSet = new Set(days.map(d => d.dateStr));
+    initAnalyticsMonthDropdown();
+    const sel = document.getElementById('analyticsMonthFilterSelect');
+    const selectedMonth = sel ? sel.value : 'all';
+    const monthLabelEl = document.getElementById('analyticsMonthLabel');
+    if (monthLabelEl) {
+      if (selectedMonth === 'all') {
+        monthLabelEl.textContent = 'All Months Breakdown';
+      } else {
+        monthLabelEl.textContent = formatYearMonth(selectedMonth, false);
+      }
+    }
 
     const projMap = {};
-    let grandTotalHours = 0;
 
     Object.keys(state.allocations).forEach(k => {
-      // Correctly extract date from key formatted as emp_X_YYYY-MM-DD
-      const lastUnder = k.lastIndexOf('_');
-      const dt = k.substring(lastUnder + 1);
+      const item = state.allocations[k];
+      if (item && item.project && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
+        const lastUnder = k.lastIndexOf('_');
+        const dt = k.substring(lastUnder + 1);
+        const ym = dt.substring(0, 7);
 
-      if (dateSet.has(dt)) {
-        const item = state.allocations[k];
-        if (item && item.project && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
-          const pName = item.project;
-          if (!projMap[pName]) {
-            projMap[pName] = { days: 0, hours: 0 };
-          }
-          const hrs = Number(item.hours) || 8;
-          projMap[pName].days += 1;
-          projMap[pName].hours += hrs;
-          grandTotalHours += hrs;
+        // If a specific month is selected, filter strictly to that month
+        if (selectedMonth !== 'all' && ym !== selectedMonth) {
+          return;
         }
+
+        const pName = item.project;
+        if (!projMap[pName]) {
+          projMap[pName] = { days: 0, hours: 0, months: {} };
+        }
+        if (!projMap[pName].months[ym]) {
+          projMap[pName].months[ym] = { days: 0, hours: 0 };
+        }
+        const hrs = Number(item.hours) || 8;
+        projMap[pName].days += 1;
+        projMap[pName].hours += hrs;
+        projMap[pName].months[ym].days += 1;
+        projMap[pName].months[ym].hours += hrs;
       }
     });
 
-    const pTbody = document.getElementById('analyticsProjectBody');
-    
-    // Include all projects with allocations in this month OR with baseline hours
+    // Include all projects with allocations in this scope OR with baseline hours
     const activeProjectNames = new Set(Object.keys(projMap));
     state.projects.forEach(p => {
       if ((Number(p.initialHours) || 0) > 0) {
@@ -3305,28 +3424,103 @@
       }
     });
 
-    const projectNames = Array.from(activeProjectNames);
-    projectNames.sort((a,b) => a.localeCompare(b));
+    let projectNames = Array.from(activeProjectNames);
+    projectNames.sort((a, b) => a.localeCompare(b));
+
+    const totalCount = projectNames.length;
+    const filterInput = document.getElementById('filterAnalyticsInput');
+    const filterQuery = (filterInput ? filterInput.value : '').trim().toLowerCase();
+
+    if (filterQuery) {
+      projectNames = projectNames.filter(pName => {
+        const pObj = state.projects.find(x => x.name === pName) || {};
+        return pName.toLowerCase().includes(filterQuery) || (pObj.wbs && pObj.wbs.toLowerCase().includes(filterQuery));
+      });
+    }
+
+    const countBadge = document.getElementById('analyticsCountBadge');
+    if (countBadge) {
+      countBadge.textContent = `${projectNames.length} of ${totalCount} projects`;
+    }
+
+    const pTbody = document.getElementById('analyticsProjectBody');
+    if (!pTbody) return;
 
     pTbody.innerHTML = projectNames.map(pName => {
       const pObj = state.projects.find(x => x.name === pName) || {};
       const baseline = Number(pObj.initialHours) || 0;
-      const loggedDays = projMap[pName] ? projMap[pName].days : 0;
-      const loggedHrs = projMap[pName] ? projMap[pName].hours : 0;
-      const totalHrs = baseline + loggedHrs;
+      const data = projMap[pName] || { days: 0, hours: 0, months: {} };
+      const totalHrs = baseline + data.hours;
+      const monthKeys = Object.keys(data.months).sort();
+
+      let loggedDaysHtml = '0';
+      let loggedHoursHtml = '0h';
+
+      if (selectedMonth === 'all') {
+        if (monthKeys.length === 0) {
+          loggedDaysHtml = '<span class="text-muted">0</span>';
+          loggedHoursHtml = '<span class="text-muted">0h</span>';
+        } else if (monthKeys.length === 1) {
+          const ym = monthKeys[0];
+          const mLabel = formatYearMonth(ym, true);
+          const mData = data.months[ym];
+          loggedDaysHtml = `
+            <div class="month-breakdown-item">
+              <span class="month-name">${mLabel}:</span>
+              <span class="month-val">${mData.days}d</span>
+            </div>`;
+          loggedHoursHtml = `
+            <div class="month-breakdown-item">
+              <span class="month-name">${mLabel}:</span>
+              <span class="month-val"><strong>${mData.hours}h</strong></span>
+            </div>`;
+        } else {
+          loggedDaysHtml = `
+            <div class="month-breakdown-list">
+              ${monthKeys.map(ym => `
+                <div class="month-breakdown-item">
+                  <span class="month-name">${formatYearMonth(ym, true)}:</span>
+                  <span class="month-val">${data.months[ym].days}d</span>
+                </div>
+              `).join('')}
+              <div class="month-breakdown-total">
+                <span>Total:</span>
+                <strong>${data.days}d</strong>
+              </div>
+            </div>`;
+
+          loggedHoursHtml = `
+            <div class="month-breakdown-list">
+              ${monthKeys.map(ym => `
+                <div class="month-breakdown-item">
+                  <span class="month-name">${formatYearMonth(ym, true)}:</span>
+                  <span class="month-val"><strong>${data.months[ym].hours}h</strong></span>
+                </div>
+              `).join('')}
+              <div class="month-breakdown-total">
+                <span>Total Logged:</span>
+                <strong>${data.hours}h</strong>
+              </div>
+            </div>`;
+        }
+      } else {
+        const mData = data.months[selectedMonth] || { days: 0, hours: 0 };
+        loggedDaysHtml = mData.days > 0 ? `<strong>${mData.days}</strong>` : '<span class="text-muted">0</span>';
+        loggedHoursHtml = mData.hours > 0 ? `<strong>${mData.hours}h</strong>` : '<span class="text-muted">0h</span>';
+      }
 
       return `
         <tr>
           <td><strong>${pName}</strong></td>
           <td><span class="pill ${getProjectBadgeClass(pName)}">${pObj.category || 'Project'}</span></td>
-          <td><code>${pObj.wbs || '—'}</code></td>
+          <td><code>${pObj.wbs || '-'}</code></td>
           <td>${baseline}h</td>
-          <td>${loggedDays}</td>
-          <td>${loggedHrs}h</td>
+          <td>${loggedDaysHtml}</td>
+          <td>${loggedHoursHtml}</td>
           <td><strong style="color:var(--primary); font-size:12px;">${totalHrs} hrs</strong></td>
         </tr>
       `;
-    }).join('') || '<tr><td colspan="7" class="text-center" style="padding:16px; color:var(--text-muted);">No active allocations for this month yet.</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="text-center" style="padding:16px; color:var(--text-muted);">No active allocations found matching your filter.</td></tr>';
   }
 
   // -------------------------------------------------------------

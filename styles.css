@@ -2125,7 +2125,7 @@ body.view-only .task-chip {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
-.form-control-sm { padding: 5px 8px; font-size: 11px; }
+.form-control-sm, .form-select-sm { padding: 5px 8px; font-size: 11px; }
 .form-help { font-size: 10px; color: var(--text-muted); margin-top: 2px; display: block; }
 
 .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -2699,4 +2699,64 @@ body.view-only .task-chip {
 [data-theme="dark"] .settings-drawer-footer {
   background: #111827;
   border-top-color: var(--border-light);
+}
+
+/* =============================================================
+   Monthly Hours Breakdown Styles (Analytics & Management Modals)
+   ============================================================= */
+.month-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 110px;
+}
+.month-breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  font-size: 11px;
+}
+[data-theme="dark"] .month-breakdown-item {
+  background: rgba(255, 255, 255, 0.06);
+}
+.month-breakdown-item .month-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.month-breakdown-item .month-val {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.month-breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 6px 1px 6px;
+  border-top: 1px dashed var(--border-light);
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--primary);
+}
+[data-theme="dark"] .month-breakdown-total {
+  border-top-color: var(--border-medium);
+}
+.logged-month-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  font-size: 11px;
+}
+[data-theme="dark"] .logged-month-pill {
+  background: rgba(255, 255, 255, 0.06);
 }

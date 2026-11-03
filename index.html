@@ -595,22 +595,36 @@
         <button class="modal-close-icon modal-close">&times;</button>
       </div>
       <div class="modal-body">
-        <table class="data-table" id="analyticsProjectTable">
-          <thead>
-            <tr>
-              <th>Project Name (Alphabetical)</th>
-              <th>Category</th>
-              <th>WBS Code</th>
-              <th>Baseline Hours</th>
-              <th>Logged Days</th>
-              <th>Logged Hours</th>
-              <th>Total Combined Hours</th>
-            </tr>
-          </thead>
-          <tbody id="analyticsProjectBody">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
+        <div class="data-table-wrapper">
+          <div class="table-toolbar" style="flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="analyticsMonthFilterSelect" style="font-size: 12px; font-weight: 600; margin: 0; color: var(--text-secondary);">Filter Month:</label>
+              <select id="analyticsMonthFilterSelect" class="form-select form-select-sm" style="min-width: 220px;">
+                <option value="all" selected>All Months (Monthly Breakdown)</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="text" id="filterAnalyticsInput" class="form-control form-control-sm" placeholder="Filter projects or WBS..." style="width: 220px;">
+              <span id="analyticsCountBadge" class="table-counter"></span>
+            </div>
+          </div>
+          <table class="data-table" id="analyticsProjectTable">
+            <thead>
+              <tr>
+                <th>Project Name (Alphabetical)</th>
+                <th>Category</th>
+                <th>WBS Code</th>
+                <th>Baseline Hours</th>
+                <th>Logged Days</th>
+                <th>Logged Hours</th>
+                <th>Total Combined Hours</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsProjectBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary modal-close">Close</button>

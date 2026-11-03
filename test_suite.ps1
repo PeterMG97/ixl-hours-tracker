@@ -287,6 +287,9 @@ Assert-Test "6.43 View-only mode has no option to switch to edit, edit mode has 
 $focusedHazyAndViewAll = ($jsContent.Contains('has-focused-user')) -and ($jsContent.Contains('unfocused-row')) -and ($cssContent.Contains('.has-focused-user .user-row.unfocused-row td.col-slot')) -and ($jsContent.Contains('view-all-card')) -and ($jsContent.Contains('View All (Read Only)')) -and ($cssContent.Contains('.user-select-card.view-all-card'))
 Assert-Test "6.44 Choosing name focuses user row and hazes other cells; View All option displays all cells read-only" $focusedHazyAndViewAll "Focused employee row spotlight with hazy unfocused cells and View All read-only mode verified"
 
+$monthlyBreakdownVerified = ($htmlContent.Contains('id="analyticsMonthFilterSelect"')) -and ($htmlContent.Contains('id="filterAnalyticsInput"')) -and ($cssContent.Contains('.month-breakdown-list')) -and ($cssContent.Contains('.month-breakdown-item')) -and ($jsContent.Contains('initAnalyticsMonthDropdown')) -and ($jsContent.Contains('formatYearMonth')) -and ($jsContent.Contains('getProjectLoggedBreakdown'))
+Assert-Test "6.45 Project breakdown shows logged hours by month with monthly breakdown list and month filter" $monthlyBreakdownVerified "Month-by-month hours breakdown, month filter dropdown, and search filtering verified"
+
 
 
 # -------------------------------------------------------------
