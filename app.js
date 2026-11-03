@@ -3103,50 +3103,32 @@
   // -------------------------------------------------------------
 
   function updateAdminUI() {
-    const isPeter = isCurrentUserPeter();
-
-    // The admin rights option is ONLY available if using the name (Peter MOUNIR)
-    if (!isPeter) {
-      if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('hidden');
+    if (state.isViewOnly) {
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
       return;
     }
 
-    if (el.topbarAdminBtn) el.topbarAdminBtn.classList.remove('hidden');
+    // Always show Admin button in Settings drawer
     if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('hidden');
 
-    if (state.isAdmin) {
+    if (state.isAdmin && isCurrentUserPeter()) {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.remove('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
       if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('unlocked');
-
-      if (el.topbarAdminBtn) el.topbarAdminBtn.classList.add('unlocked');
-      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '';
-      if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Active (All Rows Unlocked)';
-      if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Active: You can edit any cell for any employee. Click to lock.';
     } else {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
-      if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Unlock';
-      if (el.adminToggleSub) el.adminToggleSub.textContent = 'Unlock management actions';
+      if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Mode';
+      if (el.adminToggleSub) el.adminToggleSub.textContent = 'Enter PIN to unlock admin actions';
       if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('unlocked');
-
-      if (el.topbarAdminBtn) el.topbarAdminBtn.classList.remove('unlocked');
-      if (el.topbarAdminIcon) el.topbarAdminIcon.textContent = '';
-      if (el.topbarAdminText) el.topbarAdminText.textContent = 'Admin Unlock';
-      if (el.topbarAdminBtn) el.topbarAdminBtn.title = 'Admin Mode: Click to enter PIN and edit all employees';
     }
   }
 
   function toggleAdminMode() {
-    if (!isCurrentUserPeter()) {
-      showToast('Admin rights are only available to Peter MOUNIR.', 'warning');
-      return;
-    }
-    if (state.isAdmin) {
+    if (state.isAdmin && isCurrentUserPeter()) {
       state.isAdmin = false;
       removeStoredItem('ixl_is_admin');
       updateAdminUI();
@@ -3167,14 +3149,14 @@
   if (el.topbarAdminBtn) el.topbarAdminBtn.addEventListener('click', toggleAdminMode);
 
   el.submitPinBtn.addEventListener('click', () => {
-    if (!isCurrentUserPeter()) {
-      showToast('Admin rights are only available to Peter MOUNIR.', 'warning');
-      closeModal(el.adminPinModal);
-      return;
-    }
     const pin = el.adminPinInput.value.trim();
     const expectedPin = state.adminPin || "IXL2026";
     if (pin === expectedPin) {
+      const peterEmp = state.employees.find(e => e.name.trim().toLowerCase() === 'peter mounir');
+      if (peterEmp) {
+        state.currentUserId = peterEmp.id;
+        persistUserIdentity(peterEmp.id, peterEmp.name);
+      }
       state.isAdmin = true;
       setStoredItem('ixl_is_admin', 'true');
       updateAdminUI();
@@ -3207,10 +3189,6 @@
 
   function requireAdmin() {
     if (state.isAdmin && isCurrentUserPeter()) return true;
-    if (!isCurrentUserPeter()) {
-      showToast('Admin rights are only available to Peter MOUNIR.', 'warning');
-      return false;
-    }
     el.adminPinInput.value = '';
     el.pinErrorMsg.classList.add('hidden');
     if (el.forgotPinRecoveryBox) el.forgotPinRecoveryBox.classList.add('hidden');
