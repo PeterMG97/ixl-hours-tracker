@@ -1052,15 +1052,15 @@
         });
       }
 
-      el.statCurrentMonthHours.textContent = `${userMonthHours}h`;
-      el.statUnfilledDays.textContent = `${userUnfilledDays} days`;
-      el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
-      el.statUnfilledDays.title = `${currentEmp.name}: ${userUnfilledDays} unfilled workdays in ${mName}`;
+      if (el.statCurrentMonthHours) el.statCurrentMonthHours.textContent = `${userMonthHours}h`;
+      if (el.statUnfilledDays) el.statUnfilledDays.textContent = `${userUnfilledDays} days`;
+      if (el.statCurrentMonthHours) el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
+      if (el.statUnfilledDays) el.statUnfilledDays.title = `${currentEmp.name}: ${userUnfilledDays} unfilled workdays in ${mName}`;
     } else {
-      el.statCurrentMonthHours.textContent = '—';
-      el.statUnfilledDays.textContent = '—';
-      el.statCurrentMonthHours.title = 'Select your name to view your hours';
-      el.statUnfilledDays.title = 'Select your name to view your unfilled workdays';
+      if (el.statCurrentMonthHours) el.statCurrentMonthHours.textContent = '-';
+      if (el.statUnfilledDays) el.statUnfilledDays.textContent = '-';
+      if (el.statCurrentMonthHours) el.statCurrentMonthHours.title = 'Select your name to view your hours';
+      if (el.statUnfilledDays) el.statUnfilledDays.title = 'Select your name to view your unfilled workdays';
     }
 
     // Attach group header click listeners (toggle expand/shrink)

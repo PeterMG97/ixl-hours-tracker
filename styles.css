@@ -705,10 +705,6 @@ body {
   background: #283548;
   color: #f8fafc;
 }
-[data-theme="dark"] .control-strip {
-  background: var(--card-bg);
-  border-bottom-color: var(--border-light);
-}
 [data-theme="dark"] .schedule-card {
   background: var(--card-bg);
   border-color: var(--border-light);
@@ -1017,8 +1013,7 @@ body {
   color: #fde68a;
 }
 body.view-only #userPermissionBanner,
-body.view-only .user-permission-banner,
-body.view-only .control-strip {
+body.view-only .user-permission-banner {
   display: none !important;
 }
 .banner-link {
@@ -1035,16 +1030,6 @@ body.view-only .control-strip {
   font-size: 12px;
 }
 
-.control-strip {
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border-light);
-  padding: 8px 24px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
 
 .legend-pills {
   display: flex;
@@ -1086,26 +1071,7 @@ body.view-only .control-strip {
   font-weight: 700;
 }
 
-.strip-stats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
 
-.stat-bubble {
-  font-size: 12px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.stat-bubble strong {
-  color: var(--text-primary);
-}
-.stat-bubble.warning strong {
-  color: var(--danger);
-  font-weight: 700;
-}
 
 /* ========================================================= */
 /* Schedule Canvas & Modern Matrix Table */
