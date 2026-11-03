@@ -296,6 +296,9 @@ Assert-Test "6.46 Blue user permission banner completely removed in view-only mo
 $dmyDateFormatVerified = ($jsContent.Contains('formatDateDMY')) -and ($htmlContent.Contains('Start Date (DD/MM/YYYY)')) -and ($htmlContent.Contains('Date (DD/MM/YYYY)')) -and ($jsContent.Contains('formatDateDMY(d.dateStr)'))
 Assert-Test "6.47 User-facing date displays formatted as DD/MM/YYYY across tables, popovers, and tooltips" $dmyDateFormatVerified "formatDateDMY implemented and applied across schedule, popover, NO PROJECT and contributions tables"
 
+$contribMiniCalendarVerified = ($htmlContent.Contains('id="contribCalendarTriggerBtn"')) -and ($htmlContent.Contains('id="contribCalendarPopover"')) -and ($htmlContent.Contains('id="contribPrevMonthBtn"')) -and ($htmlContent.Contains('id="contribNextMonthBtn"')) -and ($jsContent.Contains('renderContribCalendarGrid')) -and ($jsContent.Contains('toggleContribCalendarPopover')) -and ($jsContent.Contains('shiftMonthYM')) -and ($cssContent.Contains('.contrib-calendar-popover'))
+Assert-Test "6.48 Employee contributions header features mini calendar month picker and navigation" $contribMiniCalendarVerified "Mini calendar month picker, year stepper, and prev/next month navigation verified"
+
 
 
 # -------------------------------------------------------------

@@ -2746,3 +2746,209 @@ body.view-only .task-chip {
 [data-theme="dark"] .logged-month-pill {
   background: rgba(255, 255, 255, 0.06);
 }
+
+/* =============================================================
+   Employee Contributions Modal - Mini Calendar Month Picker
+   ============================================================= */
+.contrib-calendar-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.contrib-period-navigator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+}
+
+.contrib-calendar-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--primary);
+  font-family: inherit;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.contrib-calendar-trigger-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.contrib-calendar-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1050;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid var(--border-medium, #cbd5e1);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+}
+
+.contrib-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.contrib-cal-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  width: 28px;
+  height: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+
+.contrib-cal-nav-btn:hover {
+  background: #f1f5f9;
+  border-color: var(--border-medium);
+}
+
+.contrib-cal-year-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.contrib-cal-months-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.contrib-cal-month-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.contrib-cal-month-cell:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+}
+
+.contrib-cal-month-cell.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.contrib-cal-month-cell.is-active .month-code,
+.contrib-cal-month-cell.is-active .month-name,
+.contrib-cal-month-cell.is-active .month-hours {
+  color: #ffffff !important;
+}
+
+.contrib-cal-month-cell .month-code {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.contrib-cal-month-cell .month-name {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.contrib-cal-month-cell .month-hours {
+  font-size: 9px;
+  font-weight: 600;
+  margin-top: 2px;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.contrib-cal-footer {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Dark mode overrides for mini calendar */
+[data-theme="dark"] .contrib-period-navigator {
+  background: #1e293b;
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .contrib-calendar-trigger-btn {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .contrib-calendar-trigger-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .contrib-calendar-popover {
+  background: #1e293b;
+  border-color: var(--border-medium);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .contrib-cal-year-title {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .contrib-cal-nav-btn {
+  border-color: var(--border-medium);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .contrib-cal-nav-btn:hover {
+  background: #334155;
+}
+
+[data-theme="dark"] .contrib-cal-month-cell {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .contrib-cal-month-cell:hover {
+  background: #1e293b;
+  border-color: #60a5fa;
+}
+
+[data-theme="dark"] .contrib-cal-month-cell.is-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .contrib-cal-footer {
+  border-top-color: #334155;
+}

@@ -104,6 +104,7 @@
     isMultiEditing: false,
     popoverCategory: 'all',
     currentContribEmpId: null,
+    currentContribMonth: null,
     contribFilter: 'all',
     isConnected: true,
     collapsedSections: (() => {
@@ -218,6 +219,16 @@
     contribEmpNameDisplay: document.getElementById('contribEmpNameDisplay'),
     contribSectionDisplay: document.getElementById('contribSectionDisplay'),
     contribMonthDisplay: document.getElementById('contribMonthDisplay'),
+    contribMonthSelect: document.getElementById('contribMonthSelect'),
+    contribPrevMonthBtn: document.getElementById('contribPrevMonthBtn'),
+    contribNextMonthBtn: document.getElementById('contribNextMonthBtn'),
+    contribCalendarTriggerBtn: document.getElementById('contribCalendarTriggerBtn'),
+    contribCalendarPopover: document.getElementById('contribCalendarPopover'),
+    contribCalPrevYearBtn: document.getElementById('contribCalPrevYearBtn'),
+    contribCalNextYearBtn: document.getElementById('contribCalNextYearBtn'),
+    contribCalYearDisplay: document.getElementById('contribCalYearDisplay'),
+    contribCalMonthsGrid: document.getElementById('contribCalMonthsGrid'),
+    contribCalCurrentMonthBtn: document.getElementById('contribCalCurrentMonthBtn'),
     contribTotalHours: document.getElementById('contribTotalHours'),
     contribAvgDaily: document.getElementById('contribAvgDaily'),
     contribLoggedDays: document.getElementById('contribLoggedDays'),
@@ -3570,11 +3581,144 @@
   // Employee Monthly Contributions Modal (Triggered by double-click)
   // -------------------------------------------------------------
 
+  let contribCalDisplayYear = 2026;
+
+  function shiftMonthYM(ym, delta) {
+    if (!ym) ym = state.currentMonth || '2026-11';
+    const parts = ym.split('-');
+    let y = parseInt(parts[0], 10);
+    let m = parseInt(parts[1], 10);
+    m += delta;
+    while (m < 1) {
+      m += 12;
+      y -= 1;
+    }
+    while (m > 12) {
+      m -= 12;
+      y += 1;
+    }
+    return `${y}-${String(m).padStart(2, '0')}`;
+  }
+
+  function initContribMonthSelect() {
+    if (!el.contribMonthSelect) return;
+    const monthSet = new Set();
+    if (el.monthSelect) {
+      Array.from(el.monthSelect.options).forEach(opt => {
+        if (opt.value) monthSet.add(opt.value);
+      });
+    }
+    Object.keys(state.allocations).forEach(k => {
+      const lastUnder = k.lastIndexOf('_');
+      const dt = k.substring(lastUnder + 1);
+      if (dt && dt.length >= 7) {
+        monthSet.add(dt.substring(0, 7));
+      }
+    });
+    if (state.currentContribMonth) monthSet.add(state.currentContribMonth);
+    const sorted = Array.from(monthSet).sort();
+    el.contribMonthSelect.innerHTML = '';
+    sorted.forEach(ym => {
+      const opt = document.createElement('option');
+      opt.value = ym;
+      opt.textContent = formatMonthMY(ym);
+      el.contribMonthSelect.appendChild(opt);
+    });
+    el.contribMonthSelect.value = state.currentContribMonth || state.currentMonth;
+  }
+
+  function renderContribCalendarGrid() {
+    if (!el.contribCalMonthsGrid || !el.contribCalYearDisplay) return;
+    el.contribCalYearDisplay.textContent = contribCalDisplayYear;
+    const empId = state.currentContribEmpId;
+    const activeMonth = state.currentContribMonth || state.currentMonth;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    let html = '';
+    for (let m = 1; m <= 12; m++) {
+      const mmStr = String(m).padStart(2, '0');
+      const ym = `${contribCalDisplayYear}-${mmStr}`;
+      const isActive = (ym === activeMonth);
+      const monthName = monthNames[m - 1];
+
+      let loggedHours = 0;
+      if (empId) {
+        const prefix = `${empId}_${ym}-`;
+        Object.keys(state.allocations).forEach(k => {
+          if (k.startsWith(prefix)) {
+            const alloc = state.allocations[k];
+            if (alloc && alloc.project && alloc.project !== 'Day OFF' && alloc.project !== 'NO PROJECT' && alloc.project !== 'NO STATUS') {
+              const hrs = alloc.hours !== undefined ? Number(alloc.hours) : 8;
+              loggedHours += hrs;
+            }
+          }
+        });
+      }
+
+      const hoursDisplay = loggedHours > 0 
+        ? `<span class="month-hours">${loggedHours}h</span>` 
+        : '';
+
+      html += `
+        <button type="button" class="contrib-cal-month-cell ${isActive ? 'is-active' : ''}" data-ym="${ym}" title="${mmStr}/${contribCalDisplayYear} (${monthName})">
+          <span class="month-code">${mmStr}/${contribCalDisplayYear}</span>
+          <span class="month-name">${monthName}</span>
+          ${hoursDisplay}
+        </button>
+      `;
+    }
+    el.contribCalMonthsGrid.innerHTML = html;
+
+    el.contribCalMonthsGrid.querySelectorAll('.contrib-cal-month-cell').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const chosenYm = cell.getAttribute('data-ym');
+        if (chosenYm) {
+          state.currentContribMonth = chosenYm;
+          contribCalDisplayYear = parseInt(chosenYm.split('-')[0], 10);
+          closeContribCalendarPopover();
+          renderEmployeeContributions();
+        }
+      });
+    });
+  }
+
+  function openContribCalendarPopover() {
+    if (!el.contribCalendarPopover) return;
+    const activeMonth = state.currentContribMonth || state.currentMonth;
+    contribCalDisplayYear = parseInt(activeMonth.split('-')[0], 10) || 2026;
+    renderContribCalendarGrid();
+    el.contribCalendarPopover.classList.remove('hidden');
+    if (el.contribCalendarTriggerBtn) {
+      el.contribCalendarTriggerBtn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  function closeContribCalendarPopover() {
+    if (!el.contribCalendarPopover) return;
+    el.contribCalendarPopover.classList.add('hidden');
+    if (el.contribCalendarTriggerBtn) {
+      el.contribCalendarTriggerBtn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function toggleContribCalendarPopover() {
+    if (!el.contribCalendarPopover) return;
+    if (el.contribCalendarPopover.classList.contains('hidden')) {
+      openContribCalendarPopover();
+    } else {
+      closeContribCalendarPopover();
+    }
+  }
+
   function openEmployeeContributions(empId) {
     const emp = state.employees.find(e => e.id === empId);
     if (!emp) return;
     state.currentContribEmpId = empId;
     state.contribFilter = 'all';
+    state.currentContribMonth = state.currentMonth;
+    contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
+    closeContribCalendarPopover();
 
     if (el.contribFilterAll && el.contribFilterRecorded) {
       el.contribFilterAll.classList.add('active-filter', 'btn-primary');
@@ -3583,6 +3727,7 @@
       el.contribFilterRecorded.classList.add('btn-secondary');
     }
 
+    initContribMonthSelect();
     renderEmployeeContributions();
     openModal(el.employeeContributionsModal);
   }
@@ -3594,7 +3739,8 @@
     if (!emp) return;
     const sec = state.sections.find(s => s.id === emp.sectionId) || { name: 'Engineering Team', location: 'Cairo' };
 
-    const days = getDaysInMonth(state.currentMonth);
+    const activeMonth = state.currentContribMonth || state.currentMonth;
+    const days = getDaysInMonth(activeMonth);
     const defaultHours = emp.defaultHoursPerDay || (sec.location === 'Istanbul' ? 9 : 8);
 
     let totalRecordedHours = 0;
@@ -3659,7 +3805,8 @@
     if (el.contribAvatar) el.contribAvatar.textContent = getInitials(emp.name);
     if (el.contribEmpNameDisplay) el.contribEmpNameDisplay.textContent = emp.name;
     if (el.contribSectionDisplay) el.contribSectionDisplay.textContent = `${sec.name} (${sec.location})`;
-    if (el.contribMonthDisplay) el.contribMonthDisplay.textContent = formatMonthMY(state.currentMonth);
+    if (el.contribMonthDisplay) el.contribMonthDisplay.textContent = formatMonthMY(activeMonth);
+    if (el.contribMonthSelect) el.contribMonthSelect.value = activeMonth;
 
     if (el.contribTotalHours) el.contribTotalHours.textContent = `${totalRecordedHours}h`;
     const avgHours = loggedWorkdaysCount > 0 ? (totalRecordedHours / loggedWorkdaysCount).toFixed(1) : '0';
@@ -3679,7 +3826,7 @@
     if (el.contribProjectChips) {
       const projKeys = Object.keys(projectHoursMap).sort((a, b) => projectHoursMap[b].hours - projectHoursMap[a].hours);
       if (projKeys.length === 0) {
-        el.contribProjectChips.innerHTML = `<span class="text-sm text-muted">No recorded project contributions for ${formatMonthMY(state.currentMonth)} yet.</span>`;
+        el.contribProjectChips.innerHTML = `<span class="text-sm text-muted">No recorded project contributions for ${formatMonthMY(activeMonth)} yet.</span>`;
       } else {
         el.contribProjectChips.innerHTML = projKeys.map(pName => {
           const item = projectHoursMap[pName];
@@ -3761,6 +3908,10 @@
         }).join('');
       }
     }
+
+    if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
+      renderContribCalendarGrid();
+    }
   }
 
   if (el.contribFilterAll) {
@@ -3783,6 +3934,88 @@
       renderEmployeeContributions();
     });
   }
+
+  // Mini Calendar Popover & Month Navigation for Employee Contributions
+  if (el.contribCalendarTriggerBtn) {
+    el.contribCalendarTriggerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleContribCalendarPopover();
+    });
+  }
+
+  if (el.contribPrevMonthBtn) {
+    el.contribPrevMonthBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const current = state.currentContribMonth || state.currentMonth;
+      state.currentContribMonth = shiftMonthYM(current, -1);
+      contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
+      renderEmployeeContributions();
+      if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
+        renderContribCalendarGrid();
+      }
+    });
+  }
+
+  if (el.contribNextMonthBtn) {
+    el.contribNextMonthBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const current = state.currentContribMonth || state.currentMonth;
+      state.currentContribMonth = shiftMonthYM(current, 1);
+      contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
+      renderEmployeeContributions();
+      if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
+        renderContribCalendarGrid();
+      }
+    });
+  }
+
+  if (el.contribMonthSelect) {
+    el.contribMonthSelect.addEventListener('change', () => {
+      state.currentContribMonth = el.contribMonthSelect.value;
+      contribCalDisplayYear = parseInt(state.currentContribMonth.split('-')[0], 10);
+      renderEmployeeContributions();
+    });
+  }
+
+  if (el.contribCalPrevYearBtn) {
+    el.contribCalPrevYearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      contribCalDisplayYear -= 1;
+      renderContribCalendarGrid();
+    });
+  }
+
+  if (el.contribCalNextYearBtn) {
+    el.contribCalNextYearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      contribCalDisplayYear += 1;
+      renderContribCalendarGrid();
+    });
+  }
+
+  if (el.contribCalCurrentMonthBtn) {
+    el.contribCalCurrentMonthBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.currentContribMonth = state.currentMonth;
+      contribCalDisplayYear = parseInt(state.currentMonth.split('-')[0], 10);
+      closeContribCalendarPopover();
+      renderEmployeeContributions();
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
+      if (!el.contribCalendarPopover.contains(e.target) && !el.contribCalendarTriggerBtn.contains(e.target)) {
+        closeContribCalendarPopover();
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && el.contribCalendarPopover && !el.contribCalendarPopover.classList.contains('hidden')) {
+      closeContribCalendarPopover();
+    }
+  });
 
   // Delegated double-click listener on schedule body and team table body
   if (el.scheduleBody) {
