@@ -1459,16 +1459,65 @@
       }
     }
 
-    // In Admin mode: if dragged up into schedule header while table is at top
+    // In Admin mode: if dragged up into schedule header or above while table is at top (scrollTop <= 0)
     const isAdmin = state.isAdmin && isCurrentUserPeter();
-    if (isAdmin && hovered.closest('#scheduleHead')) {
-      const row0 = cellDragState.allVisibleRows[0];
-      if (row0) {
-        const slots = Array.from(row0.querySelectorAll('td.col-slot'));
-        for (let c = 0; c < slots.length; c++) {
-          const sRect = slots[c].getBoundingClientRect();
-          if (e.clientX >= sRect.left && e.clientX <= sRect.right) {
-            handleDragMoveToCoords(0, c);
+    const scrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
+    if (isAdmin && scrollArea && scrollArea.scrollTop <= 0) {
+      const thEl = el.scheduleHead ? el.scheduleHead.querySelector('th') : null;
+      const headerHeight = thEl ? thEl.offsetHeight : 45;
+      const rect = scrollArea.getBoundingClientRect();
+      const stickyHeadBottom = rect.top + headerHeight;
+
+      if (e.clientY <= stickyHeadBottom) {
+        const row0 = cellDragState.allVisibleRows[0];
+        if (row0) {
+          const slots = Array.from(row0.querySelectorAll('td.col-slot'));
+          if (slots.length > 0) {
+            let targetCol = 0;
+            if (e.clientX <= slots[0].getBoundingClientRect().left) {
+              targetCol = 0;
+            } else if (e.clientX >= slots[slots.length - 1].getBoundingClientRect().right) {
+              targetCol = slots.length - 1;
+            } else {
+              for (let c = 0; c < slots.length; c++) {
+                const sRect = slots[c].getBoundingClientRect();
+                if (e.clientX >= sRect.left && e.clientX <= sRect.right) {
+                  targetCol = c;
+                  break;
+                }
+              }
+            }
+            handleDragMoveToCoords(0, targetCol);
+            return;
+          }
+        }
+      }
+    }
+
+    // In Admin mode: if dragged down below table while table is at bottom
+    if (isAdmin && scrollArea && scrollArea.scrollTop >= (scrollArea.scrollHeight - scrollArea.clientHeight - 1)) {
+      const rect = scrollArea.getBoundingClientRect();
+      if (e.clientY >= rect.bottom) {
+        const lastRowIdx = cellDragState.allVisibleRows.length - 1;
+        const lastRow = cellDragState.allVisibleRows[lastRowIdx];
+        if (lastRow) {
+          const slots = Array.from(lastRow.querySelectorAll('td.col-slot'));
+          if (slots.length > 0) {
+            let targetCol = 0;
+            if (e.clientX <= slots[0].getBoundingClientRect().left) {
+              targetCol = 0;
+            } else if (e.clientX >= slots[slots.length - 1].getBoundingClientRect().right) {
+              targetCol = slots.length - 1;
+            } else {
+              for (let c = 0; c < slots.length; c++) {
+                const sRect = slots[c].getBoundingClientRect();
+                if (e.clientX >= sRect.left && e.clientX <= sRect.right) {
+                  targetCol = c;
+                  break;
+                }
+              }
+            }
+            handleDragMoveToCoords(lastRowIdx, targetCol);
             return;
           }
         }
@@ -1500,8 +1549,9 @@
 
     const isAdmin = state.isAdmin && isCurrentUserPeter();
     const clientY = cellDragState.lastClientY;
-    const headerTh = el.scheduleHead ? el.scheduleHead.querySelector('tr') : null;
-    const stickyHeadBottom = headerTh ? headerTh.getBoundingClientRect().bottom : (rect.top + 40);
+    const thEl = el.scheduleHead ? el.scheduleHead.querySelector('th') : null;
+    const headerHeight = thEl ? thEl.offsetHeight : 45;
+    const stickyHeadBottom = rect.top + headerHeight;
 
     const topZoneEnd = stickyHeadBottom + 35;
     const bottomZoneStart = Math.min(rect.bottom - 45, window.innerHeight - 45);
@@ -1549,8 +1599,9 @@
       const canScrollLeft = scrollArea.scrollLeft > 0;
 
       const isAdmin = state.isAdmin && isCurrentUserPeter();
-      const headerTh = el.scheduleHead ? el.scheduleHead.querySelector('tr') : null;
-      const stickyHeadBottom = headerTh ? headerTh.getBoundingClientRect().bottom : (rect.top + 40);
+      const thEl = el.scheduleHead ? el.scheduleHead.querySelector('th') : null;
+      const headerHeight = thEl ? thEl.offsetHeight : 45;
+      const stickyHeadBottom = rect.top + headerHeight;
 
       const topZoneEnd = stickyHeadBottom + 35;
       const bottomZoneStart = Math.min(rect.bottom - 45, window.innerHeight - 45);
@@ -1610,7 +1661,7 @@
             }
           } else if (clientY <= topZoneEnd) {
             // Dragging upwards near/beyond top sticky header
-            const probeY = stickyHeadBottom + 10;
+            const probeY = stickyHeadBottom + 5;
             for (let r = 0; r < cellDragState.allVisibleRows.length; r++) {
               const rRect = cellDragState.allVisibleRows[r].getBoundingClientRect();
               if (rRect.bottom >= probeY) {
