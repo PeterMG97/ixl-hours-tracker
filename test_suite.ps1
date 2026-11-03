@@ -302,8 +302,8 @@ Assert-Test "6.48 Employee contributions header features mini calendar month pic
 $bulkRefillKeyVerified = ($htmlContent.Contains('id="openBulkFillBtn"')) -and ($htmlContent.Contains('class="btn-bulk-refill"')) -and ($htmlContent.Contains('Bulk Refill')) -and (-not $htmlContent.Contains('(Monday - Friday)')) -and ($cssContent.Contains('.btn-bulk-refill'))
 Assert-Test "6.49 Bulk refill is a pressable key button without (Monday - Friday) text" $bulkRefillKeyVerified "openBulkFillBtn styled as pressable key with Bulk Refill label and (Monday - Friday) removed"
 
-$alstomLogoVerified = ($htmlContent.Contains('src="alstom-logo.png"')) -and (-not ($htmlContent -match '<div class="brand-avatar">\s*IXL\s*</div>')) -and (Test-Path (Join-Path $AppDir "alstom-logo.png"))
-Assert-Test "6.50 Top left brand features official Alstom logo replacing IXL blue icon" $alstomLogoVerified "Alstom logo image file present and configured in header brand area"
+$alstomLogoVerified = ($htmlContent.Contains('class="brand-logo-text"')) -and ($htmlContent.Contains('ALST')) -and ($htmlContent.Contains('brand-logo-accent')) -and (-not ($htmlContent.Contains('class="brand-logo-img"'))) -and ($cssContent.Contains('.brand-logo-text'))
+Assert-Test "6.50 Top left brand features official Alstom colored text wordmark replacing photo frame" $alstomLogoVerified "Alstom colored text logo with accent O and no photo frame verified"
 
 $projectMiniCalendarVerified = ($htmlContent.Contains('id="projectCalendarTriggerBtn"')) -and ($htmlContent.Contains('id="projectCalendarPopover"')) -and ($htmlContent.Contains('id="projectPrevMonthBtn"')) -and ($htmlContent.Contains('id="projectNextMonthBtn"')) -and ($jsContent.Contains('renderProjectCalendarGrid')) -and ($jsContent.Contains('toggleProjectCalendarPopover')) -and ($jsContent.Contains('currentProjectMonth'))
 Assert-Test "6.51 Project monthly modal features mini calendar month picker with popover and month steppers" $projectMiniCalendarVerified "Project mini calendar markup and JS calendar engine verified"
