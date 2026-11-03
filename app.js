@@ -1458,6 +1458,22 @@
         }
       }
     }
+
+    // In Admin mode: if dragged up into schedule header while table is at top
+    const isAdmin = state.isAdmin && isCurrentUserPeter();
+    if (isAdmin && hovered.closest('#scheduleHead')) {
+      const row0 = cellDragState.allVisibleRows[0];
+      if (row0) {
+        const slots = Array.from(row0.querySelectorAll('td.col-slot'));
+        for (let c = 0; c < slots.length; c++) {
+          const sRect = slots[c].getBoundingClientRect();
+          if (e.clientX >= sRect.left && e.clientX <= sRect.right) {
+            handleDragMoveToCoords(0, c);
+            return;
+          }
+        }
+      }
+    }
   }
 
   function checkAndTriggerAutoScroll() {
@@ -1482,7 +1498,21 @@
     const inRightZone = clientX >= rightZoneStart && canScrollRight;
     const inLeftZone = clientX <= leftZoneEnd && canScrollLeft;
 
-    if (inRightZone || inLeftZone) {
+    const isAdmin = state.isAdmin && isCurrentUserPeter();
+    const clientY = cellDragState.lastClientY;
+    const headerTh = el.scheduleHead ? el.scheduleHead.querySelector('tr') : null;
+    const stickyHeadBottom = headerTh ? headerTh.getBoundingClientRect().bottom : (rect.top + 40);
+
+    const topZoneEnd = stickyHeadBottom + 35;
+    const bottomZoneStart = Math.min(rect.bottom - 45, window.innerHeight - 45);
+
+    const canScrollDown = scrollArea.scrollTop < (scrollArea.scrollHeight - scrollArea.clientHeight - 1);
+    const canScrollUp = scrollArea.scrollTop > 0;
+
+    const inBottomZone = isAdmin && clientY >= bottomZoneStart && canScrollDown;
+    const inTopZone = isAdmin && clientY <= topZoneEnd && canScrollUp;
+
+    if (inRightZone || inLeftZone || inBottomZone || inTopZone) {
       if (!cellDragState.autoScrollRaf) {
         startAutoScroll();
       }
@@ -1518,16 +1548,40 @@
       const canScrollRight = scrollArea.scrollLeft < (scrollArea.scrollWidth - scrollArea.clientWidth - 1);
       const canScrollLeft = scrollArea.scrollLeft > 0;
 
+      const isAdmin = state.isAdmin && isCurrentUserPeter();
+      const headerTh = el.scheduleHead ? el.scheduleHead.querySelector('tr') : null;
+      const stickyHeadBottom = headerTh ? headerTh.getBoundingClientRect().bottom : (rect.top + 40);
+
+      const topZoneEnd = stickyHeadBottom + 35;
+      const bottomZoneStart = Math.min(rect.bottom - 45, window.innerHeight - 45);
+
+      const canScrollDown = scrollArea.scrollTop < (scrollArea.scrollHeight - scrollArea.clientHeight - 1);
+      const canScrollUp = scrollArea.scrollTop > 0;
+
       let scrolled = false;
 
+      // Horizontal auto-scroll
       if (clientX >= rightZoneStart && canScrollRight) {
-        const delta = Math.min(32, Math.max(8, Math.round(8 + (clientX - rightZoneStart) * 0.4)));
-        scrollArea.scrollLeft += delta;
+        const deltaX = Math.min(32, Math.max(8, Math.round(8 + (clientX - rightZoneStart) * 0.4)));
+        scrollArea.scrollLeft += deltaX;
         scrolled = true;
       } else if (clientX <= leftZoneEnd && canScrollLeft) {
-        const delta = Math.min(32, Math.max(8, Math.round(8 + (leftZoneEnd - clientX) * 0.4)));
-        scrollArea.scrollLeft -= delta;
+        const deltaX = Math.min(32, Math.max(8, Math.round(8 + (leftZoneEnd - clientX) * 0.4)));
+        scrollArea.scrollLeft -= deltaX;
         scrolled = true;
+      }
+
+      // Vertical auto-scroll (Admin mode)
+      if (isAdmin) {
+        if (clientY >= bottomZoneStart && canScrollDown) {
+          const deltaY = Math.min(32, Math.max(8, Math.round(8 + (clientY - bottomZoneStart) * 0.4)));
+          scrollArea.scrollTop += deltaY;
+          scrolled = true;
+        } else if (clientY <= topZoneEnd && canScrollUp) {
+          const deltaY = Math.min(32, Math.max(8, Math.round(8 + (topZoneEnd - clientY) * 0.4)));
+          scrollArea.scrollTop -= deltaY;
+          scrolled = true;
+        }
       }
 
       // Automatically advance range selection in the direction of the drag
@@ -1542,22 +1596,35 @@
         closeCellPopover();
 
         // Determine target row based on vertical pointer position
-        const isAdmin = state.isAdmin && isCurrentUserPeter();
         let targetRowIdx = cellDragState.startRowIndex;
         if (isAdmin) {
-          for (let r = 0; r < cellDragState.allVisibleRows.length; r++) {
-            const rRect = cellDragState.allVisibleRows[r].getBoundingClientRect();
-            if (clientY >= rRect.top && clientY <= rRect.bottom) {
-              targetRowIdx = r;
-              break;
+          if (clientY >= bottomZoneStart) {
+            // Dragging downwards near/beyond bottom border
+            const probeY = Math.min(rect.bottom - 10, window.innerHeight - 10);
+            for (let r = cellDragState.allVisibleRows.length - 1; r >= 0; r--) {
+              const rRect = cellDragState.allVisibleRows[r].getBoundingClientRect();
+              if (rRect.top <= probeY) {
+                targetRowIdx = r;
+                break;
+              }
             }
-            if (clientY < rRect.top && r === 0) {
-              targetRowIdx = 0;
-              break;
+          } else if (clientY <= topZoneEnd) {
+            // Dragging upwards near/beyond top sticky header
+            const probeY = stickyHeadBottom + 10;
+            for (let r = 0; r < cellDragState.allVisibleRows.length; r++) {
+              const rRect = cellDragState.allVisibleRows[r].getBoundingClientRect();
+              if (rRect.bottom >= probeY) {
+                targetRowIdx = r;
+                break;
+              }
             }
-            if (clientY > rRect.bottom && r === cellDragState.allVisibleRows.length - 1) {
-              targetRowIdx = r;
-              break;
+          } else {
+            for (let r = 0; r < cellDragState.allVisibleRows.length; r++) {
+              const rRect = cellDragState.allVisibleRows[r].getBoundingClientRect();
+              if (clientY >= rRect.top && clientY <= rRect.bottom) {
+                targetRowIdx = r;
+                break;
+              }
             }
           }
         }
@@ -1583,6 +1650,14 @@
               for (let c = 0; c < slots.length; c++) {
                 const sRect = slots[c].getBoundingClientRect();
                 if (sRect.right >= probeX) {
+                  targetColIdx = c;
+                  break;
+                }
+              }
+            } else {
+              for (let c = 0; c < slots.length; c++) {
+                const sRect = slots[c].getBoundingClientRect();
+                if (clientX >= sRect.left && clientX <= sRect.right) {
                   targetColIdx = c;
                   break;
                 }

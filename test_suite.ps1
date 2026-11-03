@@ -278,6 +278,9 @@ Assert-Test "6.40 Auto-scroll left/right when dragging near screen borders with 
 $defaultHoursUnderNameRemoved = (-not $jsContent.Contains('${emp.defaultHoursPerDay || 8}h/day')) -and ($htmlContent.Contains('<th>Default Daily Hrs</th>')) -and ($jsContent.Contains('change-hours-input')) -and ($jsContent.Contains('Default hours for'))
 Assert-Test "6.41 Default hours per day indicator removed under employee names in schedule and preserved in Team Members" $defaultHoursUnderNameRemoved "Removed from schedule employee cells and kept in Team Members modal"
 
+$verticalAutoScrollAdmin = ($jsContent.Contains('inBottomZone')) -and ($jsContent.Contains('inTopZone')) -and ($jsContent.Contains('scrollArea.scrollTop += deltaY')) -and ($jsContent.Contains('scrollArea.scrollTop -= deltaY'))
+Assert-Test "6.42 Admin mode enables up/down vertical auto-scrolling when dragging near top/bottom screen borders" $verticalAutoScrollAdmin "Vertical auto-scroll up/down with dynamic row range expansion in Admin mode verified"
+
 # -------------------------------------------------------------
 # SUMMARY REPORT
 # -------------------------------------------------------------
