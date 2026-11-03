@@ -1630,6 +1630,8 @@ td.col-slot.is-selected-cell .task-chip {
 .has-focused-user .user-row.unfocused-row td.col-slot,
 .user-row.unfocused-row td.col-slot {
   opacity: 1;
+  filter: none;
+  pointer-events: auto;
 }
 
 /* Requirement 9: Conditional Formatting on Unfilled Days up to Today */
