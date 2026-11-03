@@ -139,6 +139,7 @@
     jumpTodayBtn: document.getElementById('jumpTodayBtn'),
 
     // Schedule Table
+    tableScrollArea: document.querySelector('.table-scroll-area'),
     scheduleHead: document.getElementById('scheduleHead'),
     scheduleBody: document.getElementById('scheduleBody'),
     statActiveEmployees: document.getElementById('statActiveEmployees'),
@@ -738,10 +739,11 @@
                       ${empUnfilledDays} unfilled
                     </span>
                   </div>
-                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <span style="font-size:9px; color:var(--text-muted);">${emp.defaultHoursPerDay || 8}h/day</span>
-                    ${empNoProjCount > 0 ? `<button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">${empNoProjCount} NO PROJ</button>` : ''}
-                  </div>
+                  ${empNoProjCount > 0 ? `
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                      <button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">${empNoProjCount} NO PROJ</button>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
             </td>
@@ -1217,7 +1219,10 @@
     allVisibleRows: [],
     baseSelectedCells: new Set(),
     isMultiMode: false,
-    suppressClick: false
+    suppressClick: false,
+    autoScrollRaf: null,
+    lastClientX: 0,
+    lastClientY: 0
   };
 
   let _cellDragGlobalInitialized = false;
@@ -1227,6 +1232,7 @@
     window.addEventListener('mouseup', handleGlobalMouseUp);
     window.addEventListener('mousemove', handleGlobalMouseMove);
     window.addEventListener('blur', () => {
+      stopAutoScroll();
       if (cellDragState.isMouseDown) handleGlobalMouseUp();
     });
   }
@@ -1343,6 +1349,8 @@
     cellDragState.baseSelectedCells = baseSelected;
     cellDragState.isMultiMode = isMultiMode;
     cellDragState.suppressClick = false;
+    cellDragState.lastClientX = e.clientX;
+    cellDragState.lastClientY = e.clientY;
 
     if (cellDragState.holdTimer) {
       clearTimeout(cellDragState.holdTimer);
@@ -1396,6 +1404,7 @@
   }
 
   function handleGlobalMouseUp(e) {
+    stopAutoScroll();
     if (!cellDragState.isMouseDown) return;
     if (cellDragState.holdTimer) {
       clearTimeout(cellDragState.holdTimer);
@@ -1424,6 +1433,11 @@
       return;
     }
 
+    cellDragState.lastClientX = e.clientX;
+    cellDragState.lastClientY = e.clientY;
+
+    checkAndTriggerAutoScroll();
+
     const hovered = document.elementFromPoint(e.clientX, e.clientY);
     if (!hovered) return;
 
@@ -1443,6 +1457,156 @@
           return;
         }
       }
+    }
+  }
+
+  function checkAndTriggerAutoScroll() {
+    if (!cellDragState.isMouseDown) {
+      stopAutoScroll();
+      return;
+    }
+    const scrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
+    if (!scrollArea) return;
+
+    const rect = scrollArea.getBoundingClientRect();
+    const metricTh = el.scheduleHead ? el.scheduleHead.querySelector('.col-metric') : null;
+    const stickyEdgeRight = metricTh ? metricTh.getBoundingClientRect().right : (rect.left + 270);
+
+    const clientX = cellDragState.lastClientX;
+    const rightZoneStart = Math.min(rect.right - 45, window.innerWidth - 45);
+    const leftZoneEnd = stickyEdgeRight + 45;
+
+    const canScrollRight = scrollArea.scrollLeft < (scrollArea.scrollWidth - scrollArea.clientWidth - 1);
+    const canScrollLeft = scrollArea.scrollLeft > 0;
+
+    const inRightZone = clientX >= rightZoneStart && canScrollRight;
+    const inLeftZone = clientX <= leftZoneEnd && canScrollLeft;
+
+    if (inRightZone || inLeftZone) {
+      if (!cellDragState.autoScrollRaf) {
+        startAutoScroll();
+      }
+    } else {
+      stopAutoScroll();
+    }
+  }
+
+  function startAutoScroll() {
+    if (cellDragState.autoScrollRaf) return;
+
+    function step() {
+      if (!cellDragState.isMouseDown) {
+        stopAutoScroll();
+        return;
+      }
+
+      const scrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
+      if (!scrollArea || !cellDragState.allVisibleRows || cellDragState.allVisibleRows.length === 0) {
+        stopAutoScroll();
+        return;
+      }
+
+      const rect = scrollArea.getBoundingClientRect();
+      const metricTh = el.scheduleHead ? el.scheduleHead.querySelector('.col-metric') : null;
+      const stickyEdgeRight = metricTh ? metricTh.getBoundingClientRect().right : (rect.left + 270);
+
+      const clientX = cellDragState.lastClientX;
+      const clientY = cellDragState.lastClientY;
+      const rightZoneStart = Math.min(rect.right - 45, window.innerWidth - 45);
+      const leftZoneEnd = stickyEdgeRight + 45;
+
+      const canScrollRight = scrollArea.scrollLeft < (scrollArea.scrollWidth - scrollArea.clientWidth - 1);
+      const canScrollLeft = scrollArea.scrollLeft > 0;
+
+      let scrolled = false;
+
+      if (clientX >= rightZoneStart && canScrollRight) {
+        const delta = Math.min(32, Math.max(8, Math.round(8 + (clientX - rightZoneStart) * 0.4)));
+        scrollArea.scrollLeft += delta;
+        scrolled = true;
+      } else if (clientX <= leftZoneEnd && canScrollLeft) {
+        const delta = Math.min(32, Math.max(8, Math.round(8 + (leftZoneEnd - clientX) * 0.4)));
+        scrollArea.scrollLeft -= delta;
+        scrolled = true;
+      }
+
+      // Automatically advance range selection in the direction of the drag
+      if (cellDragState.isMouseDown) {
+        if (cellDragState.holdTimer) {
+          clearTimeout(cellDragState.holdTimer);
+          cellDragState.holdTimer = null;
+        }
+        cellDragState.isDragging = true;
+        cellDragState.suppressClick = true;
+        document.body.classList.add('is-cell-dragging');
+        closeCellPopover();
+
+        // Determine target row based on vertical pointer position
+        const isAdmin = state.isAdmin && isCurrentUserPeter();
+        let targetRowIdx = cellDragState.startRowIndex;
+        if (isAdmin) {
+          for (let r = 0; r < cellDragState.allVisibleRows.length; r++) {
+            const rRect = cellDragState.allVisibleRows[r].getBoundingClientRect();
+            if (clientY >= rRect.top && clientY <= rRect.bottom) {
+              targetRowIdx = r;
+              break;
+            }
+            if (clientY < rRect.top && r === 0) {
+              targetRowIdx = 0;
+              break;
+            }
+            if (clientY > rRect.bottom && r === cellDragState.allVisibleRows.length - 1) {
+              targetRowIdx = r;
+              break;
+            }
+          }
+        }
+
+        const targetRow = cellDragState.allVisibleRows[targetRowIdx];
+        if (targetRow) {
+          const slots = Array.from(targetRow.querySelectorAll('td.col-slot'));
+          if (slots.length > 0) {
+            let targetColIdx = cellDragState.startColIndex;
+            if (clientX >= rightZoneStart) {
+              // Dragging rightwards: pick the slot visible near the right boundary
+              const probeX = Math.min(rect.right - 8, window.innerWidth - 8);
+              for (let c = slots.length - 1; c >= 0; c--) {
+                const sRect = slots[c].getBoundingClientRect();
+                if (sRect.left <= probeX) {
+                  targetColIdx = c;
+                  break;
+                }
+              }
+            } else if (clientX <= leftZoneEnd) {
+              // Dragging leftwards: pick the slot visible emerging from sticky columns
+              const probeX = stickyEdgeRight + 8;
+              for (let c = 0; c < slots.length; c++) {
+                const sRect = slots[c].getBoundingClientRect();
+                if (sRect.right >= probeX) {
+                  targetColIdx = c;
+                  break;
+                }
+              }
+            }
+            handleDragMoveToCoords(targetRowIdx, targetColIdx);
+          }
+        }
+      }
+
+      if (scrolled) {
+        cellDragState.autoScrollRaf = requestAnimationFrame(step);
+      } else {
+        cellDragState.autoScrollRaf = null;
+      }
+    }
+
+    cellDragState.autoScrollRaf = requestAnimationFrame(step);
+  }
+
+  function stopAutoScroll() {
+    if (cellDragState.autoScrollRaf) {
+      cancelAnimationFrame(cellDragState.autoScrollRaf);
+      cellDragState.autoScrollRaf = null;
     }
   }
 
@@ -1617,10 +1781,18 @@
     renderSchedule();
     syncToServer();
 
-    if (uniqueEmps.length === 1) {
-      showToast(`Updated ${count} cells for ${uniqueEmps[0].name}`);
+    if (!projectName || projectName.trim() === '') {
+      if (uniqueEmps.length === 1) {
+        showToast(`Cleared allocations on ${count} cell${count === 1 ? '' : 's'} for ${uniqueEmps[0].name}`);
+      } else {
+        showToast(`Cleared allocations on ${count} cells across ${uniqueEmps.length} team members`);
+      }
     } else {
-      showToast(`Updated ${count} cells across ${uniqueEmps.length} team members`);
+      if (uniqueEmps.length === 1) {
+        showToast(`Updated ${count} cell${count === 1 ? '' : 's'} for ${uniqueEmps[0].name}`);
+      } else {
+        showToast(`Updated ${count} cells across ${uniqueEmps.length} team members`);
+      }
     }
   }
 
@@ -3324,6 +3496,40 @@
       clearSelection();
       toggleSettingsDrawer(false);
       document.querySelectorAll('.modal').forEach(m => closeModal(m));
+      return;
+    }
+
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (
+        activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.tagName === 'SELECT' ||
+        activeEl.isContentEditable
+      );
+      if (isInput) return;
+
+      const hasOpenModal = document.querySelector('.modal:not(.hidden)');
+      if (hasOpenModal) return;
+
+      if (state.isViewOnly) return;
+
+      if (state.selectedCells && state.selectedCells.size > 0) {
+        const isAdmin = state.isAdmin && isCurrentUserPeter();
+        if (!isAdmin) {
+          const unauthorized = Array.from(state.selectedCells).some(k => {
+            const lastUnder = k.lastIndexOf('_');
+            const empId = k.substring(0, lastUnder);
+            return empId !== state.currentUserId;
+          });
+          if (unauthorized) {
+            showToast('Permission denied: You can only clear your own allocations', 'warning');
+            return;
+          }
+        }
+        e.preventDefault();
+        batchApplyToSelectedCells('', 0);
+      }
     }
   });
 

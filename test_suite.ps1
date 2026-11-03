@@ -269,6 +269,15 @@ Assert-Test "6.37 Admin mode enables 2D vertical and horizontal multi-cell selec
 $unfilledBadgeRenders = ($jsContent.Contains('emp-unfilled-pill')) -and ($jsContent.Contains('empUnfilledDays')) -and ($cssContent.Contains('.emp-unfilled-pill')) -and ($cssContent.Contains('.user-name-line'))
 Assert-Test "6.38 Small unfilled days/month badge renders beside each person's name excluding holidays" $unfilledBadgeRenders "Unfilled days indication placed beside employee name"
 
+$deleteKeyClearsSelected = ($jsContent.Contains("e.key === 'Delete' || e.key === 'Backspace'")) -and ($jsContent.Contains("batchApplyToSelectedCells('', 0)")) -and ($jsContent.Contains("state.selectedCells.size > 0")) -and ($jsContent.Contains("activeEl.tagName === 'INPUT'"))
+Assert-Test "6.39 Keyboard Delete key clears data across multi-selected cells" $deleteKeyClearsSelected "Delete and Backspace listeners with input guards clear selected cells"
+
+$autoScrollOnEdgeDrag = ($jsContent.Contains('checkAndTriggerAutoScroll')) -and ($jsContent.Contains('startAutoScroll')) -and ($jsContent.Contains('stopAutoScroll')) -and ($jsContent.Contains('autoScrollRaf')) -and ($jsContent.Contains('requestAnimationFrame'))
+Assert-Test "6.40 Auto-scroll left/right when dragging near screen borders with directional selection" $autoScrollOnEdgeDrag "Auto-scroll animation loop and dynamic slot advancement at screen borders verified"
+
+$defaultHoursUnderNameRemoved = (-not $jsContent.Contains('${emp.defaultHoursPerDay || 8}h/day')) -and ($htmlContent.Contains('<th>Default Daily Hrs</th>')) -and ($jsContent.Contains('change-hours-input')) -and ($jsContent.Contains('Default hours for'))
+Assert-Test "6.41 Default hours per day indicator removed under employee names in schedule and preserved in Team Members" $defaultHoursUnderNameRemoved "Removed from schedule employee cells and kept in Team Members modal"
+
 # -------------------------------------------------------------
 # SUMMARY REPORT
 # -------------------------------------------------------------
