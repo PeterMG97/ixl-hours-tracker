@@ -338,11 +338,11 @@ $monthAuditVerified = ($htmlContent.Contains('id="auditModal"')) -and `
     ($cssContent.Contains('.audit-kpi-card'))
 Assert-Test "6.56 Month-End Completeness Audit module with team KPIs and CSV export" $monthAuditVerified "Audit modal, team completeness metrics, missing days breakdown, and CSV export verified"
 
-$liveSyncVerified = ($jsContent.Contains('setSaveStatus')) -and `
-    ($cssContent.Contains('.beacon-amber')) -and `
-    ($cssContent.Contains('pulse-amber')) -and `
-    ($jsContent.Contains("setSaveStatus('saving')"))
-Assert-Test "6.57 Live Auto-Save Sync Indicator with dynamic saving and saved status states" $liveSyncVerified "Pulsing amber saving state, timestamped saved status, and dynamic beacon verified"
+$syncStatusVerified = ($jsContent.Contains("el.connectionText.textContent = 'Synced'")) -and `
+    ($jsContent.Contains("el.connectionText.textContent = 'Not Synced'")) -and `
+    ($cssContent.Contains('.beacon-green')) -and `
+    ($cssContent.Contains('.beacon-red'))
+Assert-Test "6.57 Connection status indicator with Synced / Not Synced states" $syncStatusVerified "Connection status with Synced and Not Synced states verified"
 
 
 

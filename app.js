@@ -527,37 +527,16 @@
     state.employees.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  let lastSyncTimeStr = '';
-
-  function setSaveStatus(status, detailMsg = '') {
-    if (!el.connectionLamp || !el.connectionText) return;
-    if (status === 'saving') {
-      el.connectionLamp.className = 'beacon-dot beacon-amber';
-      el.connectionText.textContent = 'Saving...';
-      if (el.connectionBadge) el.connectionBadge.title = 'Saving changes to database...';
-    } else if (status === 'saved') {
-      const now = new Date();
-      lastSyncTimeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      el.connectionLamp.className = 'beacon-dot beacon-green';
-      el.connectionText.textContent = 'Saved';
-      if (el.connectionBadge) {
-        el.connectionBadge.title = `All changes saved to database (Last: ${lastSyncTimeStr})`;
-      }
-    } else if (status === 'offline') {
-      el.connectionLamp.className = 'beacon-dot beacon-red';
-      el.connectionText.textContent = 'Offline';
-      if (el.connectionBadge) {
-        el.connectionBadge.title = detailMsg || 'Offline: changes cached in browser local storage';
-      }
-    }
-  }
-
   function setConnectionStatus(connected) {
     state.isConnected = connected;
     if (connected) {
-      setSaveStatus('saved');
+      el.connectionLamp.className = 'beacon-dot beacon-green';
+      el.connectionText.textContent = 'Synced';
+      if (el.connectionBadge) el.connectionBadge.title = 'Server Connection: Synced';
     } else {
-      setSaveStatus('offline');
+      el.connectionLamp.className = 'beacon-dot beacon-red';
+      el.connectionText.textContent = 'Not Synced';
+      if (el.connectionBadge) el.connectionBadge.title = 'Server Connection: Not Synced';
     }
   }
 
@@ -576,7 +555,6 @@
   async function syncToServer() {
     if (state.isViewOnly) return;
     sortAllData();
-    setSaveStatus('saving');
     try {
       const payload = {
         sections: state.sections,
@@ -594,15 +572,12 @@
       });
       if (res.ok) {
         setConnectionStatus(true);
-        setSaveStatus('saved');
       } else {
         setConnectionStatus(false);
-        setSaveStatus('offline', 'Sync warning: changes saved locally in browser.');
         showToast('Sync warning: changes saved locally in browser.', 'warning');
       }
     } catch (e) {
       setConnectionStatus(false);
-      setSaveStatus('offline', 'Offline: Changes cached locally.');
       showToast('Offline: Changes cached locally.', 'warning');
     }
   }
@@ -1422,6 +1397,36 @@
           e.stopPropagation();
           return;
         }
+        const empId = slot.getAttribute('data-emp-id');
+        const dateStr = slot.getAttribute('data-date');
+        if (!empId || !dateStr) return;
+
+        const isMulti = e.ctrlKey || e.metaKey;
+        const key = `${empId}_${dateStr}`;
+
+        if (isMulti) {
+          const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
+          if (!canEditThisRow) {
+            const currentEmp = state.employees.find(x => x.id === state.currentUserId);
+            showToast(`You can only select cells in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
+            return;
+          }
+          toggleCellSelection(empId, key, slot);
+          return;
+        }
+
+        // Left click: clear previous multi-selection, close popover, and stand on this cell
+        if (state.selectedCells.size > 0) {
+          clearSelection();
+        }
+        closeCellPopover();
+
+        // Stand on the cell (enables arrow navigation)
+        setKeyboardFocusedCell(empId, dateStr);
+      });
+
+      // Double-click opens edit popover directly for mouse users
+      slot.addEventListener('dblclick', (e) => {
         if (state.isViewOnly || state.currentUserId === 'view-all') {
           showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
           return;
@@ -1431,18 +1436,12 @@
         if (!empId || !dateStr) return;
 
         const targetBtn = slot.querySelector('.task-chip') || slot;
-        const key = `${empId}_${dateStr}`;
-        const isMulti = e.ctrlKey || e.metaKey;
-
-        // Permission check: Admin (Peter MOUNIR only) or Self can edit/select
         const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
 
         if (!canEditThisRow) {
           const targetEmp = state.employees.find(x => x.id === empId);
           const currentEmp = state.employees.find(x => x.id === state.currentUserId);
-          if (isMulti) {
-            showToast(`You can only select cells in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
-          } else if (isCurrentUserPeter()) {
+          if (isCurrentUserPeter()) {
             state.pendingAdminCell = { empId, dateStr, element: targetBtn };
             el.adminPinInput.value = '';
             el.pinErrorMsg.classList.add('hidden');
@@ -1452,23 +1451,6 @@
             showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
           }
           return;
-        }
-
-        if (isMulti) {
-          toggleCellSelection(empId, key, slot);
-          return;
-        }
-
-        // Normal click (not multi-select)
-        if (state.selectedCells.size > 0) {
-          if (state.selectedCells.has(key)) {
-            // Clicked an already selected cell: open multi-edit popover!
-            openMultiCellPopover(targetBtn);
-            return;
-          } else {
-            // Clicked a different cell: clear multi-selection and open this cell directly
-            clearSelection();
-          }
         }
 
         setKeyboardFocusedCell(empId, dateStr);
@@ -4983,17 +4965,42 @@
       return;
     }
 
-    // Enter or Space opens cell popover
+    // Enter or Space opens cell popover (edit mode for cell standing on)
     if ((e.key === 'Enter' || e.key === ' ') && state.activeKeyboardCell) {
       const isPopoverOpen = el.cellPopover && !el.cellPopover.classList.contains('hidden');
       if (!isPopoverOpen) {
         e.preventDefault();
-        const slot = document.querySelector(`td.col-slot[data-emp-id="${state.activeKeyboardCell.empId}"][data-date="${state.activeKeyboardCell.dateStr}"]`);
-        if (slot) {
-          const btn = slot.querySelector('button.task-chip');
-          if (btn) {
-            openCellPopover(state.activeKeyboardCell.empId, state.activeKeyboardCell.dateStr, btn);
+        const empId = state.activeKeyboardCell.empId;
+        const dateStr = state.activeKeyboardCell.dateStr;
+
+        if (state.isViewOnly || state.currentUserId === 'view-all') {
+          showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
+          return;
+        }
+
+        const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
+        const slot = document.querySelector(`td.col-slot[data-emp-id="${empId}"][data-date="${dateStr}"]`);
+        const targetBtn = slot ? (slot.querySelector('button.task-chip') || slot) : null;
+
+        if (!canEditThisRow) {
+          const targetEmp = state.employees.find(x => x.id === empId);
+          const currentEmp = state.employees.find(x => x.id === state.currentUserId);
+          if (isCurrentUserPeter() && targetBtn) {
+            state.pendingAdminCell = { empId, dateStr, element: targetBtn };
+            el.adminPinInput.value = '';
+            el.pinErrorMsg.classList.add('hidden');
+            openModal(el.adminPinModal);
+            showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
+          } else {
+            showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
           }
+          return;
+        }
+
+        if (state.selectedCells && state.selectedCells.size > 1 && state.selectedCells.has(`${empId}_${dateStr}`)) {
+          openMultiCellPopover(targetBtn);
+        } else if (targetBtn) {
+          openCellPopover(empId, dateStr, targetBtn);
         }
         return;
       }
