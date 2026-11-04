@@ -1669,37 +1669,30 @@
           clearSelection();
         }
 
-        const isTouchOrMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
-        const wasAlreadyFocused = state.activeKeyboardCell && state.activeKeyboardCell.empId === empId && state.activeKeyboardCell.dateStr === dateStr;
-
         setKeyboardFocusedCell(empId, dateStr);
 
-        // On mobile/touch devices or clicking an already focused cell: open popover directly!
-        if (isTouchOrMobile || wasAlreadyFocused) {
-          if (state.isViewOnly || state.currentUserId === 'view-all') {
-            showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
-            return;
-          }
-          const targetBtn = slot.querySelector('.task-chip') || slot;
-          const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
-          if (!canEditThisRow) {
-            const targetEmp = state.employees.find(x => x.id === empId);
-            const currentEmp = state.employees.find(x => x.id === state.currentUserId);
-            if (isCurrentUserPeter()) {
-              state.pendingAdminCell = { empId, dateStr, element: targetBtn };
-              el.adminPinInput.value = '';
-              el.pinErrorMsg.classList.add('hidden');
-              openModal(el.adminPinModal);
-              showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
-            } else {
-              showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
-            }
-            return;
-          }
-          openCellPopover(empId, dateStr, targetBtn);
-        } else {
-          closeCellPopover();
+        // Open assignment popover directly on single click (mobile & desktop)
+        if (state.isViewOnly || state.currentUserId === 'view-all') {
+          showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
+          return;
         }
+        const targetBtn = slot.querySelector('.task-chip') || slot;
+        const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
+        if (!canEditThisRow) {
+          const targetEmp = state.employees.find(x => x.id === empId);
+          const currentEmp = state.employees.find(x => x.id === state.currentUserId);
+          if (isCurrentUserPeter()) {
+            state.pendingAdminCell = { empId, dateStr, element: targetBtn };
+            el.adminPinInput.value = '';
+            el.pinErrorMsg.classList.add('hidden');
+            openModal(el.adminPinModal);
+            showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
+          } else {
+            showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
+          }
+          return;
+        }
+        openCellPopover(empId, dateStr, targetBtn);
       });
 
       // Double-click opens edit popover directly for mouse users
