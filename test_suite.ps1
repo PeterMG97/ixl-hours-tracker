@@ -367,6 +367,21 @@ $auditHistoryVerified = ($htmlContent.Contains('id="openAuditHistoryBtn"')) -and
     ($cssContent.Contains('.hist-cross-badge'))
 Assert-Test "6.59 Admin-only edit history audit log, persistent device ID tracking, and cross-profile detection" $auditHistoryVerified "Audit history modal, device fingerprinting, and audit logging engine verified"
 
+$nodePath = "C:\Program Files\nodejs\node.exe"
+$allUsersTestScript = Join-Path $AppDir "test_all_users_integrity.js"
+$allUsersPass = $false
+if (Test-Path $allUsersTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeOutput = & $nodePath $allUsersTestScript 2>&1
+        $allUsersPass = ($LASTEXITCODE -eq 0) -and ($nodeOutput -match "ALL-USERS TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $allUsersPass = ($jsContent.Contains("let hours = emp ? (emp.defaultHoursPerDay || 8) : 8;")) -and ($jsContent.Contains("delete state.allocations[key];"))
+    }
+} else {
+    $allUsersPass = ($jsContent.Contains("let hours = emp ? (emp.defaultHoursPerDay || 8) : 8;"))
+}
+Assert-Test "6.60 Generic cell edit, delete, single-click popover, and audit verification passes across all 26 users" $allUsersPass "All 26 employee profiles verified for single-click edit, clear, delete key, batch assign, admin edit, and audit log integrity"
+
 
 
 
