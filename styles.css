@@ -3097,7 +3097,8 @@ body.view-only .task-chip {
   color: #93c5fd !important;
 }
 
-[data-theme="dark"] #projectPeriodResultsArea > div > div {
+[data-theme="dark"] #projectPeriodResultsArea > div > div,
+[data-theme="dark"] #contribPeriodResultsArea > div > div {
   background: #1e293b !important;
   border-color: #334155 !important;
 }

@@ -835,6 +835,79 @@
           </div>
         </div>
 
+        <!-- Custom Period Allocation Calculator for Employee (Start Date & End Date) -->
+        <div class="project-range-card contrib-range-card" id="contribRangeCard" style="margin-bottom:18px; padding:14px 16px; background:var(--bg-subtle, #f8fafc); border-radius:10px; border:1px solid var(--border-color);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary); opacity:0.9;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <strong style="font-size:13px; color:var(--text-main);">Period Allocation Calculator:</strong>
+              <span class="text-xs text-muted">Enter a custom period to calculate allocated hours &amp; days</span>
+            </div>
+            <div id="contribRangeSummaryBadge" class="project-range-summary-badge hidden" style="font-size:12px; padding:4px 10px; border-radius:6px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); color:var(--primary); font-weight:600;">
+              <span id="contribRangeSummaryText">Period: 0h &bull; 0 days</span>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label for="contribRangeStartDate" style="font-size:11px; font-weight:600; color:var(--text-muted); margin:0;">Start Date (DD/MM/YYYY):</label>
+              <div class="dmy-datepicker-wrapper dmy-datepicker-sm">
+                <input type="text" id="contribRangeStartDate" class="form-control form-control-sm dmy-date-input" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off" style="width:130px;" title="Start Date (DD/MM/YYYY)">
+                <button type="button" class="dmy-cal-toggle-btn" data-target="contribRangeStartDate" title="Choose start date from calendar (DD/MM/YYYY)" aria-label="Open Calendar">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label for="contribRangeEndDate" style="font-size:11px; font-weight:600; color:var(--text-muted); margin:0;">End Date (DD/MM/YYYY):</label>
+              <div class="dmy-datepicker-wrapper dmy-datepicker-sm">
+                <input type="text" id="contribRangeEndDate" class="form-control form-control-sm dmy-date-input" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off" style="width:130px;" title="End Date (DD/MM/YYYY)">
+                <button type="button" class="dmy-cal-toggle-btn" data-target="contribRangeEndDate" title="Choose end date from calendar (DD/MM/YYYY)" aria-label="Open Calendar">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button type="button" class="btn btn-sm btn-primary" id="contribApplyRangeBtn" title="Calculate allocated hours & days for this period">
+                Calculate Period Hours &amp; Days
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" id="contribClearRangeBtn" title="Clear date range and return to month view">
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Period Result Details Block for Employee Contributions -->
+        <div id="contribPeriodResultsArea" class="hidden" style="margin-bottom:18px;">
+          <div style="background:var(--bg-subtle, #f8fafc); border-radius:10px; border:1px solid var(--border-color); padding:14px 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <strong style="font-size:13px; color:var(--text-main);">Period Allocation Results:</strong>
+              <span id="contribPeriodResultRangeText" class="text-xs text-muted"></span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:12px;">
+              <div style="padding:10px 12px; border-radius:8px; background:var(--card-bg); border:1px solid var(--border-color);">
+                <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Period Hours</div>
+                <div id="contribPeriodResultHours" style="font-size:22px; font-weight:700; color:var(--primary); margin-top:2px;">0h</div>
+              </div>
+              <div style="padding:10px 12px; border-radius:8px; background:var(--card-bg); border:1px solid var(--border-color);">
+                <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Period Logged Days</div>
+                <div id="contribPeriodResultDays" style="font-size:22px; font-weight:700; color:#059669; margin-top:2px;">0 days</div>
+              </div>
+              <div style="padding:10px 12px; border-radius:8px; background:var(--card-bg); border:1px solid var(--border-color);">
+                <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Active Projects</div>
+                <div id="contribPeriodResultProjectsCount" style="font-size:22px; font-weight:700; color:var(--text-main); margin-top:2px;">0</div>
+              </div>
+            </div>
+            <div id="contribPeriodResultProjectsList" style="font-size:12px; color:var(--text-muted); line-height:1.6;"></div>
+          </div>
+        </div>
+
         <!-- Project Breakdown Badges -->
         <div style="margin-bottom: 16px;">
           <div style="font-size:12px; font-weight:600; margin-bottom:8px; color:var(--text-main);">Hours by Project &amp; Category:</div>

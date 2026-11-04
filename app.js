@@ -243,6 +243,19 @@
     contribDaysTableBody: document.getElementById('contribDaysTableBody'),
     contribFilterAll: document.getElementById('contribFilterAll'),
     contribFilterRecorded: document.getElementById('contribFilterRecorded'),
+    contribRangeStartDate: document.getElementById('contribRangeStartDate'),
+    contribRangeEndDate: document.getElementById('contribRangeEndDate'),
+    contribApplyRangeBtn: document.getElementById('contribApplyRangeBtn'),
+    contribClearRangeBtn: document.getElementById('contribClearRangeBtn'),
+    contribRangeSummaryBadge: document.getElementById('contribRangeSummaryBadge'),
+    contribRangeSummaryText: document.getElementById('contribRangeSummaryText'),
+    contribRangeCard: document.getElementById('contribRangeCard'),
+    contribPeriodResultsArea: document.getElementById('contribPeriodResultsArea'),
+    contribPeriodResultRangeText: document.getElementById('contribPeriodResultRangeText'),
+    contribPeriodResultHours: document.getElementById('contribPeriodResultHours'),
+    contribPeriodResultDays: document.getElementById('contribPeriodResultDays'),
+    contribPeriodResultProjectsCount: document.getElementById('contribPeriodResultProjectsCount'),
+    contribPeriodResultProjectsList: document.getElementById('contribPeriodResultProjectsList'),
 
     // Project Monthly Modal & Mini Calendar
     projectMonthlyModal: document.getElementById('projectMonthlyModal'),
@@ -3738,6 +3751,8 @@
   const APP_START_MONTH = '2026-11';
 
   let contribCalDisplayYear = 2026;
+  let contribRangeStart = null;
+  let contribRangeEnd = null;
 
   function shiftMonthYM(ym, delta) {
     if (!ym) ym = state.currentMonth || APP_START_MONTH;
@@ -3885,11 +3900,106 @@
     }
   }
 
+  function getEmployeeAllocationsForRange(empId, startDt, endDt) {
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return null;
+    const sec = state.sections.find(s => s.id === emp.sectionId) || { name: 'Engineering Team', location: 'Cairo' };
+    const defaultHours = emp.defaultHoursPerDay || (sec.location === 'Istanbul' ? 9 : 8);
+
+    let totalRecordedHours = 0;
+    let loggedWorkdaysCount = 0;
+    let totalWorkingDays = 0;
+    let daysOffCount = 0;
+    let noProjectCount = 0;
+    const projectHoursMap = {};
+    const dayEntries = [];
+
+    const curr = parseLocalDate(startDt);
+    const end = parseLocalDate(endDt);
+
+    while (curr <= end) {
+      const y = curr.getFullYear();
+      const m = String(curr.getMonth() + 1).padStart(2, '0');
+      const d = String(curr.getDate()).padStart(2, '0');
+      const dateStr = `${y}-${m}-${d}`;
+      const dow = curr.getDay();
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dowName = dayNames[dow] || '';
+
+      const isWk = isWeekendForLocation(dow, sec.location);
+      if (!isWk) {
+        totalWorkingDays++;
+      }
+
+      const key = `${emp.id}_${dateStr}`;
+      const alloc = state.allocations[key];
+      const hasVal = Boolean(alloc && alloc.project);
+      const projectName = hasVal ? alloc.project : '';
+      const hours = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : defaultHours) : 0;
+
+      let isRecordedWork = false;
+      let dayTypeLabel = isWk ? `${sec.location} Weekend` : 'Workday';
+
+      if (projectName === 'Day OFF') {
+        daysOffCount++;
+      } else if (projectName === 'NO PROJECT' || projectName === 'NO STATUS') {
+        noProjectCount++;
+      } else if (hasVal && projectName) {
+        isRecordedWork = true;
+        totalRecordedHours += hours;
+        loggedWorkdaysCount++;
+
+        if (!projectHoursMap[projectName]) {
+          const pObj = state.projects.find(p => p.name === projectName);
+          let category = 'Project';
+          if (projectName.startsWith('Tender')) category = 'Tender';
+          else if (projectName.startsWith('Training') || projectName.startsWith('Academy') || projectName === 'Different Team Support') category = 'Special';
+          else if (pObj && pObj.category) category = pObj.category;
+
+          projectHoursMap[projectName] = { hours: 0, days: 0, category };
+        }
+        projectHoursMap[projectName].hours += hours;
+        projectHoursMap[projectName].days += 1;
+      }
+
+      dayEntries.push({
+        dateStr,
+        dowName,
+        num: curr.getDate(),
+        isWeekend: isWk,
+        projectName,
+        hours,
+        hasVal,
+        isRecordedWork,
+        dayTypeLabel
+      });
+
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    return {
+      totalRecordedHours,
+      loggedWorkdaysCount,
+      totalWorkingDays,
+      daysOffCount,
+      noProjectCount,
+      projectHoursMap,
+      dayEntries
+    };
+  }
+
   function openEmployeeContributions(empId) {
     const emp = state.employees.find(e => e.id === empId);
     if (!emp) return;
     state.currentContribEmpId = empId;
     state.contribFilter = 'all';
+    contribRangeStart = null;
+    contribRangeEnd = null;
+    if (el.contribRangeStartDate) el.contribRangeStartDate.value = '';
+    if (el.contribRangeEndDate) el.contribRangeEndDate.value = '';
+    if (el.contribRangeCard) el.contribRangeCard.classList.remove('has-active-range');
+    if (el.contribRangeSummaryBadge) el.contribRangeSummaryBadge.classList.add('hidden');
+    if (el.contribPeriodResultsArea) el.contribPeriodResultsArea.classList.add('hidden');
     state.currentContribMonth = (state.currentMonth && state.currentMonth >= APP_START_MONTH) ? state.currentMonth : APP_START_MONTH;
     contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10) || 2026);
     closeContribCalendarPopover();
@@ -3924,8 +4034,8 @@
       el.contribPrevMonthBtn.classList.toggle('is-disabled', isAtStart);
     }
 
-    const days = getDaysInMonth(activeMonth);
     const defaultHours = emp.defaultHoursPerDay || (sec.location === 'Istanbul' ? 9 : 8);
+    const isCustomRange = Boolean(contribRangeStart && contribRangeEnd);
 
     let totalRecordedHours = 0;
     let loggedWorkdaysCount = 0;
@@ -3933,58 +4043,108 @@
     let daysOffCount = 0;
     let noProjectCount = 0;
 
-    const projectHoursMap = {};
-    const dayEntries = [];
+    let projectHoursMap = {};
+    let dayEntries = [];
 
-    days.forEach(d => {
-      const isWk = isWeekendForLocation(d.dow, sec.location);
-      if (!isWk) {
-        totalWorkingDays++;
+    if (isCustomRange) {
+      const rangeData = getEmployeeAllocationsForRange(emp.id, contribRangeStart, contribRangeEnd);
+      totalRecordedHours = rangeData.totalRecordedHours;
+      loggedWorkdaysCount = rangeData.loggedWorkdaysCount;
+      totalWorkingDays = rangeData.totalWorkingDays;
+      daysOffCount = rangeData.daysOffCount;
+      noProjectCount = rangeData.noProjectCount;
+      projectHoursMap = rangeData.projectHoursMap;
+      dayEntries = rangeData.dayEntries;
+
+      if (el.contribRangeCard) el.contribRangeCard.classList.add('has-active-range');
+      if (el.contribRangeSummaryBadge && el.contribRangeSummaryText) {
+        el.contribRangeSummaryBadge.classList.remove('hidden');
+        el.contribRangeSummaryText.innerHTML = `Period (<strong>${formatDateDMY(contribRangeStart)}</strong> &ndash; <strong>${formatDateDMY(contribRangeEnd)}</strong>): <strong>${totalRecordedHours}h</strong> &bull; <strong>${loggedWorkdaysCount} days</strong>`;
+      }
+      if (el.contribMonthDisplay) {
+        el.contribMonthDisplay.textContent = `Period: ${formatDateDMY(contribRangeStart)} - ${formatDateDMY(contribRangeEnd)}`;
       }
 
-      const key = `${emp.id}_${d.dateStr}`;
-      const alloc = state.allocations[key];
-      const hasVal = Boolean(alloc && alloc.project);
-      const projectName = hasVal ? alloc.project : '';
-      const hours = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : defaultHours) : 0;
-
-      let isRecordedWork = false;
-      let dayTypeLabel = isWk ? `${sec.location} Weekend` : 'Workday';
-
-      if (projectName === 'Day OFF') {
-        daysOffCount++;
-      } else if (projectName === 'NO PROJECT' || projectName === 'NO STATUS') {
-        noProjectCount++;
-      } else if (hasVal && projectName) {
-        isRecordedWork = true;
-        totalRecordedHours += hours;
-        loggedWorkdaysCount++;
-
-        if (!projectHoursMap[projectName]) {
-          const pObj = state.projects.find(p => p.name === projectName);
-          let category = 'Project';
-          if (projectName.startsWith('Tender')) category = 'Tender';
-          else if (projectName.startsWith('Training') || projectName.startsWith('Academy') || projectName === 'Different Team Support') category = 'Special';
-          else if (pObj && pObj.category) category = pObj.category;
-
-          projectHoursMap[projectName] = { hours: 0, days: 0, category };
+      if (el.contribPeriodResultsArea) {
+        el.contribPeriodResultsArea.classList.remove('hidden');
+        if (el.contribPeriodResultRangeText) {
+          el.contribPeriodResultRangeText.textContent = `${formatDateDMY(contribRangeStart)} to ${formatDateDMY(contribRangeEnd)}`;
         }
-        projectHoursMap[projectName].hours += hours;
-        projectHoursMap[projectName].days += 1;
+        if (el.contribPeriodResultHours) el.contribPeriodResultHours.textContent = `${totalRecordedHours}h`;
+        if (el.contribPeriodResultDays) el.contribPeriodResultDays.textContent = `${loggedWorkdaysCount} workday${loggedWorkdaysCount === 1 ? '' : 's'}`;
+        const activeProjectsCount = Object.keys(projectHoursMap).length;
+        if (el.contribPeriodResultProjectsCount) el.contribPeriodResultProjectsCount.textContent = activeProjectsCount;
+        if (el.contribPeriodResultProjectsList) {
+          const sortedProjects = Object.keys(projectHoursMap).sort((a,b) => projectHoursMap[b].hours - projectHoursMap[a].hours);
+          if (sortedProjects.length === 0) {
+            el.contribPeriodResultProjectsList.innerHTML = `<span>No recorded project hours for ${emp.name} between ${formatDateDMY(contribRangeStart)} and ${formatDateDMY(contribRangeEnd)}.</span>`;
+          } else {
+            el.contribPeriodResultProjectsList.innerHTML = `<span style="font-weight:600; color:var(--text-main);">Period Projects:</span> ` +
+              sortedProjects.map(pName => {
+                const item = projectHoursMap[pName];
+                return `<strong>${pName}</strong> (${item.hours}h, ${item.days}d)`;
+              }).join(' &bull; ');
+          }
+        }
       }
+    } else {
+      if (el.contribRangeCard) el.contribRangeCard.classList.remove('has-active-range');
+      if (el.contribRangeSummaryBadge) el.contribRangeSummaryBadge.classList.add('hidden');
+      if (el.contribPeriodResultsArea) el.contribPeriodResultsArea.classList.add('hidden');
+      if (el.contribMonthDisplay) el.contribMonthDisplay.textContent = formatMonthMY(activeMonth);
 
-      dayEntries.push({
-        dateStr: d.dateStr,
-        dowName: d.name,
-        num: d.num,
-        isWeekend: isWk,
-        projectName,
-        hours,
-        hasVal,
-        isRecordedWork,
-        dayTypeLabel
+      const days = getDaysInMonth(activeMonth);
+
+      days.forEach(d => {
+        const isWk = isWeekendForLocation(d.dow, sec.location);
+        if (!isWk) {
+          totalWorkingDays++;
+        }
+
+        const key = `${emp.id}_${d.dateStr}`;
+        const alloc = state.allocations[key];
+        const hasVal = Boolean(alloc && alloc.project);
+        const projectName = hasVal ? alloc.project : '';
+        const hours = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : defaultHours) : 0;
+
+        let isRecordedWork = false;
+        let dayTypeLabel = isWk ? `${sec.location} Weekend` : 'Workday';
+
+        if (projectName === 'Day OFF') {
+          daysOffCount++;
+        } else if (projectName === 'NO PROJECT' || projectName === 'NO STATUS') {
+          noProjectCount++;
+        } else if (hasVal && projectName) {
+          isRecordedWork = true;
+          totalRecordedHours += hours;
+          loggedWorkdaysCount++;
+
+          if (!projectHoursMap[projectName]) {
+            const pObj = state.projects.find(p => p.name === projectName);
+            let category = 'Project';
+            if (projectName.startsWith('Tender')) category = 'Tender';
+            else if (projectName.startsWith('Training') || projectName.startsWith('Academy') || projectName === 'Different Team Support') category = 'Special';
+            else if (pObj && pObj.category) category = pObj.category;
+
+            projectHoursMap[projectName] = { hours: 0, days: 0, category };
+          }
+          projectHoursMap[projectName].hours += hours;
+          projectHoursMap[projectName].days += 1;
+        }
+
+        dayEntries.push({
+          dateStr: d.dateStr,
+          dowName: d.name,
+          num: d.num,
+          isWeekend: isWk,
+          projectName,
+          hours,
+          hasVal,
+          isRecordedWork,
+          dayTypeLabel
+        });
       });
-    });
+    }
 
     if (el.contribAvatar) el.contribAvatar.textContent = getInitials(emp.name);
     if (el.contribEmpNameDisplay) el.contribEmpNameDisplay.textContent = emp.name;
@@ -4005,6 +4165,10 @@
 
     if (el.contribOffDays) el.contribOffDays.textContent = `${daysOffCount + noProjectCount} days`;
     if (el.contribOffBreakdown) el.contribOffBreakdown.textContent = `${daysOffCount} Off | ${noProjectCount} No Project`;
+
+    if (el.contribFilterAll) {
+      el.contribFilterAll.textContent = isCustomRange ? 'All Period Days' : 'All Month Days';
+    }
 
     // Render Project Breakdown Chips
     if (el.contribProjectChips) {
@@ -4098,6 +4262,53 @@
     }
   }
 
+  // Employee Date Range Period Handlers (Start Date & End Date)
+  if (el.contribApplyRangeBtn) {
+    el.contribApplyRangeBtn.addEventListener('click', () => {
+      const rawStart = el.contribRangeStartDate ? el.contribRangeStartDate.value : '';
+      const rawEnd = el.contribRangeEndDate ? el.contribRangeEndDate.value : '';
+      const startVal = parseDateInputToISO(rawStart);
+      const endVal = parseDateInputToISO(rawEnd);
+      if (!startVal || !endVal) {
+        showToast('Please specify both Start Date and End Date (DD/MM/YYYY).', 'warning');
+        return;
+      }
+      if (startVal > endVal) {
+        showToast('Start Date cannot be after End Date.', 'warning');
+        return;
+      }
+      let finalStart = startVal;
+      if (finalStart < APP_START_MONTH + '-01') {
+        finalStart = APP_START_MONTH + '-01';
+        if (el.contribRangeStartDate) el.contribRangeStartDate.value = formatISOToDMY(finalStart);
+        showToast('Start Date adjusted to ' + formatDateDMY(finalStart) + ' (app start date).', 'info');
+      }
+      contribRangeStart = finalStart;
+      contribRangeEnd = endVal;
+      renderEmployeeContributions();
+      showToast(`Period filtered: ${formatDateDMY(finalStart)} to ${formatDateDMY(endVal)}`, 'success');
+    });
+  }
+
+  if (el.contribClearRangeBtn) {
+    el.contribClearRangeBtn.addEventListener('click', () => {
+      contribRangeStart = null;
+      contribRangeEnd = null;
+      if (el.contribRangeStartDate) el.contribRangeStartDate.value = '';
+      if (el.contribRangeEndDate) el.contribRangeEndDate.value = '';
+      renderEmployeeContributions();
+      showToast('Cleared custom date range, returning to monthly view.');
+    });
+  }
+
+  const handleContribRangeKeydown = (e) => {
+    if (e.key === 'Enter') {
+      if (el.contribApplyRangeBtn) el.contribApplyRangeBtn.click();
+    }
+  };
+  if (el.contribRangeStartDate) el.contribRangeStartDate.addEventListener('keydown', handleContribRangeKeydown);
+  if (el.contribRangeEndDate) el.contribRangeEndDate.addEventListener('keydown', handleContribRangeKeydown);
+
   if (el.contribFilterAll) {
     el.contribFilterAll.addEventListener('click', () => {
       state.contribFilter = 'all';
@@ -4130,6 +4341,10 @@
   if (el.contribPrevMonthBtn) {
     el.contribPrevMonthBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      contribRangeStart = null;
+      contribRangeEnd = null;
+      if (el.contribRangeStartDate) el.contribRangeStartDate.value = '';
+      if (el.contribRangeEndDate) el.contribRangeEndDate.value = '';
       const current = state.currentContribMonth || state.currentMonth || APP_START_MONTH;
       if (current > APP_START_MONTH) {
         state.currentContribMonth = shiftMonthYM(current, -1);
@@ -4145,6 +4360,10 @@
   if (el.contribNextMonthBtn) {
     el.contribNextMonthBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      contribRangeStart = null;
+      contribRangeEnd = null;
+      if (el.contribRangeStartDate) el.contribRangeStartDate.value = '';
+      if (el.contribRangeEndDate) el.contribRangeEndDate.value = '';
       const current = state.currentContribMonth || state.currentMonth || APP_START_MONTH;
       state.currentContribMonth = shiftMonthYM(current, 1);
       contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10));
@@ -4157,6 +4376,10 @@
 
   if (el.contribMonthSelect) {
     el.contribMonthSelect.addEventListener('change', () => {
+      contribRangeStart = null;
+      contribRangeEnd = null;
+      if (el.contribRangeStartDate) el.contribRangeStartDate.value = '';
+      if (el.contribRangeEndDate) el.contribRangeEndDate.value = '';
       if (el.contribMonthSelect.value >= APP_START_MONTH) {
         state.currentContribMonth = el.contribMonthSelect.value;
         contribCalDisplayYear = Math.max(2026, parseInt(state.currentContribMonth.split('-')[0], 10));

@@ -344,6 +344,15 @@ $syncStatusVerified = ($jsContent.Contains("el.connectionText.textContent = 'Syn
     ($cssContent.Contains('.beacon-red'))
 Assert-Test "6.57 Connection status indicator with Synced / Not Synced states" $syncStatusVerified "Connection status with Synced and Not Synced states verified"
 
+$contribDateRangeVerified = ($htmlContent.Contains('id="contribRangeStartDate"')) -and `
+    ($htmlContent.Contains('id="contribRangeEndDate"')) -and `
+    ($htmlContent.Contains('id="contribApplyRangeBtn"')) -and `
+    ($htmlContent.Contains('id="contribRangeSummaryBadge"')) -and `
+    ($jsContent.Contains('getEmployeeAllocationsForRange')) -and `
+    ($jsContent.Contains('contribRangeStart')) -and `
+    ($htmlContent.Contains('class="project-range-card contrib-range-card"'))
+Assert-Test "6.58 Employee contributions modal features custom date range period query (Start/End Date) with hours & days breakdown" $contribDateRangeVerified "Employee contributions custom period inputs, calculations, and project hours & days engine verified"
+
 
 
 
