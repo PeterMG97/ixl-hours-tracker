@@ -2,4 +2,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+*.exe
+*.msi
 cloudflared.exe
+firebase.exe
+
