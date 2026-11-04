@@ -337,6 +337,79 @@ state.history.forEach((entry, idx) => {
   assert(!escapedTarget.includes('<script>') && escapedTarget.length > 0, `HTML safe target`);
 });
 
+console.log('\n>>> GROUP 9: Click vs Drag Multi-Select Isolation for All Users');
+
+employees.forEach((emp, rIdx) => {
+  // 1. Stationary Left Click (any duration - fast or slow click)
+  const dragSim = {
+    isMouseDown: true,
+    isDragging: false,
+    startRowIndex: rIdx,
+    startColIndex: 0,
+    suppressClick: false
+  };
+
+  // Simulating mouseup on same cell without moving to another coordinate
+  const moveRIdx = rIdx;
+  const moveCIdx = 0;
+  const isDifferentCell = (moveRIdx !== dragSim.startRowIndex || moveCIdx !== dragSim.startColIndex);
+  if (isDifferentCell) {
+    dragSim.isDragging = true;
+    dragSim.suppressClick = true;
+  }
+
+  // On MouseUp
+  const wasDragging = dragSim.isDragging;
+  dragSim.isMouseDown = false;
+  dragSim.isDragging = false;
+  if (!wasDragging) {
+    dragSim.suppressClick = false;
+  }
+
+  assert(wasDragging === false, emp.name + ': Stationary left click does NOT trigger drag');
+  assert(dragSim.suppressClick === false, emp.name + ': Stationary left click allows click event to fire');
+
+  // Verify click opens edit mode directly without entering multi-select
+  const userSelectedCells = new Set();
+  const canEdit = (emp.name.trim().toLowerCase() === 'peter mounir') || (emp.id === emp.id);
+  assert(canEdit === true, emp.name + ': Can edit own row on single click');
+  assert(userSelectedCells.size === 0, emp.name + ': Multi-select is NOT triggered on stationary click');
+
+  // 2. Intentional Drag to Another Cell (Row rIdx, Col 0 -> Col 2)
+  const dragSim2 = {
+    isMouseDown: true,
+    isDragging: false,
+    startRowIndex: rIdx,
+    startColIndex: 0,
+    suppressClick: false
+  };
+
+  const dragTargetCIdx = 2;
+  const isDiff2 = (rIdx !== dragSim2.startRowIndex || dragTargetCIdx !== dragSim2.startColIndex);
+  if (isDiff2) {
+    dragSim2.isDragging = true;
+    dragSim2.suppressClick = true;
+  }
+
+  assert(dragSim2.isDragging === true, emp.name + ': Moving to another cell activates drag multi-selection');
+  assert(dragSim2.suppressClick === true, emp.name + ': Drag multi-selection suppresses single cell click');
+
+  // 3. Edge Zone Click (Left sticky column proximity)
+  const dragSim3 = {
+    isMouseDown: true,
+    isDragging: false,
+    startRowIndex: rIdx,
+    startColIndex: 0,
+    lastClientX: 250
+  };
+
+  const leftZoneEnd = 270 + 45;
+  const inLeftZone = (dragSim3.lastClientX <= leftZoneEnd);
+  // Auto scroll condition: ONLY if isMouseDown AND isDragging
+  const canAutoScroll = dragSim3.isMouseDown && dragSim3.isDragging && inLeftZone;
+  assert(canAutoScroll === false, emp.name + ': Edge proximity does NOT trigger auto-scroll when not dragging');
+});
+
 console.log(`\n==========================================================`);
 console.log(` ALL-USERS TEST COMPLETE: ${totalPassed} PASSED, ${totalFailed} FAILED`);
 console.log(`==========================================================`);

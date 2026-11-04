@@ -1913,22 +1913,9 @@
 
     if (cellDragState.holdTimer) {
       clearTimeout(cellDragState.holdTimer);
+      cellDragState.holdTimer = null;
     }
-
-    // Left click and hold timer (220ms): selecting this cell upon hold
-    cellDragState.holdTimer = setTimeout(() => {
-      if (!cellDragState.isMouseDown) return;
-      cellDragState.isHoldSelecting = true;
-      cellDragState.suppressClick = true;
-      document.body.classList.add('is-cell-dragging');
-      closeCellPopover();
-
-      // Ensure keyboard focus stands totally on this held cell
-      setKeyboardFocusedCell(empId, dateStr);
-
-      // Hold established: select this single cell
-      activate2DSelection(startRowIndex, startColIndex);
-    }, 220);
+    cellDragState.isHoldSelecting = false;
   }
 
   function handleDragMoveToSlot(slot) {
@@ -1950,8 +1937,9 @@
     const isAdmin = state.isAdmin && isCurrentUserPeter();
     const effectiveRIdx = isAdmin ? rIdx : cellDragState.startRowIndex;
 
-    // If moved to a different coordinate or hold is already active, activate drag selection
-    if (effectiveRIdx !== cellDragState.startRowIndex || cIdx !== cellDragState.startColIndex || cellDragState.isHoldSelecting) {
+    // Only activate drag multi-selection when the pointer moves to a DIFFERENT cell coordinate
+    const isDifferentCell = (effectiveRIdx !== cellDragState.startRowIndex || cIdx !== cellDragState.startColIndex);
+    if (isDifferentCell || cellDragState.isDragging) {
       if (cellDragState.holdTimer) {
         clearTimeout(cellDragState.holdTimer);
         cellDragState.holdTimer = null;
@@ -2001,7 +1989,9 @@
     cellDragState.lastClientX = e.clientX;
     cellDragState.lastClientY = e.clientY;
 
-    checkAndTriggerAutoScroll();
+    if (cellDragState.isDragging) {
+      checkAndTriggerAutoScroll();
+    }
 
     const hovered = document.elementFromPoint(e.clientX, e.clientY);
     if (!hovered) return;
@@ -2091,7 +2081,7 @@
   }
 
   function checkAndTriggerAutoScroll() {
-    if (!cellDragState.isMouseDown) {
+    if (!cellDragState.isMouseDown || !cellDragState.isDragging) {
       stopAutoScroll();
       return;
     }
