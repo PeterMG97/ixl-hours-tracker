@@ -353,6 +353,20 @@ $contribDateRangeVerified = ($htmlContent.Contains('id="contribRangeStartDate"')
     ($htmlContent.Contains('class="project-range-card contrib-range-card"'))
 Assert-Test "6.58 Employee contributions modal features custom date range period query (Start/End Date) with hours & days breakdown" $contribDateRangeVerified "Employee contributions custom period inputs, calculations, and project hours & days engine verified"
 
+$auditHistoryVerified = ($htmlContent.Contains('id="openAuditHistoryBtn"')) -and `
+    ($htmlContent.Contains('id="auditHistoryModal"')) -and `
+    ($htmlContent.Contains('id="histLogTableBody"')) -and `
+    ($htmlContent.Contains('id="histDevicesTableBody"')) -and `
+    ($htmlContent.Contains('id="exportHistoryCsvBtn"')) -and `
+    ($jsContent.Contains('getOrCreateDeviceId')) -and `
+    ($jsContent.Contains('getDeviceFingerprint')) -and `
+    ($jsContent.Contains('logAuditEvent')) -and `
+    ($jsContent.Contains('initAuditHistory')) -and `
+    ($jsContent.Contains('exportHistoryToCsv')) -and `
+    ($cssContent.Contains('.audit-history-kpis')) -and `
+    ($cssContent.Contains('.hist-cross-badge'))
+Assert-Test "6.59 Admin-only edit history audit log, persistent device ID tracking, and cross-profile detection" $auditHistoryVerified "Audit history modal, device fingerprinting, and audit logging engine verified"
+
 
 
 

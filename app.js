@@ -91,6 +91,8 @@
     projects: [],
     statuses: ["Day OFF", "NO PROJECT", "NO STATUS"],
     allocations: {}, // "empId_YYYY-MM-DD" -> { project: string, hours: number }
+    history: [],
+    deviceProfiles: {},
     currentMonth: "2026-11", // Fresh start month
     todayStr: "2026-11-01",
     currentUserId: getStoredItem('ixl_current_user_id') || null,
@@ -204,6 +206,27 @@
     forgotPinRecoveryBox: document.getElementById('forgotPinRecoveryBox'),
     forgotPinDeniedMsg: document.getElementById('forgotPinDeniedMsg'),
     pinErrorMsg: document.getElementById('pinErrorMsg'),
+
+    // Edit History & Device Audit Modal (Admin Only)
+    openAuditHistoryBtn: document.getElementById('openAuditHistoryBtn'),
+    auditHistoryModal: document.getElementById('auditHistoryModal'),
+    closeAuditHistoryModalBtn: document.getElementById('closeAuditHistoryModalBtn'),
+    histCloseBtn: document.getElementById('histCloseBtn'),
+    exportHistoryCsvBtn: document.getElementById('exportHistoryCsvBtn'),
+    histTabLogBtn: document.getElementById('histTabLogBtn'),
+    histTabDevicesBtn: document.getElementById('histTabDevicesBtn'),
+    histLogTabContent: document.getElementById('histLogTabContent'),
+    histDevicesTabContent: document.getElementById('histDevicesTabContent'),
+    histSearchInput: document.getElementById('histSearchInput'),
+    histProfileFilter: document.getElementById('histProfileFilter'),
+    histCrossOnlyCheck: document.getElementById('histCrossOnlyCheck'),
+    histResetFiltersBtn: document.getElementById('histResetFiltersBtn'),
+    histLogTableBody: document.getElementById('histLogTableBody'),
+    histDevicesTableBody: document.getElementById('histDevicesTableBody'),
+    histKpiTotal: document.getElementById('histKpiTotal'),
+    histKpiDevices: document.getElementById('histKpiDevices'),
+    histKpiProfiles: document.getElementById('histKpiProfiles'),
+    histKpiCross: document.getElementById('histKpiCross'),
 
     // Change Admin Password Modal
     openChangePasswordBtn: document.getElementById('openChangePasswordBtn'),
@@ -636,6 +659,8 @@
     state.statuses = data.statuses || ["Day OFF", "NO PROJECT", "NO STATUS"];
     state.allocations = data.allocations || {};
     state.adminPin = data.adminPin || "IXL2026";
+    state.history = data.history || [];
+    state.deviceProfiles = data.deviceProfiles || {};
 
     state.projects.forEach(p => {
       if (p.name.startsWith('GP - ')) {
@@ -753,6 +778,8 @@
       statuses: state.statuses,
       allocations: state.allocations,
       adminPin: state.adminPin,
+      history: (state.history || []).slice(0, 1500),
+      deviceProfiles: state.deviceProfiles || {},
       lastUpdated: new Date().toISOString()
     };
     state.lastUpdated = payload.lastUpdated;
@@ -2395,6 +2422,15 @@
       }
     });
 
+    logAuditEvent({
+      targetEmpId: uniqueEmps.length === 1 ? uniqueEmps[0].id : 'multiple',
+      targetEmpName: uniqueEmps.length === 1 ? uniqueEmps[0].name : `${uniqueEmps.length} members`,
+      dateStr: 'Multi-cell selection',
+      actionType: 'batch_assign',
+      summary: `Batch applied '${projectName || 'Cleared'}' across ${count} cell(s)`,
+      details: `Applied to ${uniqueEmps.map(e => e.name).join(', ')}`
+    });
+
     clearSelection();
     closeCellPopover();
     renderSchedule();
@@ -2574,6 +2610,164 @@
     saveCellAssignment(alloc ? alloc.project : '');
   });
 
+  // -------------------------------------------------------------
+  // Admin-Only Audit History & Device Tracking Engine
+  // -------------------------------------------------------------
+
+  const DEVICE_ID_KEY = 'ixl_device_id_v1';
+
+  function getOrCreateDeviceId() {
+    let devId = getStoredItem(DEVICE_ID_KEY);
+    if (!devId || devId.trim() === '') {
+      let randPart = '';
+      try {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          randPart = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+        }
+      } catch (e) {}
+      if (!randPart) {
+        randPart = Math.random().toString(36).substring(2, 10) + Date.now().toString(36).substring(4);
+      }
+      devId = 'dev_' + randPart;
+      setStoredItem(DEVICE_ID_KEY, devId);
+    }
+    return devId;
+  }
+
+  function getDeviceFingerprint() {
+    try {
+      const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '';
+      let os = 'Windows';
+      if (/Windows/i.test(ua)) os = 'Windows';
+      else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+      else if (/Android/i.test(ua)) os = 'Android';
+      else if (/Macintosh|Mac OS/i.test(ua)) os = 'macOS';
+      else if (/Linux/i.test(ua)) os = 'Linux';
+
+      let browser = 'Browser';
+      if (/Edg\//i.test(ua)) browser = 'Edge';
+      else if (/Chrome\//i.test(ua)) browser = 'Chrome';
+      else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+      else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+
+      const isMobile = /Mobile|Android|iPhone/i.test(ua);
+      const screenInfo = (typeof screen !== 'undefined') ? `${screen.width}x${screen.height}` : 'generic';
+
+      return `${browser} on ${os}${isMobile ? ' Mobile' : ''} (${screenInfo})`;
+    } catch (e) {
+      return 'Generic Browser / Device';
+    }
+  }
+
+  function formatTimestampDMY(val) {
+    try {
+      const dt = val instanceof Date ? val : new Date(val);
+      if (isNaN(dt.getTime())) return String(val);
+      const d = String(dt.getDate()).padStart(2, '0');
+      const m = String(dt.getMonth() + 1).padStart(2, '0');
+      const y = dt.getFullYear();
+      const hh = String(dt.getHours()).padStart(2, '0');
+      const mm = String(dt.getMinutes()).padStart(2, '0');
+      const ss = String(dt.getSeconds()).padStart(2, '0');
+      return `${d}/${m}/${y} ${hh}:${mm}:${ss}`;
+    } catch (e) {
+      return String(val);
+    }
+  }
+
+  function logAuditEvent(eventData) {
+    if (state.isViewOnly) return;
+
+    try {
+      state.history = state.history || [];
+      state.deviceProfiles = state.deviceProfiles || {};
+
+      let editorId = state.currentUserId || 'anonymous';
+      let editorName = 'Unselected Profile';
+      if (editorId && editorId !== 'anonymous' && editorId !== 'view-all') {
+        const currentEmp = state.employees.find(e => e.id === editorId);
+        if (currentEmp) editorName = currentEmp.name;
+      }
+
+      const deviceId = getOrCreateDeviceId();
+      const deviceInfo = getDeviceFingerprint();
+
+      // Register or update device profile in device database
+      if (!state.deviceProfiles[deviceId]) {
+        state.deviceProfiles[deviceId] = {
+          deviceId: deviceId,
+          firstSeen: new Date().toISOString(),
+          lastSeen: new Date().toISOString(),
+          deviceInfo: deviceInfo,
+          userCounts: {},
+          primaryUser: editorName,
+          totalEdits: 0
+        };
+      }
+
+      const devProf = state.deviceProfiles[deviceId];
+      devProf.lastSeen = new Date().toISOString();
+      devProf.deviceInfo = deviceInfo;
+      devProf.userCounts = devProf.userCounts || {};
+      devProf.totalEdits = (devProf.totalEdits || 0) + 1;
+
+      if (editorName && editorName !== 'Unselected Profile') {
+        devProf.userCounts[editorName] = (devProf.userCounts[editorName] || 0) + 1;
+      }
+
+      // Determine primary user for this device
+      let topUser = devProf.primaryUser || 'Unknown';
+      let maxCount = 0;
+      for (const [uName, count] of Object.entries(devProf.userCounts)) {
+        if (count > maxCount) {
+          maxCount = count;
+          topUser = uName;
+        }
+      }
+      devProf.primaryUser = topUser;
+
+      // Detect cross-profile edit or suspicious impersonation
+      let isCrossProfile = false;
+      const targetEmpName = eventData.targetEmpName || '';
+      const suspectedOwner = devProf.primaryUser || 'Unknown';
+
+      if (editorName === 'Unselected Profile' || editorId === 'anonymous') {
+        isCrossProfile = true;
+      } else if (targetEmpName && editorName && targetEmpName !== editorName) {
+        isCrossProfile = true;
+      } else if (suspectedOwner !== 'Unknown' && suspectedOwner !== editorName) {
+        isCrossProfile = true;
+      }
+
+      const historyEntry = {
+        id: 'hist_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        timestamp: new Date().toISOString(),
+        displayTime: formatTimestampDMY(new Date()),
+        editorId: editorId,
+        editorName: editorName,
+        targetEmpId: eventData.targetEmpId || '',
+        targetEmpName: targetEmpName,
+        dateStr: eventData.dateStr || '',
+        actionType: eventData.actionType || 'edit',
+        summary: eventData.summary || 'Schedule updated',
+        details: eventData.details || '',
+        deviceId: deviceId,
+        deviceInfo: deviceInfo,
+        suspectedOwner: suspectedOwner,
+        isCrossProfile: isCrossProfile,
+        isAdminEdit: state.isAdmin && isCurrentUserPeter()
+      };
+
+      state.history.unshift(historyEntry);
+
+      if (state.history.length > 1500) {
+        state.history = state.history.slice(0, 1500);
+      }
+    } catch (err) {
+      console.warn('Error recording audit log entry:', err);
+    }
+  }
+
   function saveCellAssignment(projectName) {
     if (state.isMultiEditing && state.selectedCells.size > 0) {
       batchApplyToSelectedCells(projectName, el.popoverHoursInput.value);
@@ -2603,6 +2797,18 @@
         hours: hours
       };
     }
+
+    const prevAlloc = state.allocations[key];
+    const prevDesc = prevAlloc ? `${prevAlloc.project} (${prevAlloc.hours}h)` : 'NO STATUS';
+    const newDesc = (!projectName || projectName.trim() === '') ? 'Cleared' : `${projectName.trim()} (${hours}h)`;
+    logAuditEvent({
+      targetEmpId: empId,
+      targetEmpName: emp ? emp.name : empId,
+      dateStr: dateStr,
+      actionType: 'cell_assign',
+      summary: `Assigned '${newDesc}' on ${formatDateDMY(dateStr)}`,
+      details: `Changed from '${prevDesc}' to '${newDesc}'`
+    });
 
     closeCellPopover();
     renderSchedule();
@@ -2837,6 +3043,15 @@
       currentStr = formatLocalDate(cur);
     }
 
+    logAuditEvent({
+      targetEmpId: empId,
+      targetEmpName: emp ? emp.name : empId,
+      dateStr: `${formatDateDMY(fromStr)} to ${formatDateDMY(toStr)}`,
+      actionType: 'bulk_fill',
+      summary: `Bulk filled ${filledWorkdaysCount} workdays with '${proj}' (${hours}h)`,
+      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}, Holiday Option: ${holidayOption}`
+    });
+
     closeModal(el.bulkFillModal);
     renderSchedule();
     syncToServer();
@@ -3036,6 +3251,14 @@
     }
 
     if (updatedCount > 0) {
+      logAuditEvent({
+        targetEmpId: emp.id,
+        targetEmpName: emp.name,
+        dateStr: 'All NO PROJECT days',
+        actionType: 'batch_no_project',
+        summary: `Reassigned ${updatedCount} 'NO PROJECT' days to '${chosenProj}'`,
+        details: `Updated ${updatedCount} occurrences for ${emp.name}`
+      });
       syncToServer();
       renderSchedule();
       renderNoProjectTable();
@@ -3477,6 +3700,7 @@
     if (state.isViewOnly) {
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
+      if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.add('hidden');
       return;
     }
 
@@ -3485,12 +3709,14 @@
 
     if (state.isAdmin && isCurrentUserPeter()) {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.remove('hidden');
+      if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.remove('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
       if (el.adminIcon) el.adminIcon.textContent = '';
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('unlocked');
     } else {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
+      if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.add('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Mode';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Enter PIN to unlock admin actions';
       if (el.adminIcon) el.adminIcon.textContent = '';
@@ -5489,6 +5715,16 @@
         e.preventDefault();
         const key = `${state.activeKeyboardCell.empId}_${state.activeKeyboardCell.dateStr}`;
         if (state.allocations[key]) {
+          const prevAlloc = state.allocations[key];
+          const cellEmp = state.employees.find(e => e.id === state.activeKeyboardCell.empId);
+          logAuditEvent({
+            targetEmpId: state.activeKeyboardCell.empId,
+            targetEmpName: cellEmp ? cellEmp.name : state.activeKeyboardCell.empId,
+            dateStr: state.activeKeyboardCell.dateStr,
+            actionType: 'clear_cell',
+            summary: `Cleared cell on ${formatDateDMY(state.activeKeyboardCell.dateStr)}`,
+            details: `Deleted '${prevAlloc ? prevAlloc.project : 'allocation'}' via Delete key`
+          });
           delete state.allocations[key];
           syncToServer();
           renderSchedule();
@@ -6099,11 +6335,287 @@
     });
   }
 
+  // -------------------------------------------------------------
+  // Audit History Modal UI Controller
+  // -------------------------------------------------------------
+
+  let _histActiveTab = 'log';
+
+  function openAuditHistoryModal() {
+    if (!state.isAdmin || !isCurrentUserPeter()) {
+      showToast('Permission denied: Admin only', 'warning');
+      return;
+    }
+    populateHistProfileDropdown();
+    renderAuditHistoryData();
+    openModal(el.auditHistoryModal);
+  }
+
+  function closeAuditHistoryModal() {
+    closeModal(el.auditHistoryModal);
+  }
+
+  function populateHistProfileDropdown() {
+    if (!el.histProfileFilter) return;
+    const currentVal = el.histProfileFilter.value;
+    el.histProfileFilter.innerHTML = '<option value="all">All Target Profiles</option>';
+    const sorted = [...state.employees].sort((a, b) => a.name.localeCompare(b.name));
+    sorted.forEach(emp => {
+      const opt = document.createElement('option');
+      opt.value = emp.id;
+      opt.textContent = emp.name;
+      el.histProfileFilter.appendChild(opt);
+    });
+    if (currentVal) el.histProfileFilter.value = currentVal;
+  }
+
+  function renderAuditHistoryData() {
+    const history = state.history || [];
+    const deviceProfiles = state.deviceProfiles || {};
+
+    // 1. Calculate KPIs
+    const totalEdits = history.length;
+    const uniqueDevicesCount = Object.keys(deviceProfiles).length;
+    let identifiedProfilesCount = 0;
+    Object.values(deviceProfiles).forEach(dev => {
+      if (dev.primaryUser && dev.primaryUser !== 'Unselected Profile' && dev.primaryUser !== 'Unknown') {
+        identifiedProfilesCount++;
+      }
+    });
+    const crossProfileCount = history.filter(h => h.isCrossProfile).length;
+
+    if (el.histKpiTotal) el.histKpiTotal.textContent = totalEdits;
+    if (el.histKpiDevices) el.histKpiDevices.textContent = uniqueDevicesCount;
+    if (el.histKpiProfiles) el.histKpiProfiles.textContent = identifiedProfilesCount;
+    if (el.histKpiCross) el.histKpiCross.textContent = crossProfileCount;
+
+    // 2. Render Tab 1: Activity Log
+    if (el.histLogTableBody) {
+      const query = (el.histSearchInput && el.histSearchInput.value || '').trim().toLowerCase();
+      const profileFilter = el.histProfileFilter ? el.histProfileFilter.value : 'all';
+      const onlyCross = el.histCrossOnlyCheck ? el.histCrossOnlyCheck.checked : false;
+
+      const filtered = history.filter(item => {
+        if (onlyCross && !item.isCrossProfile) return false;
+        if (profileFilter !== 'all' && item.targetEmpId !== profileFilter && item.editorId !== profileFilter) return false;
+        if (query) {
+          const matchQuery = 
+            (item.editorName && item.editorName.toLowerCase().includes(query)) ||
+            (item.targetEmpName && item.targetEmpName.toLowerCase().includes(query)) ||
+            (item.summary && item.summary.toLowerCase().includes(query)) ||
+            (item.details && item.details.toLowerCase().includes(query)) ||
+            (item.deviceId && item.deviceId.toLowerCase().includes(query)) ||
+            (item.suspectedOwner && item.suspectedOwner.toLowerCase().includes(query)) ||
+            (item.deviceInfo && item.deviceInfo.toLowerCase().includes(query));
+          if (!matchQuery) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        el.histLogTableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">
+              No edit history entries found matching your filter criteria.
+            </td>
+          </tr>
+        `;
+      } else {
+        el.histLogTableBody.innerHTML = filtered.map(item => {
+          const isCross = item.isCrossProfile;
+          const crossBadge = isCross 
+            ? `<span class="hist-cross-badge" title="Profile selected differs from target or device owner">Cross-Profile Edit</span>`
+            : `<span class="hist-direct-badge">Self Edit</span>`;
+
+          const suspectedBadge = item.suspectedOwner && item.suspectedOwner !== 'Unknown'
+            ? `<span class="hist-device-owner">Owner: ${escapeHtml(item.suspectedOwner)}</span>`
+            : `<span class="hist-device-owner" style="color:var(--text-muted);">Owner: Unmapped</span>`;
+
+          const displayDate = item.dateStr ? (item.dateStr.includes('-') && item.dateStr.length === 10 ? formatDateDMY(item.dateStr) : item.dateStr) : '-';
+
+          return `
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:11px; white-space:nowrap;">${escapeHtml(item.displayTime || item.timestamp)}</td>
+              <td>
+                <strong style="font-size:12px; display:block;">${escapeHtml(item.editorName || 'Unknown')}</strong>
+                ${item.isAdminEdit ? '<span class="badge badge-xs badge-info" style="font-size:9px;">Admin</span>' : ''}
+              </td>
+              <td>
+                <strong style="font-size:12px; display:block;">${escapeHtml(item.targetEmpName || 'Unknown')}</strong>
+              </td>
+              <td style="font-size:12px; white-space:nowrap;">${escapeHtml(displayDate)}</td>
+              <td>
+                <span class="hist-action-chip">${escapeHtml(item.summary || '')}</span>
+                ${item.details ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${escapeHtml(item.details)}</div>` : ''}
+              </td>
+              <td>
+                <span class="hist-device-badge" title="Hardware Device ID">${escapeHtml(item.deviceId || '-')}</span>
+                ${suspectedBadge}
+                ${crossBadge}
+              </td>
+              <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(item.deviceInfo || '-')}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // 3. Render Tab 2: Device Directory
+    if (el.histDevicesTableBody) {
+      const devList = Object.values(deviceProfiles).sort((a, b) => (b.totalEdits || 0) - (a.totalEdits || 0));
+
+      if (devList.length === 0) {
+        el.histDevicesTableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">
+              No device fingerprints recorded yet. Devices are mapped automatically as edits are made.
+            </td>
+          </tr>
+        `;
+      } else {
+        el.histDevicesTableBody.innerHTML = devList.map(dev => {
+          const userCounts = dev.userCounts || {};
+          const loginsSummary = Object.keys(userCounts).map(u => `${u} (${userCounts[u]}x)`).join(', ') || '-';
+          const firstSeenStr = dev.firstSeen ? formatTimestampDMY(dev.firstSeen) : '-';
+          const lastSeenStr = dev.lastSeen ? formatTimestampDMY(dev.lastSeen) : '-';
+
+          return `
+            <tr>
+              <td>
+                <span class="hist-device-badge">${escapeHtml(dev.deviceId)}</span>
+              </td>
+              <td>
+                <strong style="font-size:12px; color:var(--primary);">${escapeHtml(dev.primaryUser || 'Unmapped')}</strong>
+              </td>
+              <td style="font-size:12px;">${escapeHtml(loginsSummary)}</td>
+              <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(dev.deviceInfo || '-')}</td>
+              <td style="font-size:11px; font-family:var(--font-mono); white-space:nowrap;">${escapeHtml(firstSeenStr)}</td>
+              <td style="font-size:11px; font-family:var(--font-mono); white-space:nowrap;">${escapeHtml(lastSeenStr)}</td>
+              <td style="font-size:12px; font-weight:700; text-align:right; font-family:var(--font-mono);">${dev.totalEdits || 0}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  function exportHistoryToCsv() {
+    const history = state.history || [];
+    if (history.length === 0) {
+      showToast('No history entries to export', 'warning');
+      return;
+    }
+
+    const headers = [
+      'Timestamp',
+      'Logged Profile',
+      'Target Member',
+      'Schedule Date',
+      'Action Type',
+      'Summary',
+      'Details',
+      'Device ID',
+      'Suspected Device Owner',
+      'Hardware / Platform',
+      'Cross Profile Flag'
+    ];
+
+    const rows = history.map(item => [
+      item.displayTime || item.timestamp || '',
+      item.editorName || '',
+      item.targetEmpName || '',
+      item.dateStr || '',
+      item.actionType || '',
+      item.summary || '',
+      item.details || '',
+      item.deviceId || '',
+      item.suspectedOwner || '',
+      item.deviceInfo || '',
+      item.isCrossProfile ? 'YES - Cross Profile' : 'NO'
+    ]);
+
+    const csvContent = [
+      headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','),
+      ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const now = new Date();
+    const dStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    link.setAttribute('href', url);
+    link.setAttribute('download', `IXL_Edit_History_Audit_${dStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Audit history exported to CSV');
+  }
+
+  function initAuditHistory() {
+    if (el.openAuditHistoryBtn) {
+      el.openAuditHistoryBtn.addEventListener('click', () => openAuditHistoryModal());
+    }
+    if (el.closeAuditHistoryModalBtn) {
+      el.closeAuditHistoryModalBtn.addEventListener('click', () => closeAuditHistoryModal());
+    }
+    if (el.histCloseBtn) {
+      el.histCloseBtn.addEventListener('click', () => closeAuditHistoryModal());
+    }
+
+    // Tabs
+    if (el.histTabLogBtn && el.histTabDevicesBtn) {
+      el.histTabLogBtn.addEventListener('click', () => {
+        _histActiveTab = 'log';
+        el.histTabLogBtn.classList.add('active');
+        el.histTabDevicesBtn.classList.remove('active');
+        if (el.histLogTabContent) el.histLogTabContent.classList.remove('hidden');
+        if (el.histDevicesTabContent) el.histDevicesTabContent.classList.add('hidden');
+        renderAuditHistoryData();
+      });
+
+      el.histTabDevicesBtn.addEventListener('click', () => {
+        _histActiveTab = 'devices';
+        el.histTabDevicesBtn.classList.add('active');
+        el.histTabLogBtn.classList.remove('active');
+        if (el.histDevicesTabContent) el.histDevicesTabContent.classList.remove('hidden');
+        if (el.histLogTabContent) el.histLogTabContent.classList.add('hidden');
+        renderAuditHistoryData();
+      });
+    }
+
+    // Filters
+    if (el.histSearchInput) {
+      el.histSearchInput.addEventListener('input', () => renderAuditHistoryData());
+    }
+    if (el.histProfileFilter) {
+      el.histProfileFilter.addEventListener('change', () => renderAuditHistoryData());
+    }
+    if (el.histCrossOnlyCheck) {
+      el.histCrossOnlyCheck.addEventListener('change', () => renderAuditHistoryData());
+    }
+    if (el.histResetFiltersBtn) {
+      el.histResetFiltersBtn.addEventListener('click', () => {
+        if (el.histSearchInput) el.histSearchInput.value = '';
+        if (el.histProfileFilter) el.histProfileFilter.value = 'all';
+        if (el.histCrossOnlyCheck) el.histCrossOnlyCheck.checked = false;
+        renderAuditHistoryData();
+      });
+    }
+
+    // CSV Export
+    if (el.exportHistoryCsvBtn) {
+      el.exportHistoryCsvBtn.addEventListener('click', () => exportHistoryToCsv());
+    }
+  }
+
   // Boot Application
   initTheme();
   initColumnWidths();
   initDmyDateInputs();
   initAuditEvents();
+  initAuditHistory();
   loadData();
 
 })();

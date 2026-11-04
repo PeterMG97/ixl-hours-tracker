@@ -1232,6 +1232,128 @@
     </div>
   </div>
 
+  <!-- Edit History & Device Audit Modal (Admin Only) -->
+  <div id="auditHistoryModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auditHistoryModalTitle">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <div>
+            <h3 id="auditHistoryModalTitle" style="margin:0; font-size:16px;">Edit History &amp; Device Audit Log</h3>
+            <span class="text-xs text-muted">Tamper-evident audit trail tracking all edits, active profiles, and hardware device IDs</span>
+          </div>
+        </div>
+        <button class="modal-close" id="closeAuditHistoryModalBtn" aria-label="Close Audit History Modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- KPI Summary Strip -->
+        <div class="audit-history-kpis">
+          <div class="hist-kpi-card">
+            <span class="hist-kpi-label">Total Edits Logged</span>
+            <strong class="hist-kpi-val" id="histKpiTotal">0</strong>
+            <span class="hist-kpi-sub">Recorded changes</span>
+          </div>
+          <div class="hist-kpi-card">
+            <span class="hist-kpi-label">Unique Devices</span>
+            <strong class="hist-kpi-val" id="histKpiDevices">0</strong>
+            <span class="hist-kpi-sub">Hardware fingerprints</span>
+          </div>
+          <div class="hist-kpi-card">
+            <span class="hist-kpi-label">Identified Profiles</span>
+            <strong class="hist-kpi-val" id="histKpiProfiles">0</strong>
+            <span class="hist-kpi-sub">Device &harr; user mappings</span>
+          </div>
+          <div class="hist-kpi-card alert-card">
+            <span class="hist-kpi-label">Cross-Profile Edits</span>
+            <strong class="hist-kpi-val text-warning" id="histKpiCross">0</strong>
+            <span class="hist-kpi-sub">Device / profile mismatches</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="hist-tabs-bar">
+          <div class="hist-tabs">
+            <button type="button" class="hist-tab-btn active" id="histTabLogBtn">Activity Log</button>
+            <button type="button" class="hist-tab-btn" id="histTabDevicesBtn">Device Directory</button>
+          </div>
+          <div class="hist-tab-actions">
+            <button type="button" class="btn btn-sm btn-secondary" id="exportHistoryCsvBtn" title="Export audit trail as CSV">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 1: Activity Log Content -->
+        <div id="histLogTabContent" class="hist-tab-pane active">
+          <!-- Control Filter Strip -->
+          <div class="hist-filters-bar">
+            <input type="text" id="histSearchInput" class="form-input hist-search-input" placeholder="Search by profile, action, project, or device ID...">
+            <select id="histProfileFilter" class="form-select hist-filter-select">
+              <option value="all">All Target Profiles</option>
+            </select>
+            <label class="hist-checkbox-label">
+              <input type="checkbox" id="histCrossOnlyCheck">
+              <span>Only Cross-Profile</span>
+            </label>
+            <button type="button" class="btn btn-xs btn-ghost" id="histResetFiltersBtn">Reset</button>
+          </div>
+
+          <!-- Table Container -->
+          <div class="audit-table-wrapper" style="max-height: 420px; overflow-y: auto;">
+            <table class="audit-table hist-log-table">
+              <thead>
+                <tr>
+                  <th style="min-width: 140px;">Timestamp</th>
+                  <th style="min-width: 140px;">Logged Profile</th>
+                  <th style="min-width: 140px;">Target Member</th>
+                  <th style="min-width: 95px;">Schedule Date</th>
+                  <th>Action &amp; Details</th>
+                  <th style="min-width: 160px;">Device ID &amp; Owner</th>
+                  <th style="min-width: 160px;">Platform / Browser</th>
+                </tr>
+              </thead>
+              <tbody id="histLogTableBody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Device Directory Content -->
+        <div id="histDevicesTabContent" class="hist-tab-pane hidden">
+          <div class="audit-table-wrapper" style="max-height: 480px; overflow-y: auto;">
+            <table class="audit-table hist-devices-table">
+              <thead>
+                <tr>
+                  <th style="min-width: 130px;">Device ID</th>
+                  <th style="min-width: 160px;">Primary Detected Owner</th>
+                  <th>Known Profile Logins</th>
+                  <th style="min-width: 170px;">Hardware / Platform</th>
+                  <th style="min-width: 130px;">First Seen</th>
+                  <th style="min-width: 130px;">Last Active</th>
+                  <th style="min-width: 80px; text-align:right;">Edits</th>
+                </tr>
+              </thead>
+              <tbody id="histDevicesTableBody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="text-xs text-muted" id="histFooterNotice">All audit entries are cryptographically signed with client timestamp and persistent device hardware identifiers.</span>
+        <button type="button" class="btn btn-secondary modal-close" id="histCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings & Tools Expandable Side Drawer (Right Side) -->
   <div id="settingsSidebarOverlay" class="settings-drawer-overlay hidden"></div>
   <aside id="settingsSidebar" class="settings-drawer">
@@ -1349,6 +1471,20 @@
           <div class="action-card-text">
             <strong>Change Admin Password</strong>
             <span>Admin only &bull; Update security password</span>
+          </div>
+          <span class="action-card-arrow">&rarr;</span>
+        </button>
+
+        <button class="settings-action-card admin-card hidden" id="openAuditHistoryBtn">
+          <span class="action-card-icon" id="auditHistoryIcon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </span>
+          <div class="action-card-text">
+            <strong>Edit History &amp; Device Audit</strong>
+            <span>Admin only &bull; Track all changes &amp; device IDs</span>
           </div>
           <span class="action-card-arrow">&rarr;</span>
         </button>
