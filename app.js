@@ -1516,7 +1516,7 @@
           document.documentElement.style.setProperty('--user-col-width', `210px`);
           localStorage.setItem('ixl_user_col_width', 210);
         } else {
-          setDayColumnWidth(48);
+          setDayColumnWidth(180);
           renderSchedule();
         }
       });
@@ -1566,7 +1566,11 @@
       document.documentElement.style.setProperty('--user-col-width', `${savedUserWidth}px`);
     }
 
-    const savedDayWidth = localStorage.getItem('ixl_day_col_width') || 48;
+    let savedDayWidth = localStorage.getItem('ixl_day_col_width');
+    if (!savedDayWidth || Number(savedDayWidth) === 48) {
+      savedDayWidth = 180;
+      localStorage.setItem('ixl_day_col_width', 180);
+    }
     setDayColumnWidth(savedDayWidth, false);
 
     // Preset density buttons
@@ -1591,9 +1595,9 @@
       resetBtn.addEventListener('click', () => {
         document.documentElement.style.setProperty('--user-col-width', `210px`);
         localStorage.setItem('ixl_user_col_width', 210);
-        setDayColumnWidth(48);
+        setDayColumnWidth(180);
         renderSchedule();
-        showToast('Column widths reset to standard');
+        showToast('Column widths reset to maximum (180px)');
       });
     }
   }
