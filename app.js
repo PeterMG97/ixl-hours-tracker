@@ -6341,14 +6341,28 @@
 
   let _histActiveTab = 'log';
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   function openAuditHistoryModal() {
-    if (!state.isAdmin || !isCurrentUserPeter()) {
+    if (!state.isAdmin) {
       showToast('Permission denied: Admin only', 'warning');
       return;
     }
-    populateHistProfileDropdown();
-    renderAuditHistoryData();
     openModal(el.auditHistoryModal);
+    try {
+      populateHistProfileDropdown();
+      renderAuditHistoryData();
+    } catch (err) {
+      console.warn('Error opening audit history:', err);
+    }
   }
 
   function closeAuditHistoryModal() {
@@ -6370,7 +6384,8 @@
   }
 
   function renderAuditHistoryData() {
-    const history = state.history || [];
+    try {
+      const history = state.history || [];
     const deviceProfiles = state.deviceProfiles || {};
 
     // 1. Calculate KPIs
@@ -6496,6 +6511,9 @@
           `;
         }).join('');
       }
+    }
+    } catch (e) {
+      console.warn('Error in renderAuditHistoryData:', e);
     }
   }
 
