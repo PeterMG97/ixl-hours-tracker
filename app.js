@@ -454,23 +454,81 @@
   // Data Loading & Connection Heartbeat (Requirement 5)
   // -------------------------------------------------------------
 
+  const DB_CACHE_KEY = 'ixl_database_state_v1';
+  let _hasPendingLocalSync = false;
+
   async function loadData() {
+    let localData = null;
+    let serverData = null;
+
+    // 1. Read instant local storage cache
+    try {
+      const rawLocal = getStoredItem(DB_CACHE_KEY);
+      if (rawLocal) {
+        localData = JSON.parse(rawLocal);
+      }
+    } catch (e) {
+      console.warn('Error reading local database cache:', e);
+    }
+
+    // 2. Fetch from server API (/api/data)
     try {
       const res = await fetch('/api/data', { cache: 'no-store' });
-      if (!res.ok) throw new Error('API offline, checking local file...');
-      const data = await res.json();
-      applyData(data);
-      setConnectionStatus(true);
+      if (res.ok) {
+        serverData = await res.json();
+        setConnectionStatus(true);
+      } else {
+        throw new Error('Server API returned non-OK status');
+      }
     } catch (err) {
-      console.warn('API error, falling back to data.json...', err);
+      console.warn('API /api/data offline, trying data.json fallback...', err);
       try {
         const localRes = await fetch('data.json', { cache: 'no-store' });
-        const localData = await localRes.json();
-        applyData(localData);
-        setConnectionStatus(true);
+        if (localRes.ok) {
+          serverData = await localRes.json();
+        }
       } catch (e) {
-        setConnectionStatus(false);
+        console.warn('Static data.json fetch failed:', e);
       }
+    }
+
+    // 3. Intelligent Reconciliation: ensure user edits are NEVER lost
+    if (localData && serverData) {
+      const localTime = new Date(localData.lastUpdated || 0).getTime();
+      const serverTime = new Date(serverData.lastUpdated || 0).getTime();
+
+      if (localTime > serverTime) {
+        // Local storage has newer unsynced edits: apply local and queue background sync
+        applyData(localData);
+        _hasPendingLocalSync = true;
+        if (state.isConnected) {
+          syncToServer();
+        }
+        return;
+      } else {
+        // Server data is newer or identical
+        applyData(serverData);
+        try {
+          setStoredItem(DB_CACHE_KEY, JSON.stringify(serverData));
+        } catch (e) {}
+        return;
+      }
+    } else if (localData) {
+      // Offline mode: load from browser storage
+      applyData(localData);
+      setConnectionStatus(false);
+      _hasPendingLocalSync = true;
+      return;
+    } else if (serverData) {
+      // First load or fresh browser: load from server and prime cache
+      applyData(serverData);
+      try {
+        setStoredItem(DB_CACHE_KEY, JSON.stringify(serverData));
+      } catch (e) {}
+      return;
+    } else {
+      setConnectionStatus(false);
+      showToast('Could not load database. Please start the server.', 'danger');
     }
   }
 
@@ -546,7 +604,15 @@
       const timeoutId = setTimeout(() => controller.abort(), 3000);
       const res = await fetch('/api/ping', { signal: controller.signal, cache: 'no-store' });
       clearTimeout(timeoutId);
-      setConnectionStatus(res.ok);
+      const isOk = res.ok;
+      const wasDisconnected = !state.isConnected;
+      setConnectionStatus(isOk);
+
+      // Auto-flush pending local changes once reconnected
+      if (isOk && (wasDisconnected || _hasPendingLocalSync) && !state.isViewOnly) {
+        _hasPendingLocalSync = false;
+        syncToServer();
+      }
     } catch (e) {
       setConnectionStatus(false);
     }
@@ -555,16 +621,26 @@
   async function syncToServer() {
     if (state.isViewOnly) return;
     sortAllData();
+
+    const payload = {
+      sections: state.sections,
+      employees: state.employees,
+      projects: state.projects,
+      statuses: state.statuses,
+      allocations: state.allocations,
+      adminPin: state.adminPin,
+      lastUpdated: new Date().toISOString()
+    };
+
+    // 1. Immediately persist to browser LocalStorage (survives refresh even if server offline)
     try {
-      const payload = {
-        sections: state.sections,
-        employees: state.employees,
-        projects: state.projects,
-        statuses: state.statuses,
-        allocations: state.allocations,
-        adminPin: state.adminPin,
-        lastUpdated: new Date().toISOString()
-      };
+      setStoredItem(DB_CACHE_KEY, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('LocalStorage save error:', err);
+    }
+
+    // 2. Persist to backend server
+    try {
       const res = await fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -572,13 +648,16 @@
       });
       if (res.ok) {
         setConnectionStatus(true);
+        _hasPendingLocalSync = false;
       } else {
         setConnectionStatus(false);
-        showToast('Sync warning: changes saved locally in browser.', 'warning');
+        _hasPendingLocalSync = true;
+        showToast('Saved locally in browser (Server offline).', 'warning');
       }
     } catch (e) {
       setConnectionStatus(false);
-      showToast('Offline: Changes cached locally.', 'warning');
+      _hasPendingLocalSync = true;
+      showToast('Saved locally in browser (Server offline).', 'warning');
     }
   }
 

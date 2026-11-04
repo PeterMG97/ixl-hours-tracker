@@ -60,10 +60,12 @@ while ($listener.IsListening) {
         $request = $context.Request
         $response = $context.Response
 
-        # Add CORS headers
+        # Add CORS & No-Cache headers
         $response.Headers.Add("Access-Control-Allow-Origin", "*")
-        $response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        $response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
         $response.Headers.Add("Access-Control-Allow-Headers", "Content-Type")
+        $response.Headers.Add("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        $response.Headers.Add("Pragma", "no-cache")
 
         if ($request.HttpMethod -eq "OPTIONS") {
             $response.StatusCode = 200
@@ -102,7 +104,7 @@ while ($listener.IsListening) {
             continue
         }
 
-        if ($path -eq "/api/save" -and $method -eq "POST") {
+        if ($path -eq "/api/save" -and ($method -eq "POST" -or $method -eq "PUT")) {
             $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
             $body = $reader.ReadToEnd()
             $reader.Close()
@@ -115,6 +117,7 @@ while ($listener.IsListening) {
                 }
                 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
                 [System.IO.File]::WriteAllText($DataFilePath, $body, $utf8NoBom)
+                Write-Host "[SAVE $(Get-Date -Format 'HH:mm:ss')] Database successfully saved to data.json ($($body.Length) bytes)" -ForegroundColor Green
                 $resJson = '{"status":"ok","message":"Saved successfully"}'
             } else {
                 $resJson = '{"status":"error","message":"Empty payload"}'
