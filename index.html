@@ -1,10 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="auto">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IXL Team Hours Tracker</title>
-  <link rel="stylesheet" href="styles.css?v=2.8">
+  <script>
+    (function() {
+      try {
+        var m = localStorage.getItem('ixl_theme_mode') || 'auto';
+        var eff = m;
+        if (m === 'auto') {
+          var h = new Date().getHours();
+          eff = (h >= 6 && h < 18) ? 'light' : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', eff);
+      } catch(e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=2.9">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1381,9 +1394,9 @@
             </div>
           </div>
           <select id="themeSelect" class="theme-select" title="Theme mode">
-            <option value="dark" selected>Dark (Default)</option>
+            <option value="auto" selected>Auto (Day/Night - Default)</option>
+            <option value="dark">Dark</option>
             <option value="light">Light</option>
-            <option value="auto">Auto (Day/Night)</option>
           </select>
         </div>
       </div>

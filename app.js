@@ -1660,14 +1660,42 @@
           return;
         }
 
-        // Left click: clear previous multi-selection, close popover, and stand on this cell
+        // Left click: clear previous multi-selection
         if (state.selectedCells.size > 0) {
           clearSelection();
         }
-        closeCellPopover();
 
-        // Stand on the cell (enables arrow navigation)
+        const isTouchOrMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
+        const wasAlreadyFocused = state.activeKeyboardCell && state.activeKeyboardCell.empId === empId && state.activeKeyboardCell.dateStr === dateStr;
+
         setKeyboardFocusedCell(empId, dateStr);
+
+        // On mobile/touch devices or clicking an already focused cell: open popover directly!
+        if (isTouchOrMobile || wasAlreadyFocused) {
+          if (state.isViewOnly || state.currentUserId === 'view-all') {
+            showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
+            return;
+          }
+          const targetBtn = slot.querySelector('.task-chip') || slot;
+          const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
+          if (!canEditThisRow) {
+            const targetEmp = state.employees.find(x => x.id === empId);
+            const currentEmp = state.employees.find(x => x.id === state.currentUserId);
+            if (isCurrentUserPeter()) {
+              state.pendingAdminCell = { empId, dateStr, element: targetBtn };
+              el.adminPinInput.value = '';
+              el.pinErrorMsg.classList.add('hidden');
+              openModal(el.adminPinModal);
+              showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
+            } else {
+              showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
+            }
+            return;
+          }
+          openCellPopover(empId, dateStr, targetBtn);
+        } else {
+          closeCellPopover();
+        }
       });
 
       // Double-click opens edit popover directly for mouse users
@@ -2355,18 +2383,22 @@
     setPopoverCategory('all', false);
     renderPopoverProjectList('');
 
-    const anchorEl = targetBtn || el.multiEditAssignBtn;
-    const rect = anchorEl.getBoundingClientRect();
-    const popoverWidth = 320;
-    let left = rect.left + window.scrollX;
-    if (left + popoverWidth > window.innerWidth - 20) {
-      left = window.innerWidth - popoverWidth - 20;
+    if (window.innerWidth <= 640) {
+      el.cellPopover.style.left = '';
+      el.cellPopover.style.top = '';
+    } else {
+      const anchorEl = targetBtn || el.multiEditAssignBtn;
+      const rect = anchorEl.getBoundingClientRect();
+      const popoverWidth = 320;
+      let left = rect.left + window.scrollX;
+      if (left + popoverWidth > window.innerWidth - 20) {
+        left = window.innerWidth - popoverWidth - 20;
+      }
+      let top = rect.top + window.scrollY - 370;
+      if (top < 10) top = rect.bottom + window.scrollY + 6;
+      el.cellPopover.style.left = `${left}px`;
+      el.cellPopover.style.top = `${top}px`;
     }
-    let top = rect.top + window.scrollY - 370;
-    if (top < 10) top = rect.bottom + window.scrollY + 6;
-
-    el.cellPopover.style.left = `${left}px`;
-    el.cellPopover.style.top = `${top}px`;
     el.cellPopover.classList.remove('hidden');
 
     el.projectSearchInput.focus();
@@ -2467,16 +2499,20 @@
 
     renderPopoverProjectList('');
 
-    const rect = targetBtn.getBoundingClientRect();
-    const popoverWidth = 320;
-    let left = rect.left + window.scrollX;
-    if (left + popoverWidth > window.innerWidth - 20) {
-      left = window.innerWidth - popoverWidth - 20;
+    if (window.innerWidth <= 640) {
+      el.cellPopover.style.left = '';
+      el.cellPopover.style.top = '';
+    } else {
+      const rect = targetBtn.getBoundingClientRect();
+      const popoverWidth = 320;
+      let left = rect.left + window.scrollX;
+      if (left + popoverWidth > window.innerWidth - 20) {
+        left = window.innerWidth - popoverWidth - 20;
+      }
+      let top = rect.bottom + window.scrollY + 6;
+      el.cellPopover.style.left = `${left}px`;
+      el.cellPopover.style.top = `${top}px`;
     }
-    let top = rect.bottom + window.scrollY + 6;
-
-    el.cellPopover.style.left = `${left}px`;
-    el.cellPopover.style.top = `${top}px`;
     el.cellPopover.classList.remove('hidden');
 
     el.projectSearchInput.focus();
@@ -2779,11 +2815,16 @@
     const emp = state.employees.find(e => e.id === empId);
     const key = `${empId}_${dateStr}`;
 
+    const prevAlloc = state.allocations[key];
+    const prevDesc = prevAlloc ? `${prevAlloc.project} (${prevAlloc.hours}h)` : 'NO STATUS';
+
+    let hours = emp ? (emp.defaultHoursPerDay || 8) : 8;
+
     if (!projectName || projectName.trim() === '') {
       delete state.allocations[key];
     } else {
       const rawVal = el.popoverHoursInput ? el.popoverHoursInput.value : '';
-      const hours = sanitizeDayHours(projectName, rawVal, emp ? emp.defaultHoursPerDay : 8);
+      hours = sanitizeDayHours(projectName, rawVal, emp ? emp.defaultHoursPerDay : 8);
 
       if (isWorkActivity(projectName)) {
         const numVal = parseFloat(rawVal);
@@ -2798,8 +2839,6 @@
       };
     }
 
-    const prevAlloc = state.allocations[key];
-    const prevDesc = prevAlloc ? `${prevAlloc.project} (${prevAlloc.hours}h)` : 'NO STATUS';
     const newDesc = (!projectName || projectName.trim() === '') ? 'Cleared' : `${projectName.trim()} (${hours}h)`;
     logAuditEvent({
       targetEmpId: empId,
@@ -5748,7 +5787,7 @@
   // Theme Manager: Light, Dark, Auto (according to daytime)
   // -------------------------------------------------------------
   function initTheme() {
-    const savedTheme = getStoredItem('ixl_theme_mode') || 'dark';
+    const savedTheme = getStoredItem('ixl_theme_mode') || 'auto';
     if (el.themeSelect) {
       el.themeSelect.value = savedTheme;
       el.themeSelect.addEventListener('change', () => {
@@ -5763,7 +5802,7 @@
 
     // Periodically re-check time for Auto mode every 30 seconds
     setInterval(() => {
-      const currentMode = getStoredItem('ixl_theme_mode') || 'dark';
+      const currentMode = getStoredItem('ixl_theme_mode') || 'auto';
       if (currentMode === 'auto') {
         applyTheme('auto');
       }

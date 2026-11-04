@@ -3858,3 +3858,208 @@ body.view-only .task-chip {
 [data-theme="dark"] .hist-checkbox-label {
   color: #f1f5f9;
 }
+
+/* -------------------------------------------------------------
+   Mobile & Small Screen Ergonomic Layout Engine
+   ------------------------------------------------------------- */
+@media (max-width: 768px) {
+  :root {
+    --user-col-width: 125px;
+    --day-col-width: 44px;
+  }
+
+  .app-header {
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .brand-logo-text {
+    font-size: 16px;
+  }
+
+  .brand-wordmark-img {
+    height: 18px;
+    max-width: 85px;
+  }
+
+  .brand-divider,
+  .brand-caption {
+    display: none !important;
+  }
+
+  .brand-info h2 {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .status-beacon {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .header-center {
+    order: 2;
+  }
+
+  .user-identity-card {
+    padding: 3px 6px;
+  }
+
+  .user-label {
+    display: none;
+  }
+
+  .user-picker-btn {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .header-right {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .period-navigator {
+    flex: 1;
+    gap: 4px;
+  }
+
+  .period-select {
+    font-size: 11px;
+    padding: 3px 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nav-arrow-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .today-shortcut-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .btn-header-action {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .table-scroll-area {
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 120px);
+  }
+
+  .schedule-table th.col-user,
+  .schedule-table td.col-user {
+    width: var(--user-col-width, 125px);
+    min-width: var(--user-col-width, 125px);
+    max-width: var(--user-col-width, 125px);
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .schedule-table td.col-user .user-name-text {
+    font-size: 11px;
+    max-width: 78px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .schedule-table td.col-user .user-mini-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+    min-width: 20px;
+  }
+
+  .schedule-table td.col-user .emp-unfilled-badge {
+    font-size: 9px;
+    padding: 1px 3px;
+  }
+
+  .schedule-table th.col-metric,
+  .schedule-table td.col-metric {
+    position: static !important;
+    left: auto !important;
+    z-index: 1 !important;
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    font-size: 10px;
+    padding: 4px 2px;
+    border-right: 1px solid var(--border-light);
+  }
+
+  .col-slot {
+    width: var(--day-col-width, 44px);
+    min-width: var(--day-col-width, 44px);
+    max-width: var(--day-col-width, 44px);
+    padding: 3px 1px;
+  }
+
+  .task-chip {
+    min-height: 28px;
+    font-size: 10px;
+    padding: 2px 3px;
+  }
+
+  .popover-panel {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 10px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: 420px !important;
+    margin: 0 auto !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    border-radius: 16px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4) !important;
+    z-index: 1050 !important;
+  }
+
+  .popover-project-list {
+    max-height: 200px;
+  }
+
+  .proj-item {
+    padding: 9px 10px;
+    font-size: 12px;
+    min-height: 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .modal-dialog {
+    width: 95% !important;
+    margin: 10px auto !important;
+    max-height: 92vh !important;
+    padding: 14px !important;
+  }
+
+  .modal-dialog.modal-xl {
+    width: 96% !important;
+    max-width: 96% !important;
+  }
+
+  .audit-history-kpis {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
