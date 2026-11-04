@@ -1576,6 +1576,17 @@
     const dateStr = slot.getAttribute('data-date');
     if (!empId || !dateStr) return;
 
+    const isMultiMode = e.ctrlKey || e.metaKey;
+
+    // If clicking on a cell without multi-select modifier, clear previous multi-selection
+    if (!isMultiMode && state.selectedCells.size > 0) {
+      clearSelection();
+    }
+    closeCellPopover();
+
+    // Move keyboard focus totally to this cell immediately
+    setKeyboardFocusedCell(empId, dateStr);
+
     // Check row permissions
     const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
     if (!canEditThisRow) return;
@@ -1591,7 +1602,6 @@
     const startColIndex = rowSlots.indexOf(slot);
     if (startColIndex === -1) return;
 
-    const isMultiMode = e.ctrlKey || e.metaKey;
     const baseSelected = (isMultiMode) 
       ? new Set(state.selectedCells) 
       : new Set();
@@ -1622,6 +1632,9 @@
       cellDragState.suppressClick = true;
       document.body.classList.add('is-cell-dragging');
       closeCellPopover();
+
+      // Ensure keyboard focus stands totally on this held cell
+      setKeyboardFocusedCell(empId, dateStr);
 
       // Hold established: select this single cell
       activate2DSelection(startRowIndex, startColIndex);
@@ -1677,6 +1690,9 @@
     document.body.classList.remove('is-cell-dragging');
 
     if (wasActive) {
+      if (cellDragState.startEmpId && cellDragState.startDateStr) {
+        setKeyboardFocusedCell(cellDragState.startEmpId, cellDragState.startDateStr);
+      }
       cellDragState.suppressClick = true;
       updateMultiSelectUI();
       setTimeout(() => {
@@ -2182,6 +2198,7 @@
   }
 
   function openCellPopover(empId, dateStr, targetBtn) {
+    setKeyboardFocusedCell(empId, dateStr);
     state.selectedCell = { empId, dateStr, element: targetBtn };
     const emp = state.employees.find(e => e.id === empId);
     const key = `${empId}_${dateStr}`;
@@ -4917,6 +4934,12 @@
     // Excel-Style Keyboard Arrow Navigation
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
+
+      // If in multi-select mode and navigating away with arrows without Shift, clear range selection
+      if (state.selectedCells && state.selectedCells.size > 0 && !e.shiftKey) {
+        clearSelection();
+      }
+
       const visibleRows = Array.from(document.querySelectorAll('#scheduleBody tr.user-row:not(.is-collapsed-row)'));
       if (visibleRows.length === 0) return;
 
