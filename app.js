@@ -93,6 +93,7 @@
     allocations: {}, // "empId_YYYY-MM-DD" -> { project: string, hours: number }
     history: [],
     deviceProfiles: {},
+    deviceNames: { 'dev_2b155b6f80fd': 'PeterWorkPC' },
     currentMonth: "2026-11", // Fresh start month
     todayStr: "2026-11-01",
     currentUserId: getStoredItem('ixl_current_user_id') || null,
@@ -661,6 +662,24 @@
     state.adminPin = data.adminPin || "IXL2026";
     state.history = data.history || [];
     state.deviceProfiles = data.deviceProfiles || {};
+    state.deviceNames = Object.assign({ 'dev_2b155b6f80fd': 'PeterWorkPC' }, data.deviceNames || {});
+    if (!state.deviceProfiles['dev_2b155b6f80fd']) {
+      state.deviceProfiles['dev_2b155b6f80fd'] = {
+        deviceId: 'dev_2b155b6f80fd',
+        deviceName: 'PeterWorkPC',
+        primaryUser: 'Peter MOUNIR',
+        firstSeen: new Date().toISOString(),
+        lastSeen: new Date().toISOString(),
+        deviceInfo: 'Windows 10/11 Desktop (Corporate Work PC)',
+        userCounts: { 'Peter MOUNIR': 1 },
+        totalEdits: 1
+      };
+    } else {
+      state.deviceProfiles['dev_2b155b6f80fd'].deviceName = 'PeterWorkPC';
+      if (!state.deviceProfiles['dev_2b155b6f80fd'].primaryUser || state.deviceProfiles['dev_2b155b6f80fd'].primaryUser === 'Unknown') {
+        state.deviceProfiles['dev_2b155b6f80fd'].primaryUser = 'Peter MOUNIR';
+      }
+    }
 
     state.projects.forEach(p => {
       if (p.name.startsWith('GP - ')) {
@@ -780,6 +799,7 @@
       adminPin: state.adminPin,
       history: (state.history || []).slice(0, 1500),
       deviceProfiles: state.deviceProfiles || {},
+      deviceNames: state.deviceNames || { 'dev_2b155b6f80fd': 'PeterWorkPC' },
       lastUpdated: new Date().toISOString()
     };
     state.lastUpdated = payload.lastUpdated;
@@ -2708,6 +2728,58 @@
     }
   }
 
+    function getDeviceName(deviceId) {
+    if (!deviceId) return '';
+    if (state.deviceNames && state.deviceNames[deviceId]) {
+      return state.deviceNames[deviceId];
+    }
+    if (state.deviceProfiles && state.deviceProfiles[deviceId] && state.deviceProfiles[deviceId].deviceName) {
+      return state.deviceProfiles[deviceId].deviceName;
+    }
+    if (deviceId === 'dev_2b155b6f80fd') {
+      return 'PeterWorkPC';
+    }
+    return '';
+  }
+
+  function setDeviceFriendlyName(devId, newName) {
+    if (!devId) return;
+    state.deviceNames = state.deviceNames || {};
+    if (newName) {
+      state.deviceNames[devId] = newName;
+    } else {
+      delete state.deviceNames[devId];
+    }
+
+    state.deviceProfiles = state.deviceProfiles || {};
+    if (state.deviceProfiles[devId]) {
+      state.deviceProfiles[devId].deviceName = newName || '';
+    } else {
+      state.deviceProfiles[devId] = {
+        deviceId: devId,
+        deviceName: newName || '',
+        primaryUser: devId === 'dev_2b155b6f80fd' ? 'Peter MOUNIR' : 'Unknown',
+        firstSeen: new Date().toISOString(),
+        lastSeen: new Date().toISOString(),
+        deviceInfo: getDeviceFingerprint(),
+        userCounts: {},
+        totalEdits: 0
+      };
+    }
+
+    if (state.history) {
+      state.history.forEach(h => {
+        if (h.deviceId === devId) {
+          h.deviceName = newName || '';
+        }
+      });
+    }
+
+    syncToServer();
+    renderAuditHistoryData();
+    showToast(newName ? `Device renamed to '${newName}'` : `Custom name removed for ${devId}`);
+  }
+
   function logAuditEvent(eventData) {
     if (state.isViewOnly) return;
 
@@ -2762,7 +2834,7 @@
       // Detect cross-profile edit or suspicious impersonation
       let isCrossProfile = false;
       const targetEmpName = eventData.targetEmpName || '';
-      const suspectedOwner = devProf.primaryUser || 'Unknown';
+      let suspectedOwner = devProf.primaryUser || (deviceId === 'dev_2b155b6f80fd' ? 'Peter MOUNIR' : 'Unknown');
 
       if (editorName === 'Unselected Profile' || editorId === 'anonymous') {
         isCrossProfile = true;
@@ -6456,6 +6528,7 @@
             (item.summary && item.summary.toLowerCase().includes(query)) ||
             (item.details && item.details.toLowerCase().includes(query)) ||
             (item.deviceId && item.deviceId.toLowerCase().includes(query)) ||
+            (getDeviceName(item.deviceId).toLowerCase().includes(query)) ||
             (item.suspectedOwner && item.suspectedOwner.toLowerCase().includes(query)) ||
             (item.deviceInfo && item.deviceInfo.toLowerCase().includes(query));
           if (!matchQuery) return false;
@@ -6500,7 +6573,12 @@
                 ${item.details ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${escapeHtml(item.details)}</div>` : ''}
               </td>
               <td>
-                <span class="hist-device-badge" title="Hardware Device ID">${escapeHtml(item.deviceId || '-')}</span>
+                ${getDeviceName(item.deviceId) 
+                  ? `<div class="hist-device-badge named" title="Hardware ID: ${escapeHtml(item.deviceId || '-')}">
+                       <span class="hist-device-friendly-name">${escapeHtml(getDeviceName(item.deviceId))}</span>
+                       <span class="hist-device-sub-id">${escapeHtml(item.deviceId || '')}</span>
+                     </div>`
+                  : `<span class="hist-device-badge" title="Hardware Device ID">${escapeHtml(item.deviceId || '-')}</span>`}
                 ${suspectedBadge}
                 ${crossBadge}
               </td>
@@ -6530,13 +6608,22 @@
           const firstSeenStr = dev.firstSeen ? formatTimestampDMY(dev.firstSeen) : '-';
           const lastSeenStr = dev.lastSeen ? formatTimestampDMY(dev.lastSeen) : '-';
 
+          const devFriendlyName = getDeviceName(dev.deviceId);
+          const primaryUserDisplay = dev.primaryUser || (dev.deviceId === 'dev_2b155b6f80fd' ? 'Peter MOUNIR' : 'Unmapped');
+
           return `
             <tr>
               <td>
-                <span class="hist-device-badge">${escapeHtml(dev.deviceId)}</span>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                  <div>
+                    ${devFriendlyName ? `<strong style="font-size:12px; color:var(--primary); display:block;">${escapeHtml(devFriendlyName)}</strong>` : ''}
+                    <span class="hist-device-badge" style="font-size:10px;">${escapeHtml(dev.deviceId)}</span>
+                  </div>
+                  <button type="button" class="btn btn-xs btn-outline-secondary btn-rename-device" data-device-id="${escapeHtml(dev.deviceId)}" title="Rename device" style="font-size:10px; padding:2px 6px; white-space:nowrap;">Rename</button>
+                </div>
               </td>
               <td>
-                <strong style="font-size:12px; color:var(--primary);">${escapeHtml(dev.primaryUser || 'Unmapped')}</strong>
+                <strong style="font-size:12px; color:var(--primary);">${escapeHtml(primaryUserDisplay)}</strong>
               </td>
               <td style="font-size:12px;">${escapeHtml(loginsSummary)}</td>
               <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(dev.deviceInfo || '-')}</td>
@@ -6546,6 +6633,19 @@
             </tr>
           `;
         }).join('');
+
+        el.histDevicesTableBody.querySelectorAll('.btn-rename-device').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const devId = btn.getAttribute('data-device-id');
+            if (!devId) return;
+            const currentName = getDeviceName(devId) || '';
+            const newName = prompt(`Enter a friendly name for device (${devId}):`, currentName);
+            if (newName !== null) {
+              setDeviceFriendlyName(devId, newName.trim());
+            }
+          });
+        });
       }
     }
     } catch (e) {
@@ -6568,6 +6668,7 @@
       'Action Type',
       'Summary',
       'Details',
+      'Device Name',
       'Device ID',
       'Suspected Device Owner',
       'Hardware / Platform',
@@ -6582,8 +6683,9 @@
       item.actionType || '',
       item.summary || '',
       item.details || '',
+      getDeviceName(item.deviceId) || item.deviceName || '',
       item.deviceId || '',
-      item.suspectedOwner || '',
+      item.suspectedOwner || (item.deviceId === 'dev_2b155b6f80fd' ? 'Peter MOUNIR' : ''),
       item.deviceInfo || '',
       item.isCrossProfile ? 'YES - Cross Profile' : 'NO'
     ]);
