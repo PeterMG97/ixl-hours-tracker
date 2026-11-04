@@ -724,12 +724,7 @@
         el.userPermissionBanner.innerHTML = `<span><strong>Admin Mode Active:</strong> You are signed in as <strong>${currentEmp.name}</strong> with full admin permission to edit all cells for all employees.</span>`;
       } else {
         el.userPermissionBanner.classList.remove('admin-active-banner');
-        el.userPermissionBanner.classList.remove('hidden');
-        if (isCurrentUserPeter()) {
-          el.userPermissionBanner.innerHTML = `<span>You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row. (Click 'Admin Unlock' above to edit all employees).</span>`;
-        } else {
-          el.userPermissionBanner.innerHTML = `<span>You are editing as <strong id="permBannerName">${currentEmp.name}</strong>. You can only edit days in your own schedule row.</span>`;
-        }
+        el.userPermissionBanner.classList.add('hidden');
       }
     }
   }

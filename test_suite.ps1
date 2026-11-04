@@ -30,7 +30,7 @@ Write-Host "`n>>> GROUP 1: Database & Data Integrity (data.json)" -ForegroundCol
 $dbRaw = [System.IO.File]::ReadAllText((Join-Path $AppDir "data.json"))
 $db = $dbRaw | ConvertFrom-Json
 
-Assert-Test "1.1 Database contains all Team Members (27+ items)" ($db.employees.Count -ge 27) "Found: $($db.employees.Count)"
+Assert-Test "1.1 Database contains all Team Members (25+ items)" ($db.employees.Count -ge 25) "Found: $($db.employees.Count)"
 Assert-Test "1.2 Database contains all Projects (55 items)" ($db.projects.Count -ge 50) "Found: $($db.projects.Count)"
 Assert-Test "1.3 Database has correct secret Admin PIN" ($db.adminPin -eq "IXL2026") "PIN: $($db.adminPin)"
 

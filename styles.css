@@ -1029,6 +1029,11 @@ body.view-only .user-permission-banner {
   padding: 6px 24px;
   font-size: 12px;
 }
+[data-theme="dark"] .user-permission-banner {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  color: #93c5fd;
+}
 
 
 .legend-pills {
@@ -1092,7 +1097,7 @@ body.view-only .user-permission-banner {
 
 .table-scroll-area {
   overflow: auto;
-  max-height: calc(100vh - 195px);
+  max-height: calc(100vh - 140px);
 }
 
 .schedule-table {
