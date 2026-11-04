@@ -470,7 +470,43 @@
   const DB_CACHE_KEY = 'ixl_database_state_v1';
   let _hasPendingLocalSync = false;
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyD38b88McMjHNxafvZk3izXUkabEfRnaeA",
+    authDomain: "ixl-hours-tracker.firebaseapp.com",
+    projectId: "ixl-hours-tracker",
+    storageBucket: "ixl-hours-tracker.firebasestorage.app",
+    messagingSenderId: "293724070891",
+    appId: "1:293724070891:web:117c946e5c919220a1efae",
+    measurementId: "G-Y65ZTCSHEG"
+  };
+
+  let _db = null;
+  let _firebaseAvailable = false;
+  let _firestoreListenerAttached = false;
+
+  function initFirebase() {
+    try {
+      if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+        if (!firebase.apps || !firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        _db = firebase.firestore();
+        try {
+          _db.enablePersistence({ synchronizeTabs: true }).catch(function (err) {
+            console.warn('Firestore persistence not enabled:', err.code);
+          });
+        } catch (e) {}
+        _firebaseAvailable = true;
+      }
+    } catch (e) {
+      console.warn('Firebase init error (will fallback to local):', e);
+      _firebaseAvailable = false;
+    }
+  }
+
   async function loadData() {
+    initFirebase();
+
     let localData = null;
     let serverData = null;
 
@@ -484,61 +520,114 @@
       console.warn('Error reading local database cache:', e);
     }
 
-    // 2. Fetch from server API (/api/data)
-    try {
-      const res = await fetch('/api/data', { cache: 'no-store' });
-      if (res.ok) {
-        serverData = await res.json();
-        setConnectionStatus(true);
-      } else {
-        throw new Error('Server API returned non-OK status');
-      }
-    } catch (err) {
-      console.warn('API /api/data offline, trying data.json fallback...', err);
+    // 2. Fetch from Firebase Firestore if available
+    let firestoreData = null;
+    if (_firebaseAvailable && _db) {
       try {
-        const localRes = await fetch('data.json', { cache: 'no-store' });
-        if (localRes.ok) {
-          serverData = await localRes.json();
+        const docRef = _db.collection('appState').doc('ixlDatabase');
+        const snapshot = await docRef.get();
+        if (snapshot.exists) {
+          firestoreData = snapshot.data();
+          serverData = firestoreData;
+          setConnectionStatus(true);
+        } else {
+          console.log('Firestore cloud database empty. Auto-seeding from initial data...');
         }
-      } catch (e) {
-        console.warn('Static data.json fetch failed:', e);
+
+        // Attach live real-time sync listener once
+        if (!_firestoreListenerAttached) {
+          _firestoreListenerAttached = true;
+          docRef.onSnapshot(docSnap => {
+            if (!docSnap.exists) return;
+            if (docSnap.metadata && docSnap.metadata.hasPendingWrites) {
+              setConnectionStatus(true);
+              return;
+            }
+            const cloud = docSnap.data();
+            const currentUpdated = state.lastUpdated || '';
+            if (cloud.lastUpdated && cloud.lastUpdated !== currentUpdated) {
+              state.lastUpdated = cloud.lastUpdated;
+              applyData(cloud);
+              try {
+                setStoredItem(DB_CACHE_KEY, JSON.stringify(cloud));
+              } catch (e) {}
+              setConnectionStatus(true);
+            }
+          }, err => {
+            console.warn('Firestore onSnapshot listener error:', err);
+            setConnectionStatus(false);
+          });
+        }
+      } catch (fbErr) {
+        console.warn('Firebase Firestore fetch error (falling back to local):', fbErr);
       }
     }
 
-    // 3. Intelligent Reconciliation: ensure user edits are NEVER lost
+    // 3. Fallback: Fetch from server API (/api/data) or local data.json
+    if (!serverData) {
+      try {
+        const res = await fetch('/api/data', { cache: 'no-store' });
+        if (res.ok) {
+          serverData = await res.json();
+          setConnectionStatus(true);
+        } else {
+          throw new Error('Server API returned non-OK status');
+        }
+      } catch (err) {
+        console.warn('API /api/data offline, trying data.json fallback...', err);
+        try {
+          const localRes = await fetch('data.json', { cache: 'no-store' });
+          if (localRes.ok) {
+            serverData = await localRes.json();
+          }
+        } catch (e) {
+          console.warn('Static data.json fetch failed:', e);
+        }
+      }
+    }
+
+    // 4. Intelligent Reconciliation: ensure user edits are NEVER lost
+    let finalDataToApply = null;
+
     if (localData && serverData) {
       const localTime = new Date(localData.lastUpdated || 0).getTime();
       const serverTime = new Date(serverData.lastUpdated || 0).getTime();
 
       if (localTime > serverTime) {
-        // Local storage has newer unsynced edits: apply local and queue background sync
-        applyData(localData);
+        finalDataToApply = localData;
         _hasPendingLocalSync = true;
-        if (state.isConnected) {
-          syncToServer();
-        }
-        return;
       } else {
-        // Server data is newer or identical
-        applyData(serverData);
-        try {
-          setStoredItem(DB_CACHE_KEY, JSON.stringify(serverData));
-        } catch (e) {}
-        return;
+        finalDataToApply = serverData;
       }
     } else if (localData) {
-      // Offline mode: load from browser storage
-      applyData(localData);
-      setConnectionStatus(false);
+      finalDataToApply = localData;
       _hasPendingLocalSync = true;
-      return;
     } else if (serverData) {
-      // First load or fresh browser: load from server and prime cache
-      applyData(serverData);
+      finalDataToApply = serverData;
+    }
+
+    if (finalDataToApply) {
+      state.lastUpdated = finalDataToApply.lastUpdated || new Date().toISOString();
+      applyData(finalDataToApply);
       try {
-        setStoredItem(DB_CACHE_KEY, JSON.stringify(serverData));
+        setStoredItem(DB_CACHE_KEY, JSON.stringify(finalDataToApply));
       } catch (e) {}
-      return;
+
+      // If Firestore is available but empty (first run), auto-seed it immediately!
+      if (_firebaseAvailable && _db && !firestoreData) {
+        try {
+          const cleanSeed = JSON.parse(JSON.stringify(finalDataToApply));
+          await _db.collection('appState').doc('ixlDatabase').set(cleanSeed);
+          console.log('Firestore auto-seeded successfully with team data.');
+          setConnectionStatus(true);
+        } catch (seedErr) {
+          console.warn('Firestore auto-seed error:', seedErr);
+        }
+      }
+
+      if (_hasPendingLocalSync && state.isConnected) {
+        syncToServer();
+      }
     } else {
       setConnectionStatus(false);
       showToast('Could not load database. Please start the server.', 'danger');
@@ -612,6 +701,20 @@
   }
 
   setInterval(async () => {
+    // If Firebase Firestore is active, check online status
+    if (_firebaseAvailable && _db) {
+      const isOnline = (typeof navigator !== 'undefined' && 'onLine' in navigator) ? navigator.onLine : true;
+      const wasDisconnected = !state.isConnected;
+      setConnectionStatus(isOnline);
+
+      if (isOnline && (wasDisconnected || _hasPendingLocalSync) && !state.isViewOnly) {
+        _hasPendingLocalSync = false;
+        syncToServer();
+      }
+      return;
+    }
+
+    // Fallback: check local server API /api/ping
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -631,6 +734,19 @@
     }
   }, 8000);
 
+  // Online / Offline window listeners for instantaneous indicator updates
+  window.addEventListener('online', () => {
+    setConnectionStatus(true);
+    if (_hasPendingLocalSync && !state.isViewOnly) {
+      _hasPendingLocalSync = false;
+      syncToServer();
+    }
+  });
+
+  window.addEventListener('offline', () => {
+    setConnectionStatus(false);
+  });
+
   async function syncToServer() {
     if (state.isViewOnly) return;
     sortAllData();
@@ -644,6 +760,7 @@
       adminPin: state.adminPin,
       lastUpdated: new Date().toISOString()
     };
+    state.lastUpdated = payload.lastUpdated;
 
     // 1. Immediately persist to browser LocalStorage (survives refresh even if server offline)
     try {
@@ -652,7 +769,22 @@
       console.warn('LocalStorage save error:', err);
     }
 
-    // 2. Persist to backend server
+    let savedRemotely = false;
+
+    // 2. Persist to Firebase Firestore if available
+    if (_firebaseAvailable && _db) {
+      try {
+        const cleanPayload = JSON.parse(JSON.stringify(payload));
+        await _db.collection('appState').doc('ixlDatabase').set(cleanPayload);
+        savedRemotely = true;
+        setConnectionStatus(true);
+        _hasPendingLocalSync = false;
+      } catch (fbErr) {
+        console.warn('Firebase Firestore save error:', fbErr);
+      }
+    }
+
+    // 3. Also persist to local backend server if running (/api/save)
     try {
       const res = await fetch('/api/save', {
         method: 'POST',
@@ -660,14 +792,18 @@
         body: JSON.stringify(payload)
       });
       if (res.ok) {
+        savedRemotely = true;
         setConnectionStatus(true);
         _hasPendingLocalSync = false;
-      } else {
-        setConnectionStatus(false);
-        _hasPendingLocalSync = true;
-        showToast('Saved locally in browser (Server offline).', 'warning');
       }
     } catch (e) {
+      // Local server offline is fine if cloud saved
+    }
+
+    if (savedRemotely) {
+      setConnectionStatus(true);
+      _hasPendingLocalSync = false;
+    } else {
       setConnectionStatus(false);
       _hasPendingLocalSync = true;
       showToast('Saved locally in browser (Server offline).', 'warning');
