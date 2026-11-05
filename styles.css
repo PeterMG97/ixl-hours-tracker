@@ -3971,8 +3971,8 @@ body.view-only .task-chip {
    ------------------------------------------------------------- */
 @media (max-width: 768px) {
   :root {
-    --user-col-width: 102px;
-    --day-col-width: 180px;
+    --user-col-width: 125px;
+    --day-col-width: 38px;
   }
 
   .schedule-canvas {
@@ -4289,22 +4289,20 @@ body.view-only .task-chip {
   }
   .table-scroll-area.zoom-micro th.col-user,
   .table-scroll-area.zoom-micro td.col-user {
-    width: 82px !important;
-    min-width: 82px !important;
-    max-width: 82px !important;
-    padding: 3px 4px !important;
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+    padding: 3px 5px !important;
+    border-right: 2px solid var(--border-medium) !important;
   }
   .table-scroll-area.zoom-micro td.col-user .user-name-text {
-    max-width: 50px !important;
-    font-size: 10px !important;
+    max-width: 85px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
   }
   .table-scroll-area.zoom-micro th.col-metric,
   .table-scroll-area.zoom-micro td.col-metric {
-    left: 82px !important;
-    width: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
-    font-size: 9.5px !important;
+    display: none !important;
   }
 
   .table-scroll-area.zoom-compact .col-slot {
@@ -4818,4 +4816,14 @@ body.is-mobile-device .schedule-table td.col-user .user-name-text {
 
 body.is-desktop-device #toggleMobileDesktopGridViewBtn {
   display: none !important;
+}
+
+/* Mobile Grid View: Hide unfilled days pill and NO PROJECT badge beside employee name */
+body.is-mobile-device .schedule-table td.col-user .emp-unfilled-pill,
+body.is-mobile-device .schedule-table td.col-user .emp-no-proj-badge,
+@media (max-width: 768px) {
+  .schedule-table td.col-user .emp-unfilled-pill,
+  .schedule-table td.col-user .emp-no-proj-badge {
+    display: none !important;
+  }
 }

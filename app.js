@@ -1695,6 +1695,12 @@
   }
 
   function initColumnWidths() {
+    if (isMobileInterface()) {
+      document.documentElement.style.setProperty('--user-col-width', '125px');
+      setDayColumnWidth(38, false);
+      return;
+    }
+
     const savedUserWidth = localStorage.getItem('ixl_user_col_width');
     if (savedUserWidth) {
       document.documentElement.style.setProperty('--user-col-width', `${savedUserWidth}px`);
@@ -6951,6 +6957,8 @@
       if (notice) notice.classList.remove('hidden');
       document.body.classList.add('mobile-readonly-grid');
       if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Return to Mobile Card View';
+      // Default to minimum cell width when opening grid view on mobile
+      setDayColumnWidth(38, true);
     } else {
       // Default mobile interface: show mobile app container, hide grid
       if (container) container.classList.remove('hidden');
