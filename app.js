@@ -1819,35 +1819,12 @@
           return;
         }
 
-        // Left click: clear previous multi-selection
+        // Left click: clear previous multi-selection, close any open popover, stand on cell for arrow navigation
         if (state.selectedCells.size > 0) {
           clearSelection();
         }
-
+        closeCellPopover();
         setKeyboardFocusedCell(empId, dateStr);
-
-        // Open assignment popover directly on single click (mobile & desktop)
-        if (state.isViewOnly || state.currentUserId === 'view-all') {
-          showToast('View-only: Editing is disabled. Choose your name above to edit.', 'warning');
-          return;
-        }
-        const targetBtn = slot.querySelector('.task-chip') || slot;
-        const canEditThisRow = (state.isAdmin && isCurrentUserPeter()) || (state.currentUserId === empId);
-        if (!canEditThisRow) {
-          const targetEmp = state.employees.find(x => x.id === empId);
-          const currentEmp = state.employees.find(x => x.id === state.currentUserId);
-          if (isCurrentUserPeter()) {
-            state.pendingAdminCell = { empId, dateStr, element: targetBtn };
-            el.adminPinInput.value = '';
-            el.pinErrorMsg.classList.add('hidden');
-            openModal(el.adminPinModal);
-            showToast(`Admin PIN required to edit schedule for ${targetEmp ? targetEmp.name : 'other team members'}.`, 'warning');
-          } else {
-            showToast(`You can only edit days in your own schedule row (${currentEmp ? currentEmp.name : 'Signed In'}).`, 'warning');
-          }
-          return;
-        }
-        openCellPopover(empId, dateStr, targetBtn);
       });
 
       // Double-click opens edit popover directly for mouse users
@@ -2003,8 +1980,8 @@
 
     const isMultiMode = e.ctrlKey || e.metaKey;
 
-    // If clicking on a cell without multi-select modifier, clear previous multi-selection
-    if (!isMultiMode && state.selectedCells.size > 0) {
+    // If clicking on a cell without multi-select modifier, totally clear previous multi-selection
+    if (!isMultiMode) {
       clearSelection();
     }
     closeCellPopover();
@@ -2051,6 +2028,17 @@
       cellDragState.holdTimer = null;
     }
     cellDragState.isHoldSelecting = false;
+
+    // Hold left click: select this cell (enter multi-select) after 220ms
+    cellDragState.holdTimer = setTimeout(() => {
+      if (!cellDragState.isMouseDown) return;
+      cellDragState.isHoldSelecting = true;
+      cellDragState.isDragging = true;
+      cellDragState.suppressClick = true;
+      document.body.classList.add('is-cell-dragging');
+      closeCellPopover();
+      activate2DSelection(cellDragState.startRowIndex, cellDragState.startColIndex);
+    }, 220);
   }
 
   function handleDragMoveToSlot(slot) {

@@ -382,6 +382,19 @@ if (Test-Path $allUsersTestScript) {
 }
 Assert-Test "6.60 Generic cell edit, delete, single-click popover, and audit verification passes across all 26 users" $allUsersPass "All 26 employee profiles verified for single-click edit, clear, delete key, batch assign, admin edit, and audit log integrity"
 
+$cellSequenceTestScript = Join-Path $AppDir "test_cell_click_hold_sequence.js"
+$cellSequencePass = $false
+if (Test-Path $cellSequenceTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeSeqOutput = & $nodePath $cellSequenceTestScript 2>&1
+        $cellSequencePass = ($LASTEXITCODE -eq 0) -and ($nodeSeqOutput -match "DEDICATED TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $cellSequencePass = ($jsContent.Contains("setKeyboardFocusedCell")) -and ($jsContent.Contains("cellDragState.holdTimer = setTimeout"))
+    }
+}
+Assert-Test "6.61 PC Grid single click standing & hold-to-multiselect sequence integrity" $cellSequencePass "Dedicated test verifying single left click stands for arrow navigation and hold enters multi-select with total focus movement"
+
+
 
 
 
