@@ -145,6 +145,8 @@
     userPickerBtn: document.getElementById('userPickerBtn'),
     currentUserNameDisplay: document.getElementById('currentUserNameDisplay'),
     userAvatarInitials: document.getElementById('userAvatarInitials'),
+    topbarAdminIndicator: document.getElementById('topbarAdminIndicator'),
+    adminIndicatorBadge: document.getElementById('adminIndicatorBadge'),
     userSelectModal: document.getElementById('userSelectModal'),
     userSelectGrid: document.getElementById('userSelectGrid'),
     searchUserPickerInput: document.getElementById('searchUserPickerInput'),
@@ -3915,17 +3917,41 @@
   // -------------------------------------------------------------
 
   function updateAdminUI() {
-    if (state.isViewOnly) {
+    const isPeter = isCurrentUserPeter();
+
+    // 1. Non-Peter profiles or view-only mode: strictly hide all admin options and topbar indicator
+    if (!isPeter || state.isViewOnly) {
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
       if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.add('hidden');
+      if (el.topbarAdminIndicator) el.topbarAdminIndicator.classList.add('hidden');
       return;
     }
 
-    // Always show Admin button in Settings drawer
+    // 2. Peter MOUNIR: show Admin toggle in Settings drawer
     if (el.adminToggleBtn) el.adminToggleBtn.classList.remove('hidden');
 
-    if (state.isAdmin && isCurrentUserPeter()) {
+    // 3. Peter MOUNIR: show outer Admin indicator in top bar (clickable toggle)
+    if (el.topbarAdminIndicator) {
+      el.topbarAdminIndicator.classList.remove('hidden');
+      if (state.isAdmin) {
+        el.topbarAdminIndicator.classList.add('admin-active');
+        el.topbarAdminIndicator.classList.remove('admin-inactive');
+        el.topbarAdminIndicator.title = 'Admin Mode Active (Click to lock)';
+        if (el.adminIndicatorBadge) {
+          el.adminIndicatorBadge.textContent = 'ADMIN';
+        }
+      } else {
+        el.topbarAdminIndicator.classList.remove('admin-active');
+        el.topbarAdminIndicator.classList.add('admin-inactive');
+        el.topbarAdminIndicator.title = 'Admin Mode Locked (Click to enter PIN)';
+        if (el.adminIndicatorBadge) {
+          el.adminIndicatorBadge.textContent = 'Admin Mode';
+        }
+      }
+    }
+
+    if (state.isAdmin) {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.remove('hidden');
       if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.remove('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
@@ -3962,6 +3988,7 @@
 
   if (el.adminToggleBtn) el.adminToggleBtn.addEventListener('click', toggleAdminMode);
   if (el.topbarAdminBtn) el.topbarAdminBtn.addEventListener('click', toggleAdminMode);
+  if (el.topbarAdminIndicator) el.topbarAdminIndicator.addEventListener('click', toggleAdminMode);
 
   el.submitPinBtn.addEventListener('click', () => {
     const pin = el.adminPinInput.value.trim();
@@ -6902,6 +6929,8 @@
     if (!isMobile) {
       document.body.classList.add('is-desktop-device');
       document.body.classList.remove('is-mobile-device');
+      if (el.topbarBulkFillBtn) el.topbarBulkFillBtn.classList.remove('hidden');
+      if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
       // PC / Laptop interface: Always show full grid, hide mobile container
       if (container) container.classList.add('hidden');
       if (gridCard) gridCard.classList.remove('hidden');
@@ -6912,6 +6941,8 @@
 
     document.body.classList.add('is-mobile-device');
     document.body.classList.remove('is-desktop-device');
+    if (el.topbarBulkFillBtn) el.topbarBulkFillBtn.classList.add('hidden');
+    if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.remove('hidden');
     // Mobile interface:
     if (state.mobileViewMode === 'grid') {
       // Viewing full desktop grid on mobile (strictly read-only)

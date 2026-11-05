@@ -254,7 +254,78 @@ body {
 .header-center {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+/* Outer Admin Mode Indicator in Top Bar */
+.topbar-admin-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  font-family: inherit;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.topbar-admin-indicator:hover {
+  transform: translateY(-1px);
+}
+
+.topbar-admin-indicator:active {
+  transform: translateY(0);
+}
+
+.topbar-admin-indicator .admin-indicator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.topbar-admin-indicator.admin-active .admin-indicator-badge {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.12);
+}
+
+.topbar-admin-indicator.admin-inactive .admin-indicator-badge {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid var(--border-medium);
+}
+
+.topbar-admin-indicator.admin-inactive:hover .admin-indicator-badge {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+[data-theme="dark"] .topbar-admin-indicator.admin-active .admin-indicator-badge {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .topbar-admin-indicator.admin-inactive .admin-indicator-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .topbar-admin-indicator.admin-inactive:hover .admin-indicator-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
 }
 
 .topbar-admin-badge {
@@ -2673,13 +2744,13 @@ body.view-only .task-chip {
 }
 
 .settings-action-card.admin-card {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: white;
+  border-color: var(--border-light);
 }
 
 .settings-action-card.admin-card:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
+  background: #f8fafc;
+  border-color: var(--border-medium);
 }
 
 .settings-action-card.admin-card.unlocked {
@@ -2689,6 +2760,7 @@ body.view-only .task-chip {
 
 .settings-action-card.admin-card.unlocked:hover {
   background: #dcfce7;
+  border-color: #86efac;
 }
 
 .action-card-icon {
@@ -2785,17 +2857,23 @@ body.view-only .task-chip {
 }
 
 [data-theme="dark"] .settings-action-card.admin-card {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
+  background: #1e293b;
+  border-color: var(--border-light);
 }
 
 [data-theme="dark"] .settings-action-card.admin-card:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: #334155;
+  border-color: var(--border-medium);
 }
 
 [data-theme="dark"] .settings-action-card.admin-card.unlocked {
   background: rgba(16, 185, 129, 0.15);
   border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .settings-action-card.admin-card.unlocked:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
 }
 
 [data-theme="dark"] .settings-drawer-footer {
@@ -4068,26 +4146,70 @@ body.view-only .task-chip {
     min-width: 100% !important;
   }
 
+  /* Mobile Header Beacon: Clean dot lamp only */
+  .status-beacon {
+    padding: 4px !important;
+    gap: 0 !important;
+    min-width: unset !important;
+    border-radius: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+  }
+  .status-beacon .beacon-text {
+    display: none !important;
+  }
+
+  /* Mobile Settings Drawer: Hide Bulk Fill Schedule button (use mobile logger instead) */
+  #topbarBulkFillBtn {
+    display: none !important;
+  }
+
+  /* Mobile Schedule Grid: Remove Hours column completely (display:none) */
+  .schedule-table th.col-metric,
+  .schedule-table td.col-metric {
+    display: none !important;
+  }
+
+  /* Mobile Schedule Grid: Expand Team Member column and ensure #thToggleAllGroups never touches columns */
   .schedule-table th.col-user,
   .schedule-table td.col-user {
     position: sticky !important;
     left: 0 !important;
     z-index: 25 !important;
-    width: 102px !important;
-    min-width: 102px !important;
-    max-width: 102px !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
     padding: 4px 6px !important;
     box-sizing: border-box !important;
     font-size: 11px !important;
+    border-right: 2px solid var(--border-medium) !important;
   }
 
   .schedule-table thead th.col-user {
     z-index: 35 !important;
   }
 
+  .schedule-table thead th.col-user .th-user-inner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 4px !important;
+  }
+
+  .schedule-table thead th.col-user .btn-group-action {
+    padding: 2px 5px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
   .schedule-table td.col-user .user-name-text {
     font-size: 11px !important;
-    max-width: 66px !important;
+    max-width: 96px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -4104,26 +4226,6 @@ body.view-only .task-chip {
   .schedule-table td.col-user .emp-unfilled-badge {
     font-size: 9px !important;
     padding: 1px 3px !important;
-  }
-
-  .schedule-table th.col-metric,
-  .schedule-table td.col-metric {
-    position: sticky !important;
-    left: 102px !important;
-    z-index: 22 !important;
-    width: 40px !important;
-    min-width: 40px !important;
-    max-width: 40px !important;
-    padding: 4px 2px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    text-align: center !important;
-    border-right: 2px solid var(--border-medium) !important;
-    box-sizing: border-box !important;
-  }
-
-  .schedule-table thead th.col-metric {
-    z-index: 32 !important;
   }
 
   .schedule-table th.col-slot {
@@ -4648,4 +4750,72 @@ body.mobile-readonly-grid .schedule-table td.col-slot * {
 }
 body.mobile-readonly-grid .schedule-table td.col-user {
   cursor: default !important;
+}
+
+/* Deterministic Device Scope Rules */
+body.is-mobile-device .status-beacon {
+  padding: 4px !important;
+  gap: 0 !important;
+  min-width: unset !important;
+  border-radius: 50% !important;
+  width: 18px !important;
+  height: 18px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+}
+
+body.is-mobile-device .status-beacon .beacon-text {
+  display: none !important;
+}
+
+body.is-mobile-device #topbarBulkFillBtn {
+  display: none !important;
+}
+
+body.is-mobile-device .schedule-table th.col-metric,
+body.is-mobile-device .schedule-table td.col-metric {
+  display: none !important;
+}
+
+body.is-mobile-device .schedule-table th.col-user,
+body.is-mobile-device .schedule-table td.col-user {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 25 !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  padding: 4px 6px !important;
+  box-sizing: border-box !important;
+  font-size: 11px !important;
+  border-right: 2px solid var(--border-medium) !important;
+}
+
+body.is-mobile-device .schedule-table thead th.col-user .th-user-inner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  gap: 4px !important;
+}
+
+body.is-mobile-device .schedule-table thead th.col-user .btn-group-action {
+  padding: 2px 5px !important;
+  font-size: 10px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+body.is-mobile-device .schedule-table td.col-user .user-name-text {
+  font-size: 11px !important;
+  max-width: 96px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+body.is-desktop-device #toggleMobileDesktopGridViewBtn {
+  display: none !important;
 }
