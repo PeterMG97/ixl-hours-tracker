@@ -219,6 +219,9 @@
     // Bulk Fill Modal (Enhanced with Cairo/Istanbul holiday handling)
     topbarBulkFillBtn: document.getElementById('topbarBulkFillBtn'),
     bulkFillModal: document.getElementById('bulkFillModal'),
+    bulkRangeToday: document.getElementById('bulkRangeToday'),
+    bulkRangeWeek: document.getElementById('bulkRangeWeek'),
+    bulkRangeMonth: document.getElementById('bulkRangeMonth'),
     bulkEmployeeSelect: document.getElementById('bulkEmployeeSelect'),
     bulkEmployeeOfficeHint: document.getElementById('bulkEmployeeOfficeHint'),
     bulkFromDate: document.getElementById('bulkFromDate'),
@@ -3102,6 +3105,65 @@
   el.topbarBulkFillBtn.addEventListener('click', () => {
     openBulkFillModal(state.currentUserId, state.todayStr);
   });
+
+  if (el.bulkRangeToday) {
+    el.bulkRangeToday.addEventListener('click', () => {
+      const t = state.todayStr || (state.currentMonth + '-01');
+      if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(t);
+      if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(t);
+      showToast('Range set to Today (' + formatDateDMY(t) + ')');
+    });
+  }
+
+  if (el.bulkRangeWeek) {
+    el.bulkRangeWeek.addEventListener('click', () => {
+      const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : state.currentUserId;
+      const emp = state.employees.find(e => e.id === empId);
+      const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+      const isIstanbul = (sec.location || '').toLowerCase().includes('istanbul');
+
+      const t = state.todayStr ? parseLocalDate(state.todayStr) : parseLocalDate(state.currentMonth + '-01');
+      const dayOfWeek = t.getDay(); // 0 Sun, 1 Mon ...
+
+      let startWk = new Date(t);
+      let endWk = new Date(t);
+
+      if (isIstanbul) {
+        // Mon - Fri
+        startWk.setDate(t.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+        endWk = new Date(startWk);
+        endWk.setDate(startWk.getDate() + 4);
+      } else {
+        // Cairo / Riyadh / Dubai (Sun - Thu)
+        startWk.setDate(t.getDate() - dayOfWeek);
+        endWk = new Date(startWk);
+        endWk.setDate(startWk.getDate() + 4);
+      }
+
+      let fStr = formatLocalDate(startWk);
+      let tStr = formatLocalDate(endWk);
+
+      // Clamp to APP_START_MONTH boundary (01/11/2026)
+      if (fStr < APP_START_MONTH + '-01') fStr = APP_START_MONTH + '-01';
+      if (tStr < APP_START_MONTH + '-01') tStr = APP_START_MONTH + '-01';
+
+      if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(fStr);
+      if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(tStr);
+      showToast(`Range set to Current Work Week (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
+    });
+  }
+
+  if (el.bulkRangeMonth) {
+    el.bulkRangeMonth.addEventListener('click', () => {
+      const [y, m] = state.currentMonth.split('-').map(Number);
+      const lastDay = new Date(y, m, 0).getDate();
+      const fStr = `${state.currentMonth}-01`;
+      const tStr = `${state.currentMonth}-${String(lastDay).padStart(2, '0')}`;
+      if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(fStr);
+      if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(tStr);
+      showToast(`Range set to Entire Month (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
+    });
+  }
 
   el.openBulkFillBtn.addEventListener('click', () => {
     if (!state.selectedCell) return;
@@ -6951,6 +7013,51 @@
     }
   }
 
+  function updateMonthSelectLabels(isMobile) {
+    if (!el.monthSelect) return;
+    const shortMonths = {
+      '2026-11': '11/2026 - Nov',
+      '2026-12': '12/2026 - Dec',
+      '2027-01': '01/2027 - Jan',
+      '2027-02': '02/2027 - Feb',
+      '2027-03': '03/2027 - Mar',
+      '2027-04': '04/2027 - Apr',
+      '2027-05': '05/2027 - May',
+      '2027-06': '06/2027 - Jun',
+      '2027-07': '07/2027 - Jul',
+      '2027-08': '08/2027 - Aug',
+      '2027-09': '09/2027 - Sep',
+      '2027-10': '10/2027 - Oct',
+      '2027-11': '11/2027 - Nov',
+      '2027-12': '12/2027 - Dec'
+    };
+    const fullMonths = {
+      '2026-11': '11/2026 - November 2026 (Start)',
+      '2026-12': '12/2026 - December 2026',
+      '2027-01': '01/2027 - January 2027',
+      '2027-02': '02/2027 - February 2027',
+      '2027-03': '03/2027 - March 2027',
+      '2027-04': '04/2027 - April 2027',
+      '2027-05': '05/2027 - May 2027',
+      '2027-06': '06/2027 - June 2027',
+      '2027-07': '07/2027 - July 2027',
+      '2027-08': '08/2027 - August 2027',
+      '2027-09': '09/2027 - September 2027',
+      '2027-10': '10/2027 - October 2027',
+      '2027-11': '11/2027 - November 2027',
+      '2027-12': '12/2027 - December 2027'
+    };
+
+    Array.from(el.monthSelect.options).forEach(opt => {
+      const val = opt.value;
+      if (isMobile) {
+        if (shortMonths[val]) opt.textContent = shortMonths[val];
+      } else {
+        if (fullMonths[val]) opt.textContent = fullMonths[val];
+      }
+    });
+  }
+
   function updateDeviceViewMode() {
     const isMobile = isMobileInterface();
     const container = el.mobileAppContainer;
@@ -6958,6 +7065,7 @@
     const notice = el.mobileGridNoticeBanner;
 
     dockMobileConnectionBadge(isMobile);
+    updateMonthSelectLabels(isMobile);
 
     if (!isMobile) {
       document.body.classList.add('is-desktop-device');

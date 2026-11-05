@@ -4017,13 +4017,9 @@ body.view-only .task-chip {
   }
 
   .brand-divider,
-  .brand-caption {
+  .brand-caption,
+  .brand-info {
     display: none !important;
-  }
-
-  .brand-info h2 {
-    font-size: 12px;
-    white-space: nowrap;
   }
 
   .status-beacon {
@@ -4783,6 +4779,10 @@ body.mobile-readonly-grid .schedule-table td.col-user {
 }
 
 /* Deterministic Device Scope Rules */
+body.is-mobile-device .brand-info {
+  display: none !important;
+}
+
 body.is-mobile-device .status-beacon {
   padding: 4px !important;
   gap: 0 !important;
@@ -4905,4 +4905,42 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   .emp-no-proj-badge {
     display: none !important;
   }
+}
+
+/* Bulk Fill Modal Range Shortcuts (PC & Dialog) */
+.bulk-range-shortcuts {
+  display: flex;
+  gap: 8px;
+  margin-top: -6px;
+  margin-bottom: 14px;
+}
+
+.btn-bulk-chip {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: var(--surface-bg, #f8fafc);
+  border: 1px solid var(--border-medium, #cbd5e1);
+  color: var(--text-primary, #0f172a);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-bulk-chip:hover {
+  background: var(--primary-soft, #eff6ff);
+  border-color: var(--primary, #3b82f6);
+  color: var(--primary, #3b82f6);
+}
+
+[data-theme="dark"] .btn-bulk-chip {
+  background: #1e293b;
+  border-color: var(--border-medium);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .btn-bulk-chip:hover {
+  background: #254b7d;
+  border-color: #60a5fa;
+  color: #ffffff;
 }
