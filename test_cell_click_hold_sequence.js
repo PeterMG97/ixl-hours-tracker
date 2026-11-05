@@ -4,15 +4,17 @@
  * Specifically validates:
  * 1. One left click on any cell: strictly stands on the cell (sets keyboard focus)
  *    and enables arrow key navigation without opening the popover.
- * 2. Hold left click (>=220ms): enters multi-select mode on that cell and shows the
+ * 2. Natural click dwell time (e.g. 150ms-280ms) and micro-jitters (<8px) NEVER trigger
+ *    select mode accidentally.
+ * 3. Hold left click (>=380ms): enters multi-select mode on that cell and shows the
  *    multi-select toolbar. If user was standing on Cell A and holds on Cell B,
  *    focus and selection totally move to Cell B (Cell A is completely unfocused and unselected).
- * 3. Hold and drag: expands 2D multi-selection from the hold start cell to target cell.
- * 4. Single left click after multi-select: completely clears multi-select and stands on clicked cell.
- * 5. Double click: opens assignment popover directly.
- * 6. Keyboard Enter / Space: opens assignment popover for the focused cell.
- * 7. Excel-style keyboard arrow navigation: navigates up/down/left/right from current focused cell.
- * 8. User permission isolation: non-admin can view other rows with single click & arrows,
+ * 4. Hold and drag: expands 2D multi-selection from the hold start cell to target cell.
+ * 5. Single left click after multi-select: completely clears multi-select and stands on clicked cell.
+ * 6. Double click: opens assignment popover directly.
+ * 7. Keyboard Enter / Space: opens assignment popover for the focused cell.
+ * 8. Excel-style keyboard arrow navigation: navigates up/down/left/right from current focused cell.
+ * 9. User permission isolation: non-admin can view other rows with single click & arrows,
  *    but cannot hold-select or edit; Admin (Peter MOUNIR) can hold-select across all rows.
  */
 
@@ -73,27 +75,33 @@ if (mouseDownMatch) {
   testAssert(mdBody.includes('cellDragState.holdTimer = setTimeout('), '1.9 handleCellMouseDown starts holdTimer');
   testAssert(mdBody.includes('cellDragState.isHoldSelecting = true'), '1.10 holdTimer sets isHoldSelecting to true');
   testAssert(mdBody.includes('activate2DSelection('), '1.11 holdTimer invokes activate2DSelection on starting cell');
+  testAssert(mdBody.includes('380'), '1.12 holdTimer configured with 380ms threshold to prevent false-trigger on normal clicks');
 }
 
-// 1.3 Mouse up suppresses click when hold selecting occurred
+// 1.3 Drag threshold & deadband
+testAssert(appJs.includes('moveDist = Math.hypot('), '1.13 Physical pixel movement displacement calculated (Math.hypot)');
+testAssert(appJs.includes('moveDist >= 8'), '1.14 Micro-jitter deadband threshold (>= 8px) enforced');
+testAssert(appJs.includes('if (cellDragState.isDragging) {'), '1.15 Edge clamping logic strictly guarded by active isDragging state');
+
+// 1.4 Mouse up suppresses click when hold selecting occurred
 const mouseUpMatch = appJs.match(/function handleGlobalMouseUp\(e\)\s*\{([\s\S]*?)\n\s*function handleGlobalMouseMove/);
-testAssert(!!mouseUpMatch, '1.12 handleGlobalMouseUp function exists');
+testAssert(!!mouseUpMatch, '1.16 handleGlobalMouseUp function exists');
 if (mouseUpMatch) {
   const muBody = mouseUpMatch[1];
-  testAssert(muBody.includes('clearTimeout(cellDragState.holdTimer)'), '1.13 handleGlobalMouseUp clears holdTimer');
-  testAssert(muBody.includes('cellDragState.suppressClick = true'), '1.14 handleGlobalMouseUp suppresses trailing click when hold or drag was active');
-  testAssert(muBody.includes('updateMultiSelectUI()'), '1.15 handleGlobalMouseUp updates multi-select UI');
+  testAssert(muBody.includes('clearTimeout(cellDragState.holdTimer)'), '1.17 handleGlobalMouseUp clears holdTimer');
+  testAssert(muBody.includes('cellDragState.suppressClick = true'), '1.18 handleGlobalMouseUp suppresses trailing click when hold or drag was active');
+  testAssert(muBody.includes('updateMultiSelectUI()'), '1.19 handleGlobalMouseUp updates multi-select UI');
 }
 
-// 1.4 Double click and keyboard Enter still open popover
-testAssert(appJs.includes("slot.addEventListener('dblclick'"), '1.16 Double click listener preserved on grid slots');
+// 1.5 Double click and keyboard Enter still open popover
+testAssert(appJs.includes("slot.addEventListener('dblclick'"), '1.20 Double click listener preserved on grid slots');
 const dblClickMatch = appJs.match(/slot\.addEventListener\('dblclick',\s*\(e\)\s*=>\s*\{([\s\S]*?)\}\);/);
-testAssert(!!dblClickMatch && dblClickMatch[1].includes('openCellPopover('), '1.17 Double click calls openCellPopover');
-testAssert(appJs.includes("['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)"), '1.18 Arrow navigation keys handled');
-testAssert(appJs.includes("(e.key === 'Enter' || e.key === ' ')"), '1.19 Enter/Space key opens popover for activeKeyboardCell');
+testAssert(!!dblClickMatch && dblClickMatch[1].includes('openCellPopover('), '1.21 Double click calls openCellPopover');
+testAssert(appJs.includes("['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)"), '1.22 Arrow navigation keys handled');
+testAssert(appJs.includes("(e.key === 'Enter' || e.key === ' ')"), '1.23 Enter/Space key opens popover for activeKeyboardCell');
 
 // -------------------------------------------------------------
-// MODULE 2: Behavioral Grid Simulation
+// MODULE 2: Behavioral State & Event Simulation
 // -------------------------------------------------------------
 console.log('\n>>> MODULE 2: Behavioral State & Event Simulation');
 
@@ -197,11 +205,15 @@ function createGridMock() {
     startDateStr: null,
     startRowIndex: -1,
     startColIndex: -1,
+    startX: 0,
+    startY: 0,
+    lastClientX: 0,
+    lastClientY: 0,
     suppressClick: false
   };
 
   // Event dispatchers
-  function handleMouseDown(empId, colIndex, isMulti = false) {
+  function handleMouseDown(empId, colIndex, isMulti = false, clientX = 100, clientY = 100) {
     if (cellDragState.holdTimer) {
       clearTimeout(cellDragState.holdTimer);
       cellDragState.holdTimer = null;
@@ -227,9 +239,13 @@ function createGridMock() {
     cellDragState.startDateStr = dateStr;
     cellDragState.startRowIndex = empIdx;
     cellDragState.startColIndex = colIndex;
+    cellDragState.startX = clientX;
+    cellDragState.startY = clientY;
+    cellDragState.lastClientX = clientX;
+    cellDragState.lastClientY = clientY;
     cellDragState.suppressClick = false;
 
-    // Simulate hold timer (220ms)
+    // Simulate hold timer (380ms)
     cellDragState.holdTimer = {
       fire: () => {
         if (!cellDragState.isMouseDown) return;
@@ -242,10 +258,17 @@ function createGridMock() {
     };
   }
 
-  function handleMouseMove(targetEmpId, targetColIndex) {
+  function handleMouseMove(targetEmpId, targetColIndex, clientX = 100, clientY = 100) {
     if (!cellDragState.isMouseDown) return;
+    cellDragState.lastClientX = clientX;
+    cellDragState.lastClientY = clientY;
+
     const targetR = employees.findIndex(e => e.id === targetEmpId);
-    if (targetR !== cellDragState.startRowIndex || targetColIndex !== cellDragState.startColIndex) {
+    const isDifferentCell = (targetR !== cellDragState.startRowIndex || targetColIndex !== cellDragState.startColIndex);
+    const moveDist = Math.hypot(clientX - cellDragState.startX, clientY - cellDragState.startY);
+    const hasIntentionalDragDistance = moveDist >= 8;
+
+    if (cellDragState.isDragging || (isDifferentCell && hasIntentionalDragDistance)) {
       if (cellDragState.holdTimer) {
         cellDragState.holdTimer = null;
       }
@@ -362,9 +385,8 @@ testAssert(grid1.state.activeKeyboardCell.empId === 'emp_1' && grid1.state.activ
   '2.1 Precondition: Standing on Cell A (emp_1, 2026-11-01)');
 testAssert(grid1.dom.focusedCell === 'emp_1_2026-11-01', '2.2 Cell A has keyboard focus');
 
-// Single quick click on Cell B (emp_1, Day 5 - colIndex 4)
-grid1.handleMouseDown('emp_1', 4);
-// Mouseup at <220ms without holdTimer firing
+// Single normal click on Cell B (emp_1, Day 5 - colIndex 4), dwell time ~200ms
+grid1.handleMouseDown('emp_1', 4, false, 150, 150);
 grid1.handleMouseUp();
 grid1.handleClick('emp_1', 4);
 
@@ -378,14 +400,31 @@ testAssert(grid1.state.selectedCells.size === 0, '2.8 Multi-select is NOT entere
 testAssert(!grid1.dom.selectedClasses.has('emp_1_2026-11-05'), '2.9 Cell B is NOT marked as is-selected-cell');
 testAssert(grid1.dom.multiSelectBarVisible === false, '2.10 Multi-select toolbar is hidden');
 
+// -------------------------------------------------------------
+// SCENARIO 1B: Natural Slow/Deliberate Click (250ms) + Micro-Jitter (dx=3px, dy=2px)
+// -------------------------------------------------------------
+const grid1b = createGridMock();
+grid1b.setKeyboardFocusedCell('emp_1', '2026-11-01');
+// User presses down at (200, 200) on Cell Day 3 (colIndex 2)
+grid1b.handleMouseDown('emp_1', 2, false, 200, 200);
+// Mouse experiences a 3px micro-tremor near edge (moves to adjacent colIndex 3, but dist < 8px)
+grid1b.handleMouseMove('emp_1', 3, 203, 202);
+testAssert(grid1b.cellDragState.isDragging === false, '2.11 3px micro-tremor does NOT activate drag multi-select');
+// Mouse released at 250ms (before 380ms hold threshold)
+grid1b.handleMouseUp();
+grid1b.handleClick('emp_1', 2);
+testAssert(grid1b.state.selectedCells.size === 0, '2.12 Relaxed 250ms click does NOT enter multi-select');
+testAssert(grid1b.dom.multiSelectBarVisible === false, '2.13 Multi-select bar remains hidden on relaxed click');
+testAssert(grid1b.state.activeKeyboardCell.dateStr === '2026-11-03', '2.14 Focus accurately set on clicked cell (Nov 3)');
+
 // Arrow navigation from Cell B
 grid1.handleKeyDown('ArrowRight');
 testAssert(grid1.state.activeKeyboardCell.dateStr === '2026-11-06',
-  '2.11 ArrowRight key navigates from Cell B (Nov 5) to Nov 6');
+  '2.15 ArrowRight key navigates from Cell B (Nov 5) to Nov 6');
 grid1.handleKeyDown('ArrowDown');
 testAssert(grid1.state.activeKeyboardCell.empId === dataJson.employees[1].id,
-  '2.12 ArrowDown key navigates to next employee row');
-testAssert(grid1.dom.popoverOpen === false, '2.13 Popover remains closed during arrow navigation');
+  '2.16 ArrowDown key navigates to next employee row');
+testAssert(grid1.dom.popoverOpen === false, '2.17 Popover remains closed during arrow navigation');
 
 // -------------------------------------------------------------
 // SCENARIO 2: Hold Left Click on Cell B when standing on Cell A
@@ -393,89 +432,89 @@ testAssert(grid1.dom.popoverOpen === false, '2.13 Popover remains closed during 
 const grid2 = createGridMock();
 // Precondition: Stand on Cell A (emp_1, Day 1)
 grid2.setKeyboardFocusedCell('emp_1', '2026-11-01');
-testAssert(grid2.dom.focusedCell === 'emp_1_2026-11-01', '2.14 Precondition: Standing on Cell A');
+testAssert(grid2.dom.focusedCell === 'emp_1_2026-11-01', '2.18 Precondition: Standing on Cell A');
 
 // User presses down on Cell B (emp_1, Day 5 - colIndex 4)
-grid2.handleMouseDown('emp_1', 4);
+grid2.handleMouseDown('emp_1', 4, false, 150, 150);
 
 // Focus immediately moves to Cell B and Cell A is abandoned
 testAssert(grid2.state.activeKeyboardCell.dateStr === '2026-11-05',
-  '2.15 Mouse down immediately moves keyboard focus to Cell B');
-testAssert(grid2.dom.focusedCell === 'emp_1_2026-11-05', '2.16 Cell B gets keyboard-focused class');
+  '2.19 Mouse down immediately moves keyboard focus to Cell B');
+testAssert(grid2.dom.focusedCell === 'emp_1_2026-11-05', '2.20 Cell B gets keyboard-focused class');
 
-// Hold duration >= 220ms: holdTimer fires!
-testAssert(!!grid2.cellDragState.holdTimer, '2.17 holdTimer was scheduled');
+// Hold duration >= 380ms: holdTimer fires!
+testAssert(!!grid2.cellDragState.holdTimer, '2.21 holdTimer was scheduled');
 grid2.cellDragState.holdTimer.fire();
 
-testAssert(grid2.cellDragState.isHoldSelecting === true, '2.18 isHoldSelecting is true after holdTimer');
-testAssert(grid2.cellDragState.suppressClick === true, '2.19 suppressClick is true after holdTimer');
-testAssert(grid2.state.selectedCells.size === 1, '2.20 Cell B is entered into multi-select (size 1)');
-testAssert(grid2.state.selectedCells.has('emp_1_2026-11-05'), '2.21 selectedCells contains exactly Cell B');
-testAssert(!grid2.state.selectedCells.has('emp_1_2026-11-01'), '2.22 selectedCells does NOT contain prior Cell A');
-testAssert(grid2.dom.selectedClasses.has('emp_1_2026-11-05'), '2.23 Cell B has is-selected-cell class');
-testAssert(!grid2.dom.selectedClasses.has('emp_1_2026-11-01'), '2.24 Cell A does NOT have is-selected-cell class');
-testAssert(grid2.dom.multiSelectBarVisible === true, '2.25 Multi-select toolbar is visible');
-testAssert(grid2.dom.multiSelectCountText === '1 cell selected', '2.26 Multi-select count indicates "1 cell selected"');
+testAssert(grid2.cellDragState.isHoldSelecting === true, '2.22 isHoldSelecting is true after holdTimer');
+testAssert(grid2.cellDragState.suppressClick === true, '2.23 suppressClick is true after holdTimer');
+testAssert(grid2.state.selectedCells.size === 1, '2.24 Cell B is entered into multi-select (size 1)');
+testAssert(grid2.state.selectedCells.has('emp_1_2026-11-05'), '2.25 selectedCells contains exactly Cell B');
+testAssert(!grid2.state.selectedCells.has('emp_1_2026-11-01'), '2.26 selectedCells does NOT contain prior Cell A');
+testAssert(grid2.dom.selectedClasses.has('emp_1_2026-11-05'), '2.27 Cell B has is-selected-cell class');
+testAssert(!grid2.dom.selectedClasses.has('emp_1_2026-11-01'), '2.28 Cell A does NOT have is-selected-cell class');
+testAssert(grid2.dom.multiSelectBarVisible === true, '2.29 Multi-select toolbar is visible');
+testAssert(grid2.dom.multiSelectCountText === '1 cell selected', '2.30 Multi-select count indicates "1 cell selected"');
 
 // User releases mouse
 grid2.handleMouseUp();
 // Click event fires but is suppressed by suppressClick
 grid2.handleClick('emp_1', 4);
 
-testAssert(grid2.state.selectedCells.size === 1, '2.27 Multi-selection of Cell B preserved on mouse release (not cleared by click)');
-testAssert(grid2.dom.multiSelectBarVisible === true, '2.28 Multi-select bar remains visible after mouse release');
-testAssert(grid2.dom.popoverOpen === false, '2.29 Popover was NOT opened by hold');
+testAssert(grid2.state.selectedCells.size === 1, '2.31 Multi-selection of Cell B preserved on mouse release (not cleared by click)');
+testAssert(grid2.dom.multiSelectBarVisible === true, '2.32 Multi-select bar remains visible after mouse release');
+testAssert(grid2.dom.popoverOpen === false, '2.33 Popover was NOT opened by hold');
 
 // -------------------------------------------------------------
-// SCENARIO 3: Hold and Drag from Cell B to Cell C (Range Selection)
+// SCENARIO 3: Hold and Drag from Cell B to Cell C (Range Selection >= 8px)
 // -------------------------------------------------------------
 const grid3 = createGridMock();
-// Start on Cell B (emp_1, Col 2 -> Nov 3)
-grid3.handleMouseDown('emp_1', 2);
-// Drag to Col 5 -> Nov 6
-grid3.handleMouseMove('emp_1', 5);
+// Start on Cell B (emp_1, Col 2 -> Nov 3) at (100, 100)
+grid3.handleMouseDown('emp_1', 2, false, 100, 100);
+// Drag to Col 5 -> Nov 6 at (220, 100) -> distance 120px >= 8px
+grid3.handleMouseMove('emp_1', 5, 220, 100);
 grid3.handleMouseUp();
 
-testAssert(grid3.state.selectedCells.size === 4, '2.30 Drag range from Col 2 to Col 5 selected 4 cells');
-testAssert(grid3.state.selectedCells.has('emp_1_2026-11-03'), '2.31 Nov 3 included');
-testAssert(grid3.state.selectedCells.has('emp_1_2026-11-06'), '2.32 Nov 6 included');
-testAssert(!grid3.state.selectedCells.has('emp_1_2026-11-01'), '2.33 Nov 1 not included in drag range');
-testAssert(grid3.dom.multiSelectBarVisible === true, '2.34 Multi-select bar visible with 4 cells');
+testAssert(grid3.state.selectedCells.size === 4, '2.34 Drag range from Col 2 to Col 5 selected 4 cells');
+testAssert(grid3.state.selectedCells.has('emp_1_2026-11-03'), '2.35 Nov 3 included');
+testAssert(grid3.state.selectedCells.has('emp_1_2026-11-06'), '2.36 Nov 6 included');
+testAssert(!grid3.state.selectedCells.has('emp_1_2026-11-01'), '2.37 Nov 1 not included in drag range');
+testAssert(grid3.dom.multiSelectBarVisible === true, '2.38 Multi-select bar visible with 4 cells');
 
 // -------------------------------------------------------------
 // SCENARIO 4: Single Click after Multi-Selection Clears Multi-Select
 // -------------------------------------------------------------
 // Now single click on Cell D (emp_1, Col 9 -> Nov 10)
 grid3.cellDragState.suppressClick = false;
-grid3.handleMouseDown('emp_1', 9);
+grid3.handleMouseDown('emp_1', 9, false, 350, 100);
 grid3.handleMouseUp();
 grid3.handleClick('emp_1', 9);
 
-testAssert(grid3.state.selectedCells.size === 0, '2.35 Single click after multi-select completely clears selectedCells');
-testAssert(grid3.dom.selectedClasses.size === 0, '2.36 All is-selected-cell classes removed');
-testAssert(grid3.dom.multiSelectBarVisible === false, '2.37 Multi-select bar hidden');
-testAssert(grid3.state.activeKeyboardCell.dateStr === '2026-11-10', '2.38 Focus strictly transferred to clicked Cell D (Nov 10)');
-testAssert(grid3.dom.popoverOpen === false, '2.39 Popover remains closed');
+testAssert(grid3.state.selectedCells.size === 0, '2.39 Single click after multi-select completely clears selectedCells');
+testAssert(grid3.dom.selectedClasses.size === 0, '2.40 All is-selected-cell classes removed');
+testAssert(grid3.dom.multiSelectBarVisible === false, '2.41 Multi-select bar hidden');
+testAssert(grid3.state.activeKeyboardCell.dateStr === '2026-11-10', '2.42 Focus strictly transferred to clicked Cell D (Nov 10)');
+testAssert(grid3.dom.popoverOpen === false, '2.43 Popover remains closed');
 
 // -------------------------------------------------------------
 // SCENARIO 5: Double Click and Keyboard Enter Popover Opening
 // -------------------------------------------------------------
 const grid4 = createGridMock();
 grid4.setKeyboardFocusedCell('emp_1', '2026-11-15');
-testAssert(grid4.dom.popoverOpen === false, '2.40 Popover initially closed');
+testAssert(grid4.dom.popoverOpen === false, '2.44 Popover initially closed');
 
 // Double click opens popover
 grid4.handleDblClick('emp_1', 14);
-testAssert(grid4.dom.popoverOpen === true, '2.41 Double click opens assignment popover');
-testAssert(grid4.dom.popoverTarget.dateStr === '2026-11-15', '2.42 Popover target is Nov 15');
+testAssert(grid4.dom.popoverOpen === true, '2.45 Double click opens assignment popover');
+testAssert(grid4.dom.popoverTarget.dateStr === '2026-11-15', '2.46 Popover target is Nov 15');
 
 // Close popover
 grid4.handleKeyDown('Escape');
-testAssert(grid4.dom.popoverOpen === false, '2.43 Escape key closes popover');
+testAssert(grid4.dom.popoverOpen === false, '2.47 Escape key closes popover');
 
 // Enter key opens popover on focused cell
 grid4.handleKeyDown('Enter');
-testAssert(grid4.dom.popoverOpen === true, '2.44 Enter key opens assignment popover on focused cell');
+testAssert(grid4.dom.popoverOpen === true, '2.48 Enter key opens assignment popover on focused cell');
 
 // -------------------------------------------------------------
 // SCENARIO 6: Permission Isolation (Non-Admin vs Admin)
@@ -487,14 +526,14 @@ grid5.state.isAdmin = false;
 // Ahmed tries to single click Catherine MAGDI's cell (emp_3)
 grid5.handleClick(dataJson.employees[2].id, 3);
 testAssert(grid5.state.activeKeyboardCell.empId === dataJson.employees[2].id,
-  '2.45 Non-admin CAN single click another team member cell to stand and view with arrows');
+  '2.49 Non-admin CAN single click another team member cell to stand and view with arrows');
 
 // Ahmed tries to hold-select on Catherine MAGDI's cell (emp_3)
 grid5.handleMouseDown(dataJson.employees[2].id, 3);
 testAssert(grid5.cellDragState.isMouseDown === false,
-  '2.46 Non-admin CANNOT initiate hold or multi-select on another team member cell');
+  '2.50 Non-admin CANNOT initiate hold or multi-select on another team member cell');
 testAssert(grid5.state.selectedCells.size === 0,
-  '2.47 No cells selected when non-admin attempts hold on other employee row');
+  '2.51 No cells selected when non-admin attempts hold on other employee row');
 
 // Switch to Peter MOUNIR (Admin)
 const peter = dataJson.employees.find(e => e.name.toLowerCase() === 'peter mounir');
@@ -503,12 +542,12 @@ grid5.state.isAdmin = true;
 
 // Peter holds on Catherine MAGDI's cell
 grid5.handleMouseDown(dataJson.employees[2].id, 3);
-testAssert(grid5.cellDragState.isMouseDown === true, '2.48 Admin CAN initiate hold on any team member row');
+testAssert(grid5.cellDragState.isMouseDown === true, '2.52 Admin CAN initiate hold on any team member row');
 grid5.cellDragState.holdTimer.fire();
 grid5.handleMouseUp();
 testAssert(grid5.state.selectedCells.has(`${dataJson.employees[2].id}_2026-11-04`),
-  '2.49 Admin successfully hold-selects cell on another team member row');
-testAssert(grid5.dom.multiSelectBarVisible === true, '2.50 Multi-select bar active for Admin edit');
+  '2.53 Admin successfully hold-selects cell on another team member row');
+testAssert(grid5.dom.multiSelectBarVisible === true, '2.54 Multi-select bar active for Admin edit');
 
 // -------------------------------------------------------------
 // SUMMARY REPORT

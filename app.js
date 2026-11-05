@@ -1877,6 +1877,8 @@
     startDateStr: null,
     startRowIndex: -1,
     startColIndex: -1,
+    startX: 0,
+    startY: 0,
     allVisibleRows: [],
     baseSelectedCells: new Set(),
     isMultiMode: false,
@@ -2020,6 +2022,8 @@
     cellDragState.baseSelectedCells = baseSelected;
     cellDragState.isMultiMode = isMultiMode;
     cellDragState.suppressClick = false;
+    cellDragState.startX = e.clientX;
+    cellDragState.startY = e.clientY;
     cellDragState.lastClientX = e.clientX;
     cellDragState.lastClientY = e.clientY;
 
@@ -2029,7 +2033,7 @@
     }
     cellDragState.isHoldSelecting = false;
 
-    // Hold left click: select this cell (enter multi-select) after 220ms
+    // Hold left click: select this cell (enter multi-select) after 380ms (avoids false trigger on relaxed clicks)
     cellDragState.holdTimer = setTimeout(() => {
       if (!cellDragState.isMouseDown) return;
       cellDragState.isHoldSelecting = true;
@@ -2038,7 +2042,7 @@
       document.body.classList.add('is-cell-dragging');
       closeCellPopover();
       activate2DSelection(cellDragState.startRowIndex, cellDragState.startColIndex);
-    }, 220);
+    }, 380);
   }
 
   function handleDragMoveToSlot(slot) {
@@ -2062,7 +2066,12 @@
 
     // Only activate drag multi-selection when the pointer moves to a DIFFERENT cell coordinate
     const isDifferentCell = (effectiveRIdx !== cellDragState.startRowIndex || cIdx !== cellDragState.startColIndex);
-    if (isDifferentCell || cellDragState.isDragging) {
+    
+    // Physical drag deadband: require at least 8px displacement from mousedown to prevent accidental micro-jitter triggers
+    const moveDist = Math.hypot(cellDragState.lastClientX - cellDragState.startX, cellDragState.lastClientY - cellDragState.startY);
+    const hasIntentionalDragDistance = moveDist >= 8;
+
+    if (cellDragState.isDragging || (isDifferentCell && hasIntentionalDragDistance)) {
       if (cellDragState.holdTimer) {
         clearTimeout(cellDragState.holdTimer);
         cellDragState.holdTimer = null;
@@ -2125,55 +2134,56 @@
       return;
     }
 
-    // Clamping if dragged left into user column or hours column of a row
-    const userRow = hovered.closest('tr.user-row');
-    if (userRow) {
-      const rIdx = cellDragState.allVisibleRows.indexOf(userRow);
-      if (rIdx !== -1) {
-        if (hovered.closest('td.col-user') || hovered.closest('td.col-metric')) {
-          handleDragMoveToCoords(rIdx, 0);
-          return;
-        }
-      }
-    }
-
-    // In Admin mode: if dragged up into schedule header or above while table is at top (scrollTop <= 0)
-    const isAdmin = state.isAdmin && isCurrentUserPeter();
-    const scrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
-    if (isAdmin && scrollArea && scrollArea.scrollTop <= 0) {
-      const thEl = el.scheduleHead ? el.scheduleHead.querySelector('th') : null;
-      const headerHeight = thEl ? thEl.offsetHeight : 45;
-      const rect = scrollArea.getBoundingClientRect();
-      const stickyHeadBottom = rect.top + headerHeight;
-
-      if (e.clientY <= stickyHeadBottom) {
-        const row0 = cellDragState.allVisibleRows[0];
-        if (row0) {
-          const slots = Array.from(row0.querySelectorAll('td.col-slot'));
-          if (slots.length > 0) {
-            let targetCol = 0;
-            if (e.clientX <= slots[0].getBoundingClientRect().left) {
-              targetCol = 0;
-            } else if (e.clientX >= slots[slots.length - 1].getBoundingClientRect().right) {
-              targetCol = slots.length - 1;
-            } else {
-              for (let c = 0; c < slots.length; c++) {
-                const sRect = slots[c].getBoundingClientRect();
-                if (e.clientX >= sRect.left && e.clientX <= sRect.right) {
-                  targetCol = c;
-                  break;
-                }
-              }
-            }
-            handleDragMoveToCoords(0, targetCol);
+    // Clamping if ALREADY actively dragging: into user column, hours column, or past table edges
+    if (cellDragState.isDragging) {
+      const userRow = hovered.closest('tr.user-row');
+      if (userRow) {
+        const rIdx = cellDragState.allVisibleRows.indexOf(userRow);
+        if (rIdx !== -1) {
+          if (hovered.closest('td.col-user') || hovered.closest('td.col-metric')) {
+            handleDragMoveToCoords(rIdx, 0);
             return;
           }
         }
       }
-    }
 
-    // In Admin mode: if dragged down below table while table is at bottom
-    if (isAdmin && scrollArea && scrollArea.scrollTop >= (scrollArea.scrollHeight - scrollArea.clientHeight - 1)) {
+      // In Admin mode: if dragged up into schedule header or above while table is at top (scrollTop <= 0)
+      const isAdmin = state.isAdmin && isCurrentUserPeter();
+      const scrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
+      if (isAdmin && scrollArea && scrollArea.scrollTop <= 0) {
+        const thEl = el.scheduleHead ? el.scheduleHead.querySelector('th') : null;
+        const headerHeight = thEl ? thEl.offsetHeight : 45;
+        const rect = scrollArea.getBoundingClientRect();
+        const stickyHeadBottom = rect.top + headerHeight;
+
+        if (e.clientY <= stickyHeadBottom) {
+          const row0 = cellDragState.allVisibleRows[0];
+          if (row0) {
+            const slots = Array.from(row0.querySelectorAll('td.col-slot'));
+            if (slots.length > 0) {
+              let targetCol = 0;
+              if (e.clientX <= slots[0].getBoundingClientRect().left) {
+                targetCol = 0;
+              } else if (e.clientX >= slots[slots.length - 1].getBoundingClientRect().right) {
+                targetCol = slots.length - 1;
+              } else {
+                for (let c = 0; c < slots.length; c++) {
+                  const sRect = slots[c].getBoundingClientRect();
+                  if (e.clientX >= sRect.left && e.clientX <= sRect.right) {
+                    targetCol = c;
+                    break;
+                  }
+                }
+              }
+              handleDragMoveToCoords(0, targetCol);
+              return;
+            }
+          }
+        }
+      }
+
+      // In Admin mode: if dragged down below table while table is at bottom
+      if (isAdmin && scrollArea && scrollArea.scrollTop >= (scrollArea.scrollHeight - scrollArea.clientHeight - 1)) {
       const rect = scrollArea.getBoundingClientRect();
       if (e.clientY >= rect.bottom) {
         const lastRowIdx = cellDragState.allVisibleRows.length - 1;
@@ -2200,6 +2210,7 @@
           }
         }
       }
+    }
     }
   }
 
