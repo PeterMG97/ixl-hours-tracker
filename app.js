@@ -88,6 +88,7 @@
   const state = {
     mobileViewMode: 'form', // 'form' (default) or 'grid' (read-only visualization)
     forceDesktopViewOnMobile: false,
+    mobileTargetEmpId: null,
     sections: [],
     employees: [],
     projects: [],
@@ -164,6 +165,7 @@
     mobileGridNoticeBanner: document.getElementById('mobileGridNoticeBanner'),
     mobileReturnToLoggerBtn: document.getElementById('mobileReturnToLoggerBtn'),
     mobileSummaryCard: document.getElementById('mobileSummaryCard'),
+    mobileSummaryCardTitle: document.getElementById('mobileSummaryCardTitle'),
     mobileMonthLabel: document.getElementById('mobileMonthLabel'),
     mobileTotalHoursNum: document.getElementById('mobileTotalHoursNum'),
     mobileUnfilledDaysNum: document.getElementById('mobileUnfilledDaysNum'),
@@ -172,6 +174,7 @@
     mobileAgendaList: document.getElementById('mobileAgendaList'),
     mobileAgendaCount: document.getElementById('mobileAgendaCount'),
     mobileLoggerCard: document.getElementById('mobileLoggerCard'),
+    mobileLoggerModeBadge: document.getElementById('mobileLoggerModeBadge'),
     mobileTargetEmpGroup: document.getElementById('mobileTargetEmpGroup'),
     mobileEmployeeSelect: document.getElementById('mobileEmployeeSelect'),
     mobileEmployeeOfficeHint: document.getElementById('mobileEmployeeOfficeHint'),
@@ -1013,6 +1016,7 @@
 
         const emp = state.employees.find(e => e.id === empId);
         state.currentUserId = empId;
+        state.mobileTargetEmpId = empId;
         persistUserIdentity(empId, emp ? emp.name : '');
 
         // Revoke admin if chosen user is not Peter MOUNIR
@@ -6941,19 +6945,26 @@
       const activeEmps = state.employees.filter(e => e.active !== false);
       activeEmps.sort((a,b) => a.name.localeCompare(b.name));
 
-      el.mobileEmployeeSelect.innerHTML = activeEmps.map(e => `
-        <option value="${e.id}">${e.name}</option>
-      `).join('');
-
-      let chosenId = state.currentUserId || (activeEmps[0] ? activeEmps[0].id : '');
-      if (isAdminUser) {
-        el.mobileEmployeeSelect.disabled = false;
-        if (el.mobileEmployeeSelect.value) chosenId = el.mobileEmployeeSelect.value;
-        else el.mobileEmployeeSelect.value = chosenId;
+      // Target Employee Resolution:
+      // Regular user: ALWAYS state.currentUserId (cannot target anyone else)
+      // Admin Peter: use state.mobileTargetEmpId IF valid & chosen, ELSE strictly default to state.currentUserId
+      let targetEmpId = state.currentUserId;
+      if (isAdminUser && state.mobileTargetEmpId && activeEmps.some(e => e.id === state.mobileTargetEmpId)) {
+        targetEmpId = state.mobileTargetEmpId;
       } else {
-        el.mobileEmployeeSelect.value = state.currentUserId || '';
-        el.mobileEmployeeSelect.disabled = true;
+        targetEmpId = state.currentUserId || (activeEmps[0] ? activeEmps[0].id : '');
+        state.mobileTargetEmpId = targetEmpId;
       }
+
+      el.mobileEmployeeSelect.innerHTML = activeEmps.map(e => {
+        const isSelf = (e.id === state.currentUserId);
+        const label = isSelf ? `${e.name} (You)` : e.name;
+        const isSelected = (e.id === targetEmpId);
+        return `<option value="${e.id}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+      }).join('');
+
+      el.mobileEmployeeSelect.value = targetEmpId;
+      el.mobileEmployeeSelect.disabled = !isAdminUser;
     }
 
     // 3. Project Select in Mobile Logger
@@ -6982,7 +6993,8 @@
 
   function updateMobileOfficeDetails() {
     if (!el.mobileEmployeeSelect) return;
-    const empId = el.mobileEmployeeSelect.value || state.currentUserId;
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : state.currentUserId;
     const emp = state.employees.find(e => e.id === empId);
     if (!emp) return;
 
@@ -6994,10 +7006,12 @@
     if (el.mobileHoursInput) el.mobileHoursInput.value = Math.min(12, Math.max(1, defH));
 
     if (el.mobileEmployeeOfficeHint) {
+      const isSelf = (emp.id === state.currentUserId);
+      const roleText = isSelf ? 'Your Schedule' : `Admin Editing: ${emp.name}`;
       if (isIstanbul) {
-        el.mobileEmployeeOfficeHint.textContent = 'Office: Istanbul Team • Holidays: Saturday & Sunday';
+        el.mobileEmployeeOfficeHint.textContent = `Office: Istanbul Team | Holidays: Sat & Sun | (${roleText})`;
       } else {
-        el.mobileEmployeeOfficeHint.textContent = 'Office: Cairo Team • Holidays: Friday & Saturday';
+        el.mobileEmployeeOfficeHint.textContent = `Office: Cairo Team | Holidays: Fri & Sat | (${roleText})`;
       }
     }
 
@@ -7013,12 +7027,29 @@
   function renderMobileSummary() {
     if (!el.mobileSummaryCard) return;
 
-    const targetEmpId = (state.isAdmin && isCurrentUserPeter() && el.mobileEmployeeSelect && el.mobileEmployeeSelect.value)
-      ? el.mobileEmployeeSelect.value
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const targetEmpId = (isAdminUser && state.mobileTargetEmpId)
+      ? state.mobileTargetEmpId
       : state.currentUserId;
 
     const emp = state.employees.find(e => e.id === targetEmpId);
     const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+
+    // Dynamic Title for Summary Card & Mode Badge
+    if (el.mobileSummaryCardTitle) {
+      const isSelf = (targetEmpId === state.currentUserId);
+      el.mobileSummaryCardTitle.textContent = isSelf ? 'My Month Summary' : `${emp ? emp.name : 'Team Member'}'s Summary`;
+    }
+    if (el.mobileLoggerModeBadge) {
+      const isSelf = (targetEmpId === state.currentUserId);
+      if (isSelf) {
+        el.mobileLoggerModeBadge.textContent = 'Editing Your Schedule';
+        el.mobileLoggerModeBadge.className = 'badge badge-success';
+      } else {
+        el.mobileLoggerModeBadge.textContent = `Admin: ${emp ? emp.name : ''}`;
+        el.mobileLoggerModeBadge.className = 'badge badge-warning';
+      }
+    }
 
     // Month label
     const [y, m] = state.currentMonth.split('-').map(Number);
@@ -7149,8 +7180,9 @@
   }
 
   function handleMobileApply() {
-    const empId = (state.isAdmin && isCurrentUserPeter() && el.mobileEmployeeSelect && el.mobileEmployeeSelect.value)
-      ? el.mobileEmployeeSelect.value
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId)
+      ? state.mobileTargetEmpId
       : state.currentUserId;
 
     const emp = state.employees.find(e => e.id === empId);
@@ -7266,7 +7298,8 @@
     }
 
     if (el.mobileEmployeeSelect) {
-      el.mobileEmployeeSelect.addEventListener('change', () => {
+      el.mobileEmployeeSelect.addEventListener('change', (e) => {
+        state.mobileTargetEmpId = e.target.value;
         updateMobileOfficeDetails();
         renderMobileSummary();
       });
@@ -7277,7 +7310,7 @@
       el.mobileToggleAgendaBtn.addEventListener('click', () => {
         const isHidden = el.mobileAgendaList.classList.toggle('hidden');
         const arrow = el.mobileToggleAgendaBtn.querySelector('.chevron-arrow');
-        if (arrow) arrow.textContent = isHidden ? '▾' : '▴';
+        if (arrow) arrow.textContent = isHidden ? '\u25BE' : '\u25B4';
       });
     }
 

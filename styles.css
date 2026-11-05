@@ -4350,7 +4350,7 @@ body.view-only .task-chip {
   width: 100%;
   max-width: 580px;
   margin: 0 auto;
-  padding: 4px 4px 40px;
+  padding: 4px 4px calc(60px + env(safe-area-inset-bottom, 20px));
   box-sizing: border-box;
 }
 
