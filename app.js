@@ -1094,7 +1094,7 @@
     
     // Dynamic text truncation based on current day column width (Excel behavior)
     const colWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--day-col-width')) || 48;
-    const maxChars = Math.max(8, Math.floor(colWidth / 6.5));
+    const maxChars = Math.max(3, Math.floor(colWidth / 6.5));
     return clean.length > maxChars ? clean.substring(0, maxChars - 1) + '…' : clean;
   }
 
@@ -1544,7 +1544,7 @@
   }
 
   function setDayColumnWidth(width, rerenderTable = true) {
-    const w = Math.max(40, Math.min(180, Number(width)));
+    const w = Math.max(38, Math.min(220, Number(width)));
     document.documentElement.style.setProperty('--day-col-width', `${w}px`);
     localStorage.setItem('ixl_day_col_width', w);
 
@@ -1554,16 +1554,25 @@
     const label = document.getElementById('dayWidthLabel');
     if (label) {
       let desc = 'Custom';
-      if (w <= 52) desc = 'Compact';
-      else if (w <= 85) desc = 'Medium';
-      else if (w <= 125) desc = 'Wide';
-      else desc = 'Full';
+      if (w <= 55) desc = 'Micro';
+      else if (w <= 95) desc = 'Compact';
+      else if (w <= 140) desc = 'Medium';
+      else if (w <= 180) desc = 'Wide';
+      else desc = 'Extra Wide';
       label.textContent = `${w}px (${desc})`;
     }
 
     document.querySelectorAll('.density-btn').forEach(btn => {
       btn.classList.toggle('active', Number(btn.getAttribute('data-width')) === w);
     });
+
+    const scrollArea = document.querySelector('.table-scroll-area');
+    if (scrollArea) {
+      scrollArea.classList.toggle('zoom-micro', w <= 55);
+      scrollArea.classList.toggle('zoom-compact', w > 55 && w <= 95);
+      scrollArea.classList.toggle('zoom-medium', w > 95 && w <= 140);
+      scrollArea.classList.toggle('zoom-wide', w > 140);
+    }
 
     if (rerenderTable) {
       // Re-evaluate compact label lengths
@@ -1578,6 +1587,66 @@
         }
       });
     }
+  }
+
+  function initPinchZoom() {
+    const targetArea = document.querySelector('.table-scroll-area') || document.querySelector('.schedule-canvas');
+    if (!targetArea) return;
+
+    let pinchState = {
+      isPinching: false,
+      startDist: 0,
+      startWidth: 180
+    };
+
+    targetArea.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches.length === 2) {
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        pinchState.startDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        pinchState.startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--day-col-width')) || 180;
+        pinchState.isPinching = true;
+      }
+    }, { passive: true });
+
+    targetArea.addEventListener('touchmove', (e) => {
+      if (pinchState.isPinching && e.touches && e.touches.length === 2) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const currentDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        if (pinchState.startDist > 10) {
+          const ratio = currentDist / pinchState.startDist;
+          const newWidth = Math.round(Math.max(38, Math.min(220, pinchState.startWidth * ratio)));
+          setDayColumnWidth(newWidth, true);
+        }
+      }
+    }, { passive: false });
+
+    const endPinch = () => {
+      pinchState.isPinching = false;
+    };
+    targetArea.addEventListener('touchend', endPinch, { passive: true });
+    targetArea.addEventListener('touchcancel', endPinch, { passive: true });
+
+    // iOS Safari Gesture events
+    let gestureStartWidth = 180;
+    targetArea.addEventListener('gesturestart', (e) => {
+      if (e.cancelable) e.preventDefault();
+      gestureStartWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--day-col-width')) || 180;
+    }, { passive: false });
+
+    targetArea.addEventListener('gesturechange', (e) => {
+      if (e.cancelable) e.preventDefault();
+      const newWidth = Math.round(Math.max(38, Math.min(220, gestureStartWidth * e.scale)));
+      setDayColumnWidth(newWidth, true);
+    }, { passive: false });
+
+    targetArea.addEventListener('gestureend', (e) => {
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
   }
 
   function initColumnWidths() {
@@ -1620,6 +1689,8 @@
         showToast('Column widths reset to maximum (180px)');
       });
     }
+
+    initPinchZoom();
   }
 
   // -------------------------------------------------------------

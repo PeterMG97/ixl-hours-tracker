@@ -4127,7 +4127,8 @@ body.view-only .task-chip {
   }
 
   .schedule-table th.col-slot {
-    padding: 6px 4px !important;
+    padding: 5px 3px !important;
+    transition: padding 0.1s ease;
   }
 
   .schedule-table th.col-slot .slot-num {
@@ -4142,22 +4143,101 @@ body.view-only .task-chip {
 
   .col-slot {
     width: var(--day-col-width, 180px) !important;
-    min-width: 160px !important;
-    max-width: 220px !important;
-    padding: 4px 3px !important;
+    min-width: var(--day-col-width, 180px) !important;
+    max-width: var(--day-col-width, 180px) !important;
+    padding: 3px 2px !important;
     box-sizing: border-box !important;
   }
 
   .task-chip {
-    min-height: 30px !important;
-    height: 30px !important;
-    line-height: 28px !important;
+    min-height: 24px !important;
+    height: 28px !important;
+    line-height: 26px !important;
     font-size: 11px !important;
     font-weight: 600 !important;
-    padding: 0 6px !important;
+    padding: 0 5px !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    border-radius: 6px !important;
+    border-radius: 5px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Adaptive Cell Zoom Levels for Two-Finger Pinch to Shrink / Expand */
+  .table-scroll-area.zoom-micro .col-slot {
+    padding: 2px 1px !important;
+  }
+  .table-scroll-area.zoom-micro .task-chip {
+    font-size: 8px !important;
+    padding: 0 1px !important;
+    height: 22px !important;
+    line-height: 20px !important;
+    min-height: 22px !important;
+    border-radius: 3px !important;
+  }
+  .table-scroll-area.zoom-micro th.col-slot {
+    padding: 4px 1px !important;
+  }
+  .table-scroll-area.zoom-micro .slot-num {
+    font-size: 10px !important;
+  }
+  .table-scroll-area.zoom-micro .slot-name {
+    font-size: 7.5px !important;
+  }
+  .table-scroll-area.zoom-micro th.col-user,
+  .table-scroll-area.zoom-micro td.col-user {
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    padding: 3px 4px !important;
+  }
+  .table-scroll-area.zoom-micro td.col-user .user-name-text {
+    max-width: 50px !important;
+    font-size: 10px !important;
+  }
+  .table-scroll-area.zoom-micro th.col-metric,
+  .table-scroll-area.zoom-micro td.col-metric {
+    left: 82px !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    font-size: 9.5px !important;
+  }
+
+  .table-scroll-area.zoom-compact .col-slot {
+    padding: 2px 2px !important;
+  }
+  .table-scroll-area.zoom-compact .task-chip {
+    font-size: 9.5px !important;
+    padding: 0 2px !important;
+    height: 24px !important;
+    line-height: 22px !important;
+    min-height: 24px !important;
+    border-radius: 4px !important;
+  }
+  .table-scroll-area.zoom-compact th.col-slot {
+    padding: 4px 2px !important;
+  }
+  .table-scroll-area.zoom-compact .slot-num {
+    font-size: 11px !important;
+  }
+  .table-scroll-area.zoom-compact .slot-name {
+    font-size: 8.5px !important;
+  }
+
+  .table-scroll-area.zoom-wide .task-chip {
+    font-size: 11px !important;
+    padding: 0 6px !important;
+    height: 30px !important;
+    line-height: 28px !important;
+    min-height: 30px !important;
+  }
+  .table-scroll-area.zoom-wide .slot-num {
+    font-size: 13px !important;
+  }
+  .table-scroll-area.zoom-wide .slot-name {
+    font-size: 10px !important;
   }
 
   .col-resizer {
