@@ -4619,7 +4619,19 @@ body.view-only .task-chip {
 }
 
 /* On Desktop (> 768px): Hide Mobile App Container Always */
-@media (min-width: 769px) {
+body.is-desktop-device .mobile-app-container,
+body.is-desktop-device .mobile-grid-notice {
+  display: none !important;
+}
+
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+  body:not(.is-mobile-device) .mobile-app-container,
+  body:not(.is-mobile-device) .mobile-grid-notice {
+    display: none !important;
+  }
+}
+
+@media (min-width: 9999px) {
   .mobile-app-container {
     display: none !important;
   }

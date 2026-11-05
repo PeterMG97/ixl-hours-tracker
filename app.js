@@ -3234,7 +3234,7 @@
           holidaysDayOffCount++;
         } else if (holidayOption === 'include') {
           // Work on holidays
-          if (!proj || proj.trim() === '') {
+          if (!proj || proj.trim() === '' || proj === '__CLEAR__') {
             delete state.allocations[key];
           } else {
             state.allocations[key] = { project: proj.trim(), hours: hours };
@@ -6897,6 +6897,8 @@
     const notice = el.mobileGridNoticeBanner;
 
     if (!isMobile) {
+      document.body.classList.add('is-desktop-device');
+      document.body.classList.remove('is-mobile-device');
       // PC / Laptop interface: Always show full grid, hide mobile container
       if (container) container.classList.add('hidden');
       if (gridCard) gridCard.classList.remove('hidden');
@@ -6905,6 +6907,8 @@
       return;
     }
 
+    document.body.classList.add('is-mobile-device');
+    document.body.classList.remove('is-desktop-device');
     // Mobile interface:
     if (state.mobileViewMode === 'grid') {
       // Viewing full desktop grid on mobile (strictly read-only)
@@ -6969,6 +6973,7 @@
 
     // 3. Project Select in Mobile Logger
     if (el.mobileProjectSelect) {
+      const prevProj = el.mobileProjectSelect.value;
       const activeProjects = state.projects.filter(p => p.active !== false);
       el.mobileProjectSelect.innerHTML = `
         <option value="Day OFF">Day OFF</option>
@@ -6978,6 +6983,9 @@
           ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
         </optgroup>
       `;
+      if (prevProj) {
+        el.mobileProjectSelect.value = prevProj;
+      }
     }
 
     // 4. Date range default (if empty)
@@ -7326,18 +7334,40 @@
 
     if (el.mobileRangeWeek) {
       el.mobileRangeWeek.addEventListener('click', () => {
+        const isAdminUser = state.isAdmin && isCurrentUserPeter();
+        const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : state.currentUserId;
+        const emp = state.employees.find(e => e.id === empId);
+        const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+        const isIstanbul = (sec.location || '').toLowerCase().includes('istanbul');
+
         const t = state.todayStr ? parseLocalDate(state.todayStr) : parseLocalDate(state.currentMonth + '-01');
         const dayOfWeek = t.getDay(); // 0 Sun, 1 Mon ...
-        // Set to Monday of this week
-        const startWk = new Date(t);
-        startWk.setDate(t.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-        const endWk = new Date(startWk);
-        endWk.setDate(startWk.getDate() + 4); // Friday
-        const fStr = formatLocalDate(startWk);
-        const tStr = formatLocalDate(endWk);
+        
+        let startWk = new Date(t);
+        let endWk = new Date(t);
+
+        if (isIstanbul) {
+          // Mon - Fri
+          startWk.setDate(t.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+          endWk = new Date(startWk);
+          endWk.setDate(startWk.getDate() + 4);
+        } else {
+          // Cairo / Riyadh / Dubai (Sun - Thu)
+          startWk.setDate(t.getDate() - dayOfWeek);
+          endWk = new Date(startWk);
+          endWk.setDate(startWk.getDate() + 4);
+        }
+
+        let fStr = formatLocalDate(startWk);
+        let tStr = formatLocalDate(endWk);
+
+        // Clamp to APP_START_MONTH boundary (01/11/2026)
+        if (fStr < APP_START_MONTH + '-01') fStr = APP_START_MONTH + '-01';
+        if (tStr < APP_START_MONTH + '-01') tStr = APP_START_MONTH + '-01';
+
         if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(fStr);
         if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(tStr);
-        showToast(`Range set to Current Week (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
+        showToast(`Range set to Current Work Week (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
       });
     }
 
@@ -7396,9 +7426,13 @@
       });
     }
 
-    // Window resize listener
+    // Window resize listener (debounced against virtual keyboard height changes)
+    let _lastInnerWidth = window.innerWidth;
     window.addEventListener('resize', () => {
-      updateDeviceViewMode();
+      if (window.innerWidth !== _lastInnerWidth) {
+        _lastInnerWidth = window.innerWidth;
+        updateDeviceViewMode();
+      }
     });
   }
 
