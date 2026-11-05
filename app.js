@@ -135,6 +135,7 @@
 
   // DOM Elements Cache
   const el = {
+    connectionBadge: document.getElementById('connectionBadge'),
     connectionLamp: document.getElementById('connectionLamp'),
     connectionText: document.getElementById('connectionText'),
     viewModeBanner: document.getElementById('viewModeBanner'),
@@ -912,6 +913,7 @@
 
   function updateUserDisplay() {
     if (state.isViewOnly) {
+      dockMobileConnectionBadge(false);
       if (el.userPermissionBanner) {
         el.userPermissionBanner.classList.remove('admin-active-banner');
         el.userPermissionBanner.classList.add('hidden');
@@ -922,6 +924,7 @@
       if (controlStrip) controlStrip.classList.add('hidden');
       return;
     }
+    dockMobileConnectionBadge(isMobileInterface());
 
     if (!state.currentUserId) {
       el.currentUserNameDisplay.textContent = 'Select Your Name';
@@ -6928,11 +6931,30 @@
     return false;
   }
 
+  function dockMobileConnectionBadge(isMobile) {
+    const badge = el.connectionBadge || document.getElementById('connectionBadge');
+    const userBtn = el.userPickerBtn || document.getElementById('userPickerBtn');
+    const headerLeft = document.querySelector('.header-left');
+    if (!badge) return;
+
+    if (isMobile && !state.isViewOnly && userBtn) {
+      if (badge.parentElement !== userBtn) {
+        userBtn.appendChild(badge);
+      }
+    } else {
+      if (headerLeft && badge.parentElement !== headerLeft) {
+        headerLeft.appendChild(badge);
+      }
+    }
+  }
+
   function updateDeviceViewMode() {
     const isMobile = isMobileInterface();
     const container = el.mobileAppContainer;
     const gridCard = el.scheduleCard || document.querySelector('.schedule-card');
     const notice = el.mobileGridNoticeBanner;
+
+    dockMobileConnectionBadge(isMobile);
 
     if (!isMobile) {
       document.body.classList.add('is-desktop-device');
@@ -7377,6 +7399,7 @@
   }
 
   function initMobileEventListeners() {
+    dockMobileConnectionBadge(isMobileInterface());
     if (el.mobileApplyBtn) {
       el.mobileApplyBtn.addEventListener('click', handleMobileApply);
     }
