@@ -4819,11 +4819,22 @@ body.is-desktop-device #toggleMobileDesktopGridViewBtn {
 }
 
 /* Mobile Grid View: Hide unfilled days pill and NO PROJECT badge beside employee name */
-body.is-mobile-device .schedule-table td.col-user .emp-unfilled-pill,
-body.is-mobile-device .schedule-table td.col-user .emp-no-proj-badge,
+body.is-mobile-device .emp-unfilled-pill,
+body.is-mobile-device .emp-no-proj-badge,
+body.mobile-readonly-grid .emp-unfilled-pill,
+body.mobile-readonly-grid .emp-no-proj-badge,
+.mobile-readonly-grid .emp-unfilled-pill,
+.mobile-readonly-grid .emp-no-proj-badge,
+.table-scroll-area.zoom-micro .emp-unfilled-pill,
+.table-scroll-area.zoom-micro .emp-no-proj-badge {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
-  .schedule-table td.col-user .emp-unfilled-pill,
-  .schedule-table td.col-user .emp-no-proj-badge {
+  .schedule-table .emp-unfilled-pill,
+  .schedule-table .emp-no-proj-badge,
+  .emp-unfilled-pill,
+  .emp-no-proj-badge {
     display: none !important;
   }
 }

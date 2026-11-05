@@ -1286,12 +1286,14 @@
                 <div>
                   <div class="user-name-line">
                     <strong style="font-size:11px;" class="user-name-text">${emp.name}</strong>
-                    <span class="emp-unfilled-pill ${empUnfilledDays === 0 ? 'is-all-filled' : ''}" 
-                          title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${formatMonthMY(state.currentMonth)} (${mName}) (excluding ${sec.location} holidays)">
-                      ${empUnfilledDays} unfilled
-                    </span>
+                    ${!isMobileInterface() ? `
+                      <span class="emp-unfilled-pill ${empUnfilledDays === 0 ? 'is-all-filled' : ''}" 
+                            title="${empUnfilledDays} unfilled workday${empUnfilledDays === 1 ? '' : 's'} in ${formatMonthMY(state.currentMonth)} (${mName}) (excluding ${sec.location} holidays)">
+                        ${empUnfilledDays} unfilled
+                      </span>
+                    ` : ''}
                   </div>
-                  ${empNoProjCount > 0 ? `
+                  ${(!isMobileInterface() && empNoProjCount > 0) ? `
                     <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
                       <button class="emp-no-proj-badge" data-emp-id="${emp.id}" title="Click to view & edit all ${empNoProjCount} NO PROJECT days for ${emp.name}">${empNoProjCount} NO PROJ</button>
                     </div>
