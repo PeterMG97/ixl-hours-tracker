@@ -77,9 +77,11 @@
 
     if (matchedEmp) {
       state.currentUserId = matchedEmp.id;
+      state.mobileTargetEmpId = matchedEmp.id;
       persistUserIdentity(matchedEmp.id, matchedEmp.name);
     } else if (savedId) {
       state.currentUserId = savedId;
+      state.mobileTargetEmpId = savedId;
     }
     return matchedEmp;
   }
@@ -88,7 +90,7 @@
   const state = {
     mobileViewMode: 'form', // 'form' (default) or 'grid' (read-only visualization)
     forceDesktopViewOnMobile: false,
-    mobileTargetEmpId: null,
+    mobileTargetEmpId: getStoredItem('ixl_current_user_id') || null,
     sections: [],
     employees: [],
     projects: [],
@@ -3968,6 +3970,7 @@
       const peterEmp = state.employees.find(e => e.name.trim().toLowerCase() === 'peter mounir');
       if (peterEmp) {
         state.currentUserId = peterEmp.id;
+        state.mobileTargetEmpId = peterEmp.id;
         persistUserIdentity(peterEmp.id, peterEmp.name);
       }
       state.isAdmin = true;
@@ -6956,18 +6959,35 @@
       if (isAdminUser && state.mobileTargetEmpId && activeEmps.some(e => e.id === state.mobileTargetEmpId)) {
         targetEmpId = state.mobileTargetEmpId;
       } else {
-        targetEmpId = state.currentUserId || (activeEmps[0] ? activeEmps[0].id : '');
+        targetEmpId = state.currentUserId || null;
         state.mobileTargetEmpId = targetEmpId;
       }
 
-      el.mobileEmployeeSelect.innerHTML = activeEmps.map(e => {
-        const isSelf = (e.id === state.currentUserId);
-        const label = isSelf ? `${e.name} (You)` : e.name;
-        const isSelected = (e.id === targetEmpId);
-        return `<option value="${e.id}" ${isSelected ? 'selected' : ''}>${label}</option>`;
-      }).join('');
+      // Safeguard: Option 0 is ALWAYS the logged-in user ('You').
+      // Even if the mobile browser resets or defaults to index 0,
+      // it can ONLY default to the user themselves, never to Ahmed BADR or any other team member.
+      const selfEmp = activeEmps.find(e => e.id === state.currentUserId);
+      const otherEmps = activeEmps.filter(e => e.id !== state.currentUserId);
 
-      el.mobileEmployeeSelect.value = targetEmpId;
+      let optionsHtml = '';
+      if (selfEmp) {
+        const isSelfSelected = (targetEmpId === selfEmp.id);
+        optionsHtml += `<option value="${selfEmp.id}" ${isSelfSelected ? 'selected' : ''}>${selfEmp.name} (You)</option>`;
+      } else if (!targetEmpId) {
+        optionsHtml += `<option value="" disabled selected>-- Identify Yourself First --</option>`;
+      }
+
+      if (isAdminUser && otherEmps.length > 0) {
+        optionsHtml += `<optgroup label="Other Team Members (Admin Selection)">`;
+        optionsHtml += otherEmps.map(e => {
+          const isSelected = (e.id === targetEmpId);
+          return `<option value="${e.id}" ${isSelected ? 'selected' : ''}>${e.name}</option>`;
+        }).join('');
+        optionsHtml += `</optgroup>`;
+      }
+
+      el.mobileEmployeeSelect.innerHTML = optionsHtml;
+      if (targetEmpId) el.mobileEmployeeSelect.value = targetEmpId;
       el.mobileEmployeeSelect.disabled = !isAdminUser;
     }
 
@@ -7056,6 +7076,15 @@
       } else {
         el.mobileLoggerModeBadge.textContent = `Admin: ${emp ? emp.name : ''}`;
         el.mobileLoggerModeBadge.className = 'badge badge-warning';
+      }
+    }
+
+    if (el.mobileApplyBtn) {
+      const isSelf = (targetEmpId === state.currentUserId);
+      if (isSelf) {
+        el.mobileApplyBtn.innerHTML = 'Apply &amp; Save Schedule';
+      } else {
+        el.mobileApplyBtn.innerHTML = `Apply &amp; Save for ${escapeHtml(emp ? emp.name : 'Team Member')}`;
       }
     }
 
@@ -7189,9 +7218,19 @@
 
   function handleMobileApply() {
     const isAdminUser = state.isAdmin && isCurrentUserPeter();
-    const empId = (isAdminUser && state.mobileTargetEmpId)
-      ? state.mobileTargetEmpId
-      : state.currentUserId;
+    let empId = state.currentUserId;
+    if (isAdminUser && state.mobileTargetEmpId && state.employees.some(e => e.id === state.mobileTargetEmpId)) {
+      empId = state.mobileTargetEmpId;
+    } else {
+      empId = state.currentUserId;
+      state.mobileTargetEmpId = state.currentUserId;
+    }
+
+    if (!empId || empId === 'view-all') {
+      showToast('Please identify yourself first from the top bar.', 'warning');
+      openUserSelectModal();
+      return;
+    }
 
     const emp = state.employees.find(e => e.id === empId);
     if (!emp) {
@@ -7283,14 +7322,16 @@
     renderMobileSummary();
     syncToServer();
 
+    const isSelf = (empId === state.currentUserId);
+    const targetLabel = isSelf ? 'your schedule' : emp.name;
     if (isClearAction) {
-      showToast(`Cleared allocations for ${clearedCount} dates for ${emp.name}.`);
+      showToast(`Cleared allocations for ${clearedCount} dates for ${targetLabel}.`);
     } else if (holidayOption === 'dayoff') {
-      showToast(`Filled ${filledWorkdaysCount} workdays with "${proj}" and marked ${holidaysDayOffCount} holidays as Day OFF for ${emp.name}.`);
+      showToast(`Filled ${filledWorkdaysCount} workdays with "${proj}" and marked ${holidaysDayOffCount} holidays as Day OFF for ${targetLabel}.`);
     } else if (holidayOption === 'include') {
-      showToast(`Filled ${filledWorkdaysCount} calendar days with "${proj}" for ${emp.name}.`);
+      showToast(`Filled ${filledWorkdaysCount} calendar days with "${proj}" for ${targetLabel}.`);
     } else {
-      showToast(`Filled ${filledWorkdaysCount} workdays for ${emp.name} (left ${holidaysSkippedCount} holidays untouched).`);
+      showToast(`Filled ${filledWorkdaysCount} workdays for ${targetLabel} (left ${holidaysSkippedCount} holidays untouched).`);
     }
   }
 
