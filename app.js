@@ -86,6 +86,8 @@
 
   // Application State
   const state = {
+    mobileViewMode: 'form', // 'form' (default) or 'grid' (read-only visualization)
+    forceDesktopViewOnMobile: false,
     sections: [],
     employees: [],
     projects: [],
@@ -153,6 +155,40 @@
     // Schedule Table
     tableScrollArea: document.querySelector('.table-scroll-area'),
     scheduleTable: document.getElementById('scheduleTable'),
+    scheduleCard: document.getElementById('scheduleCard'),
+    mobileAppContainer: document.getElementById('mobileAppContainer'),
+    mobileAvatarCircle: document.getElementById('mobileAvatarCircle'),
+    mobileUserNameDisplay: document.getElementById('mobileUserNameDisplay'),
+    mobileRoleCaption: document.getElementById('mobileRoleCaption'),
+    mobileSwitchUserBtn: document.getElementById('mobileSwitchUserBtn'),
+    mobileGridNoticeBanner: document.getElementById('mobileGridNoticeBanner'),
+    mobileReturnToLoggerBtn: document.getElementById('mobileReturnToLoggerBtn'),
+    mobileSummaryCard: document.getElementById('mobileSummaryCard'),
+    mobileMonthLabel: document.getElementById('mobileMonthLabel'),
+    mobileTotalHoursNum: document.getElementById('mobileTotalHoursNum'),
+    mobileUnfilledDaysNum: document.getElementById('mobileUnfilledDaysNum'),
+    mobileProjectsSummaryPills: document.getElementById('mobileProjectsSummaryPills'),
+    mobileToggleAgendaBtn: document.getElementById('mobileToggleAgendaBtn'),
+    mobileAgendaList: document.getElementById('mobileAgendaList'),
+    mobileAgendaCount: document.getElementById('mobileAgendaCount'),
+    mobileLoggerCard: document.getElementById('mobileLoggerCard'),
+    mobileTargetEmpGroup: document.getElementById('mobileTargetEmpGroup'),
+    mobileEmployeeSelect: document.getElementById('mobileEmployeeSelect'),
+    mobileEmployeeOfficeHint: document.getElementById('mobileEmployeeOfficeHint'),
+    mobileFromDate: document.getElementById('mobileFromDate'),
+    mobileToDate: document.getElementById('mobileToDate'),
+    mobileRangeToday: document.getElementById('mobileRangeToday'),
+    mobileRangeWeek: document.getElementById('mobileRangeWeek'),
+    mobileRangeMonth: document.getElementById('mobileRangeMonth'),
+    mobileProjectSelect: document.getElementById('mobileProjectSelect'),
+    mobileHoursInput: document.getElementById('mobileHoursInput'),
+    mobileHolDayOffLabel: document.getElementById('mobileHolDayOffLabel'),
+    mobileHolIncludeLabel: document.getElementById('mobileHolIncludeLabel'),
+    mobileHolSkipLabel: document.getElementById('mobileHolSkipLabel'),
+    mobileHolDayOffDetail: document.getElementById('mobileHolDayOffDetail'),
+    mobileApplyBtn: document.getElementById('mobileApplyBtn'),
+    toggleMobileDesktopGridViewBtn: document.getElementById('toggleMobileDesktopGridViewBtn'),
+    toggleMobileDesktopGridLabel: document.getElementById('toggleMobileDesktopGridLabel'),
     scheduleHead: document.getElementById('scheduleHead'),
     scheduleBody: document.getElementById('scheduleBody'),
     statActiveEmployees: document.getElementById('statActiveEmployees'),
@@ -1355,6 +1391,7 @@
     }
 
     renderSectionDrawerControls();
+    updateDeviceViewMode();
   }
 
   // -------------------------------------------------------------
@@ -1740,6 +1777,11 @@
         const empId = slot.getAttribute('data-emp-id');
         const dateStr = slot.getAttribute('data-date');
         if (!empId || !dateStr) return;
+
+        if (isMobileInterface()) {
+          showToast('Full Grid view on mobile is read-only. Use Mobile Logger to edit.', 'info');
+          return;
+        }
 
         const isMulti = e.ctrlKey || e.metaKey;
         const key = `${empId}_${dateStr}`;
@@ -3090,6 +3132,7 @@
     el.bulkProjectSelect.innerHTML = `
       <option value="Day OFF">Day OFF</option>
       <option value="NO PROJECT">NO PROJECT</option>
+      <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
       <option value="">-- Clear / Erase Allocations --</option>
       <optgroup label="Projects & Tenders (Alphabetical)">
         ${state.projects.filter(p => p.active !== false).map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
@@ -3199,7 +3242,7 @@
         }
       } else {
         // Normal workday
-        if (!proj || proj.trim() === '') {
+        if (!proj || proj.trim() === '' || proj === '__CLEAR__') {
           delete state.allocations[key];
         } else {
           state.allocations[key] = { project: proj.trim(), hours: hours };
@@ -6827,9 +6870,510 @@
     }
   }
 
-  // Boot Application
+  // -------------------------------------------------------------
+  // Dedicated Mobile Interface & Logic
+  // -------------------------------------------------------------
+
+  function isMobileInterface() {
+    if (state.forceDesktopViewOnMobile) return false;
+    const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const cannotHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
+    const isMobileUA = /Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const minDim = Math.min(window.screen.width, window.screen.height);
+
+    if ((isMobileUA || (isTouch && cannotHover)) && minDim < 800) return true;
+    if (window.innerWidth <= 768) return true;
+    return false;
+  }
+
+  function updateDeviceViewMode() {
+    const isMobile = isMobileInterface();
+    const container = el.mobileAppContainer;
+    const gridCard = el.scheduleCard || document.querySelector('.schedule-card');
+    const notice = el.mobileGridNoticeBanner;
+
+    if (!isMobile) {
+      // PC / Laptop interface: Always show full grid, hide mobile container
+      if (container) container.classList.add('hidden');
+      if (gridCard) gridCard.classList.remove('hidden');
+      if (notice) notice.classList.add('hidden');
+      document.body.classList.remove('mobile-readonly-grid');
+      return;
+    }
+
+    // Mobile interface:
+    if (state.mobileViewMode === 'grid') {
+      // Viewing full desktop grid on mobile (strictly read-only)
+      if (container) container.classList.add('hidden');
+      if (gridCard) gridCard.classList.remove('hidden');
+      if (notice) notice.classList.remove('hidden');
+      document.body.classList.add('mobile-readonly-grid');
+      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Return to Mobile Card View';
+    } else {
+      // Default mobile interface: show mobile app container, hide grid
+      if (container) container.classList.remove('hidden');
+      if (gridCard) gridCard.classList.add('hidden');
+      if (notice) notice.classList.add('hidden');
+      document.body.classList.remove('mobile-readonly-grid');
+      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'View Full Desktop Grid (Read-Only)';
+      renderMobileView();
+    }
+  }
+
+  function renderMobileView() {
+    if (!el.mobileAppContainer) return;
+
+    // 1. Profile Bar
+    const curEmp = state.employees.find(e => e.id === state.currentUserId);
+    if (el.mobileUserNameDisplay) {
+      el.mobileUserNameDisplay.textContent = curEmp ? curEmp.name : 'Select Your Name';
+    }
+    if (el.mobileAvatarCircle) {
+      el.mobileAvatarCircle.textContent = curEmp ? curEmp.name.charAt(0).toUpperCase() : '?';
+    }
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    if (el.mobileRoleCaption) {
+      el.mobileRoleCaption.textContent = isAdminUser ? 'Administrator (Full Access)' : 'Team Member';
+    }
+
+    // 2. Employee Select in Mobile Logger
+    if (el.mobileEmployeeSelect) {
+      const activeEmps = state.employees.filter(e => e.active !== false);
+      activeEmps.sort((a,b) => a.name.localeCompare(b.name));
+
+      el.mobileEmployeeSelect.innerHTML = activeEmps.map(e => `
+        <option value="${e.id}">${e.name}</option>
+      `).join('');
+
+      let chosenId = state.currentUserId || (activeEmps[0] ? activeEmps[0].id : '');
+      if (isAdminUser) {
+        el.mobileEmployeeSelect.disabled = false;
+        if (el.mobileEmployeeSelect.value) chosenId = el.mobileEmployeeSelect.value;
+        else el.mobileEmployeeSelect.value = chosenId;
+      } else {
+        el.mobileEmployeeSelect.value = state.currentUserId || '';
+        el.mobileEmployeeSelect.disabled = true;
+      }
+    }
+
+    // 3. Project Select in Mobile Logger
+    if (el.mobileProjectSelect) {
+      const activeProjects = state.projects.filter(p => p.active !== false);
+      el.mobileProjectSelect.innerHTML = `
+        <option value="Day OFF">Day OFF</option>
+        <option value="NO PROJECT">NO PROJECT</option>
+        <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
+        <optgroup label="Projects & Tenders (Alphabetical)">
+          ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+        </optgroup>
+      `;
+    }
+
+    // 4. Date range default (if empty)
+    if (el.mobileFromDate && !el.mobileFromDate.value) {
+      const defaultStart = state.todayStr || (state.currentMonth + '-01');
+      el.mobileFromDate.value = formatISOToDMY(defaultStart);
+      el.mobileToDate.value = formatISOToDMY(defaultStart);
+    }
+
+    updateMobileOfficeDetails();
+    renderMobileSummary();
+  }
+
+  function updateMobileOfficeDetails() {
+    if (!el.mobileEmployeeSelect) return;
+    const empId = el.mobileEmployeeSelect.value || state.currentUserId;
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+
+    const sec = state.sections.find(s => s.id === emp.sectionId) || {};
+    const loc = (sec.location || '').toLowerCase();
+    const isIstanbul = loc.includes('istanbul');
+
+    const defH = emp.defaultHoursPerDay || 8;
+    if (el.mobileHoursInput) el.mobileHoursInput.value = Math.min(12, Math.max(1, defH));
+
+    if (el.mobileEmployeeOfficeHint) {
+      if (isIstanbul) {
+        el.mobileEmployeeOfficeHint.textContent = 'Office: Istanbul Team • Holidays: Saturday & Sunday';
+      } else {
+        el.mobileEmployeeOfficeHint.textContent = 'Office: Cairo Team • Holidays: Friday & Saturday';
+      }
+    }
+
+    if (el.mobileHolDayOffDetail) {
+      if (isIstanbul) {
+        el.mobileHolDayOffDetail.innerHTML = 'Fills workdays with selected project, and sets holidays (<strong>Saturday &amp; Sunday</strong>) as Day OFF.';
+      } else {
+        el.mobileHolDayOffDetail.innerHTML = 'Fills workdays with selected project, and sets holidays (<strong>Friday &amp; Saturday</strong>) as Day OFF.';
+      }
+    }
+  }
+
+  function renderMobileSummary() {
+    if (!el.mobileSummaryCard) return;
+
+    const targetEmpId = (state.isAdmin && isCurrentUserPeter() && el.mobileEmployeeSelect && el.mobileEmployeeSelect.value)
+      ? el.mobileEmployeeSelect.value
+      : state.currentUserId;
+
+    const emp = state.employees.find(e => e.id === targetEmpId);
+    const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+
+    // Month label
+    const [y, m] = state.currentMonth.split('-').map(Number);
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    if (el.mobileMonthLabel) {
+      el.mobileMonthLabel.textContent = `${monthNames[m - 1] || 'Month'} ${y}`;
+    }
+
+    if (!emp) {
+      if (el.mobileTotalHoursNum) el.mobileTotalHoursNum.textContent = '0.0h';
+      if (el.mobileUnfilledDaysNum) el.mobileUnfilledDaysNum.textContent = '0';
+      if (el.mobileProjectsSummaryPills) el.mobileProjectsSummaryPills.innerHTML = '<span class="text-xs text-muted">No team member selected.</span>';
+      if (el.mobileAgendaList) el.mobileAgendaList.innerHTML = '';
+      if (el.mobileAgendaCount) el.mobileAgendaCount.textContent = '0';
+      return;
+    }
+
+    const days = getDaysInMonth(state.currentMonth);
+    let totalHours = 0;
+    let unfilledDays = 0;
+    const projectTallies = {};
+    const agendaRows = [];
+
+    days.forEach(d => {
+      const key = `${emp.id}_${d.dateStr}`;
+      const alloc = state.allocations[key];
+      const hasVal = !!alloc && !!alloc.project && alloc.project.trim() !== '';
+      const pName = hasVal ? alloc.project.trim() : '';
+      const h = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : (emp.defaultHoursPerDay || 8)) : 0;
+      const isWk = isWeekendForLocation(d.dow, sec.location);
+
+      if (hasVal && pName !== 'Day OFF' && pName !== 'NO PROJECT' && pName !== 'NO STATUS') {
+        totalHours += h;
+        if (!projectTallies[pName]) projectTallies[pName] = { hours: 0, days: 0 };
+        projectTallies[pName].hours += h;
+        projectTallies[pName].days += 1;
+      } else if (hasVal && pName === 'Day OFF') {
+        if (!projectTallies['Day OFF']) projectTallies['Day OFF'] = { hours: 0, days: 0 };
+        projectTallies['Day OFF'].days += 1;
+      }
+
+      if (!isWk && !hasVal) {
+        unfilledDays++;
+      }
+
+      agendaRows.push({
+        dateStr: d.dateStr,
+        dowName: d.name,
+        num: d.num,
+        isWeekend: isWk,
+        isToday: d.isToday,
+        hasVal,
+        pName,
+        hours: h
+      });
+    });
+
+    if (el.mobileTotalHoursNum) {
+      el.mobileTotalHoursNum.textContent = `${totalHours.toFixed(1)}h`;
+    }
+    if (el.mobileUnfilledDaysNum) {
+      el.mobileUnfilledDaysNum.textContent = unfilledDays;
+    }
+
+    // Render Project Breakdown Pills
+    if (el.mobileProjectsSummaryPills) {
+      const pEntries = Object.entries(projectTallies);
+      if (pEntries.length === 0) {
+        el.mobileProjectsSummaryPills.innerHTML = '<span class="text-xs text-muted" style="padding:4px;">No project hours logged yet for this month.</span>';
+      } else {
+        el.mobileProjectsSummaryPills.innerHTML = pEntries.map(([proj, data]) => {
+          const badgeClass = getProjectBadgeClass(proj);
+          return `
+            <span class="mobile-proj-pill ${badgeClass}">
+              <strong>${proj}</strong>: ${data.hours > 0 ? data.hours + 'h' : ''} (${data.days}d)
+            </span>
+          `;
+        }).join('');
+      }
+    }
+
+    // Render Agenda List
+    if (el.mobileAgendaList && el.mobileAgendaCount) {
+      el.mobileAgendaCount.textContent = agendaRows.filter(r => r.hasVal).length;
+      el.mobileAgendaList.innerHTML = agendaRows.map(r => {
+        let badgeHtml = '';
+        if (r.hasVal) {
+          const bClass = getProjectBadgeClass(r.pName);
+          const hrsText = r.pName === 'Day OFF' ? 'OFF' : `${r.hours}h ${r.pName}`;
+          badgeHtml = `<span class="task-chip ${bClass}" style="max-width:170px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 8px; font-size:10px; font-weight:700;">${hrsText}</span>`;
+        } else if (r.isWeekend) {
+          badgeHtml = '<span class="text-xs text-muted" style="font-size:10px; opacity:0.75;">Holiday / Weekend</span>';
+        } else {
+          badgeHtml = '<span class="badge badge-warning" style="font-size:9.5px; padding:2px 6px;">Unfilled</span>';
+        }
+
+        return `
+          <div class="mobile-agenda-row ${r.isToday ? 'is-today' : ''}" data-date="${r.dateStr}" data-project="${r.pName}" data-hours="${r.hours}">
+            <div class="mobile-agenda-date">
+              <span>${formatDateDMY(r.dateStr)}</span>
+              <span class="text-xs text-muted" style="margin-left:4px;">${r.dowName}</span>
+            </div>
+            <div class="mobile-agenda-badge">
+              ${badgeHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Wire row click to pre-fill single day into form
+      el.mobileAgendaList.querySelectorAll('.mobile-agenda-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const dStr = row.getAttribute('data-date');
+          const pName = row.getAttribute('data-project');
+          const hVal = row.getAttribute('data-hours');
+          if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(dStr);
+          if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(dStr);
+          if (el.mobileProjectSelect && pName) el.mobileProjectSelect.value = pName;
+          if (el.mobileHoursInput && hVal && Number(hVal) > 0) el.mobileHoursInput.value = hVal;
+
+          if (el.mobileLoggerCard) {
+            el.mobileLoggerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          showToast(`Selected ${formatDateDMY(dStr)} for editing in the form below.`, 'info');
+        });
+      });
+    }
+  }
+
+  function handleMobileApply() {
+    const empId = (state.isAdmin && isCurrentUserPeter() && el.mobileEmployeeSelect && el.mobileEmployeeSelect.value)
+      ? el.mobileEmployeeSelect.value
+      : state.currentUserId;
+
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) {
+      showToast('Please identify yourself or select an employee.', 'warning');
+      return;
+    }
+    const sec = state.sections.find(s => s.id === emp.sectionId) || {};
+
+    const rawFrom = el.mobileFromDate ? el.mobileFromDate.value : '';
+    const rawTo = el.mobileToDate ? el.mobileToDate.value : '';
+    const fromStr = parseDateInputToISO(rawFrom);
+    const toStr = parseDateInputToISO(rawTo);
+    const proj = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
+    const rawHours = el.mobileHoursInput ? el.mobileHoursInput.value : '8';
+    const hours = sanitizeDayHours(proj, rawHours, emp ? emp.defaultHoursPerDay : 8);
+
+    const holidayOptionEl = document.querySelector('input[name="mobileHolidayOption"]:checked');
+    const holidayOption = holidayOptionEl ? holidayOptionEl.value : 'dayoff';
+
+    if (!fromStr || !toStr) {
+      showToast('Please enter both Start Date and End Date in DD/MM/YYYY format.', 'warning');
+      return;
+    }
+    if (fromStr < APP_START_MONTH + '-01') {
+      showToast('Start Date cannot be before 01/11/2026 (app start date).', 'warning');
+      if (el.mobileFromDate) el.mobileFromDate.value = '01/11/2026';
+      return;
+    }
+    if (fromStr > toStr) {
+      showToast('Start Date cannot be after End Date.', 'warning');
+      return;
+    }
+
+    let cur = parseLocalDate(fromStr);
+    let currentStr = fromStr;
+    let filledWorkdaysCount = 0;
+    let holidaysDayOffCount = 0;
+    let holidaysSkippedCount = 0;
+    let clearedCount = 0;
+
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__');
+
+    while (currentStr <= toStr) {
+      const dow = cur.getDay();
+      const isHoli = isWeekendForLocation(dow, sec.location);
+      const key = `${empId}_${currentStr}`;
+
+      if (isHoli) {
+        if (holidayOption === 'dayoff') {
+          state.allocations[key] = { project: 'Day OFF', hours: 0 };
+          holidaysDayOffCount++;
+        } else if (holidayOption === 'include') {
+          if (isClearAction) {
+            delete state.allocations[key];
+            clearedCount++;
+          } else {
+            state.allocations[key] = { project: proj.trim(), hours: hours };
+            filledWorkdaysCount++;
+          }
+        } else {
+          holidaysSkippedCount++;
+        }
+      } else {
+        if (isClearAction) {
+          delete state.allocations[key];
+          clearedCount++;
+        } else {
+          state.allocations[key] = { project: proj.trim(), hours: hours };
+          filledWorkdaysCount++;
+        }
+      }
+
+      cur.setDate(cur.getDate() + 1);
+      currentStr = formatLocalDate(cur);
+    }
+
+    logAuditEvent({
+      targetEmpId: empId,
+      targetEmpName: emp ? emp.name : empId,
+      dateStr: `${formatDateDMY(fromStr)} to ${formatDateDMY(toStr)}`,
+      actionType: 'mobile_fill',
+      summary: isClearAction 
+        ? `Mobile cleared allocations across ${clearedCount} days`
+        : `Mobile filled ${filledWorkdaysCount} workdays with '${proj}' (${hours}h)`,
+      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}, Holiday Option: ${holidayOption}`
+    });
+
+    renderSchedule();
+    renderMobileSummary();
+    syncToServer();
+
+    if (isClearAction) {
+      showToast(`Cleared allocations for ${clearedCount} dates for ${emp.name}.`);
+    } else if (holidayOption === 'dayoff') {
+      showToast(`Filled ${filledWorkdaysCount} workdays with "${proj}" and marked ${holidaysDayOffCount} holidays as Day OFF for ${emp.name}.`);
+    } else if (holidayOption === 'include') {
+      showToast(`Filled ${filledWorkdaysCount} calendar days with "${proj}" for ${emp.name}.`);
+    } else {
+      showToast(`Filled ${filledWorkdaysCount} workdays for ${emp.name} (left ${holidaysSkippedCount} holidays untouched).`);
+    }
+  }
+
+  function initMobileEventListeners() {
+    if (el.mobileApplyBtn) {
+      el.mobileApplyBtn.addEventListener('click', handleMobileApply);
+    }
+
+    if (el.mobileSwitchUserBtn) {
+      el.mobileSwitchUserBtn.addEventListener('click', () => {
+        openUserSelectModal();
+      });
+    }
+
+    if (el.mobileEmployeeSelect) {
+      el.mobileEmployeeSelect.addEventListener('change', () => {
+        updateMobileOfficeDetails();
+        renderMobileSummary();
+      });
+    }
+
+    // Toggle agenda list accordion
+    if (el.mobileToggleAgendaBtn && el.mobileAgendaList) {
+      el.mobileToggleAgendaBtn.addEventListener('click', () => {
+        const isHidden = el.mobileAgendaList.classList.toggle('hidden');
+        const arrow = el.mobileToggleAgendaBtn.querySelector('.chevron-arrow');
+        if (arrow) arrow.textContent = isHidden ? '▾' : '▴';
+      });
+    }
+
+    // Date range shortcuts
+    if (el.mobileRangeToday) {
+      el.mobileRangeToday.addEventListener('click', () => {
+        const t = state.todayStr || (state.currentMonth + '-01');
+        if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(t);
+        if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(t);
+        showToast('Range set to Today (' + formatDateDMY(t) + ')');
+      });
+    }
+
+    if (el.mobileRangeWeek) {
+      el.mobileRangeWeek.addEventListener('click', () => {
+        const t = state.todayStr ? parseLocalDate(state.todayStr) : parseLocalDate(state.currentMonth + '-01');
+        const dayOfWeek = t.getDay(); // 0 Sun, 1 Mon ...
+        // Set to Monday of this week
+        const startWk = new Date(t);
+        startWk.setDate(t.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+        const endWk = new Date(startWk);
+        endWk.setDate(startWk.getDate() + 4); // Friday
+        const fStr = formatLocalDate(startWk);
+        const tStr = formatLocalDate(endWk);
+        if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(fStr);
+        if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(tStr);
+        showToast(`Range set to Current Week (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
+      });
+    }
+
+    if (el.mobileRangeMonth) {
+      el.mobileRangeMonth.addEventListener('click', () => {
+        const [y, m] = state.currentMonth.split('-').map(Number);
+        const lastDay = new Date(y, m, 0).getDate();
+        const fStr = `${state.currentMonth}-01`;
+        const tStr = `${state.currentMonth}-${String(lastDay).padStart(2, '0')}`;
+        if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(fStr);
+        if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(tStr);
+        showToast(`Range set to Entire Month (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
+      });
+    }
+
+    // Quick hour pills
+    document.querySelectorAll('.btn-hour-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const hrs = btn.getAttribute('data-hours');
+        if (el.mobileHoursInput) el.mobileHoursInput.value = hrs;
+        document.querySelectorAll('.btn-hour-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Mobile holiday option radio choices
+    document.querySelectorAll('input[name="mobileHolidayOption"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const sel = document.querySelector('input[name="mobileHolidayOption"]:checked').value;
+        if (el.mobileHolDayOffLabel) el.mobileHolDayOffLabel.classList.toggle('selected', sel === 'dayoff');
+        if (el.mobileHolIncludeLabel) el.mobileHolIncludeLabel.classList.toggle('selected', sel === 'include');
+        if (el.mobileHolSkipLabel) el.mobileHolSkipLabel.classList.toggle('selected', sel === 'skip');
+      });
+    });
+
+    // Toggle Desktop Grid View (Read-Only) from Settings drawer
+    if (el.toggleMobileDesktopGridViewBtn) {
+      el.toggleMobileDesktopGridViewBtn.addEventListener('click', () => {
+        state.mobileViewMode = (state.mobileViewMode === 'grid') ? 'form' : 'grid';
+        toggleSettingsDrawer(false);
+        updateDeviceViewMode();
+        if (state.mobileViewMode === 'grid') {
+          showToast('Switched to Full Desktop Grid (Read-Only for visualization).');
+        } else {
+          showToast('Returned to Mobile Schedule Logger.');
+        }
+      });
+    }
+
+    // Return to Mobile Logger button
+    if (el.mobileReturnToLoggerBtn) {
+      el.mobileReturnToLoggerBtn.addEventListener('click', () => {
+        state.mobileViewMode = 'form';
+        updateDeviceViewMode();
+        showToast('Returned to Mobile Schedule Logger.');
+      });
+    }
+
+    // Window resize listener
+    window.addEventListener('resize', () => {
+      updateDeviceViewMode();
+    });
+  }
+
+
+    // Boot Application
   initTheme();
   initColumnWidths();
+  initMobileEventListeners();
   initDmyDateInputs();
   initAuditEvents();
   initAuditHistory();

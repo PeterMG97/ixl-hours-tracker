@@ -17,7 +17,7 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=3.2">
+  <link rel="stylesheet" href="styles.css?v=3.3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -117,7 +117,164 @@
 
     <!-- Main Schedule Canvas -->
     <main class="schedule-canvas">
-      <div class="schedule-card">
+      <!-- Read-Only Notice when viewing full grid on mobile -->
+      <div id="mobileGridNoticeBanner" class="mobile-grid-notice hidden">
+        <span>Viewing Full Grid (Read-Only on Mobile)</span>
+        <button type="button" class="btn btn-sm btn-primary" id="mobileReturnToLoggerBtn">Return to Mobile Logger</button>
+      </div>
+
+      <!-- Mobile Dedicated View (Phone / Small Screens) -->
+      <div id="mobileAppContainer" class="mobile-app-container hidden">
+        
+        <!-- Mobile Profile & Month Bar -->
+        <div class="mobile-profile-bar">
+          <div class="mobile-profile-info">
+            <span class="user-avatar-circle" id="mobileAvatarCircle">?</span>
+            <div>
+              <strong id="mobileUserNameDisplay">Select Your Name</strong>
+              <span class="mobile-role-caption" id="mobileRoleCaption">Team Member</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="mobileSwitchUserBtn" title="Switch Team Member">Switch</button>
+        </div>
+
+        <!-- Component 1: My Monthly Summary Card -->
+        <div class="mobile-card mobile-summary-card" id="mobileSummaryCard">
+          <div class="mobile-card-header">
+            <h4>My Month Summary</h4>
+            <span class="badge badge-primary" id="mobileMonthLabel">November 2026</span>
+          </div>
+          
+          <div class="mobile-kpi-grid">
+            <div class="mobile-kpi-box">
+              <span class="kpi-num" id="mobileTotalHoursNum">0.0h</span>
+              <span class="kpi-sub">Total Logged Hours</span>
+            </div>
+            <div class="mobile-kpi-box">
+              <span class="kpi-num" id="mobileUnfilledDaysNum">0</span>
+              <span class="kpi-sub">Unfilled Workdays</span>
+            </div>
+          </div>
+
+          <div class="mobile-proj-pills" id="mobileProjectsSummaryPills">
+            <!-- Dynamically populated project hours breakdown -->
+          </div>
+
+          <!-- Expandable Daily Breakdown List -->
+          <div class="mobile-breakdown-accordion">
+            <button type="button" class="btn-toggle-agenda" id="mobileToggleAgendaBtn">
+              <span>View Logged Days (<span id="mobileAgendaCount">0</span> entries)</span>
+              <span class="chevron-arrow">▾</span>
+            </button>
+            <div class="mobile-agenda-list hidden" id="mobileAgendaList">
+              <!-- Dynamically populated day-by-day rows -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Component 2: Mobile Schedule Logger / Bulk Fill Card -->
+        <div class="mobile-card mobile-logger-card" id="mobileLoggerCard">
+          <div class="mobile-card-header">
+            <h4>Log Hours &amp; Fill Dates</h4>
+            <span class="badge badge-success" id="mobileLoggerModeBadge">Interactive Logger</span>
+          </div>
+
+          <!-- Target Team Member (Locked for user, unlocked for Admin) -->
+          <div class="form-group" id="mobileTargetEmpGroup">
+            <label class="form-label">Team Member:</label>
+            <select id="mobileEmployeeSelect" class="form-select">
+              <!-- Dynamically populated -->
+            </select>
+            <small class="form-help" id="mobileEmployeeOfficeHint"></small>
+          </div>
+
+          <!-- Date Range (Start Date - End Date) -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="mobileFromDate">Start Date (DD/MM/YYYY):</label>
+              <div class="dmy-datepicker-wrapper">
+                <input type="text" id="mobileFromDate" class="form-control dmy-date-input" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off">
+                <button type="button" class="dmy-cal-toggle-btn" data-target="mobileFromDate" title="Choose start date" aria-label="Open Calendar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mobileToDate">End Date (DD/MM/YYYY):</label>
+              <div class="dmy-datepicker-wrapper">
+                <input type="text" id="mobileToDate" class="form-control dmy-date-input" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off">
+                <button type="button" class="dmy-cal-toggle-btn" data-target="mobileToDate" title="Choose end date" aria-label="Open Calendar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date Shortcuts -->
+          <div class="mobile-range-shortcuts">
+            <button type="button" class="btn-range-chip" id="mobileRangeToday">Today</button>
+            <button type="button" class="btn-range-chip" id="mobileRangeWeek">This Week</button>
+            <button type="button" class="btn-range-chip" id="mobileRangeMonth">Entire Month</button>
+          </div>
+
+          <!-- Project Selector -->
+          <div class="form-group">
+            <label class="form-label">Project / Allocation:</label>
+            <select id="mobileProjectSelect" class="form-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Daily Hours -->
+          <div class="form-group">
+            <div class="mobile-hours-header">
+              <label class="form-label">Hours per Workday (1 - 12h):</label>
+              <div class="mobile-hours-chips">
+                <button type="button" class="btn-hour-pill" data-hours="8">8h</button>
+                <button type="button" class="btn-hour-pill" data-hours="4">4h</button>
+                <button type="button" class="btn-hour-pill" data-hours="1">1h</button>
+                <button type="button" class="btn-hour-pill" data-hours="12">12h</button>
+              </div>
+            </div>
+            <input type="number" id="mobileHoursInput" class="form-control" value="8" min="1" max="12" step="0.5">
+          </div>
+
+          <!-- Weekend & Holiday Treatment -->
+          <div class="mobile-holiday-treatment">
+            <label class="form-label" style="font-weight:700; margin-bottom:8px;">Weekend &amp; Holiday Treatment:</label>
+            <label class="choice-card selected" id="mobileHolDayOffLabel">
+              <input type="radio" name="mobileHolidayOption" id="mobileHolDayOff" value="dayoff" checked>
+              <div class="choice-text">
+                <strong>Set Holidays as "Day OFF" (Recommended)</strong>
+                <p id="mobileHolDayOffDetail">Fills workdays with your project, and marks all holidays as Day OFF.</p>
+              </div>
+            </label>
+            <label class="choice-card" id="mobileHolIncludeLabel">
+              <input type="radio" name="mobileHolidayOption" id="mobileHolInclude" value="include">
+              <div class="choice-text">
+                <strong>Work on Holidays</strong>
+                <p>Assigns selected project across all calendar days without holidays.</p>
+              </div>
+            </label>
+            <label class="choice-card" id="mobileHolSkipLabel">
+              <input type="radio" name="mobileHolidayOption" id="mobileHolSkip" value="skip">
+              <div class="choice-text">
+                <strong>Skip Holidays (Leave untouched)</strong>
+                <p>Leaves holiday dates untouched.</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="button" class="btn btn-primary btn-block mobile-submit-btn" id="mobileApplyBtn">
+            Apply &amp; Save Schedule
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Full Desktop Schedule Matrix Card -->
+      <div class="schedule-card" id="scheduleCard">
         <div class="table-scroll-area">
           <table class="schedule-table" id="scheduleTable">
             <thead id="scheduleHead">
@@ -1430,6 +1587,15 @@
           <div class="action-card-text">
             <strong>Month-End Audit</strong>
             <span>Check missing workdays before closing</span>
+          </div>
+          <span class="action-card-arrow">›</span>
+        </button>
+
+        <button class="settings-action-card" id="toggleMobileDesktopGridViewBtn">
+          <span class="action-card-icon"></span>
+          <div class="action-card-text">
+            <strong id="toggleMobileDesktopGridLabel">View Full Desktop Grid (Read-Only)</strong>
+            <span id="toggleMobileDesktopGridSub">Inspect all team member rows in spreadsheet mode</span>
           </div>
           <span class="action-card-arrow">›</span>
         </button>
