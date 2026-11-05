@@ -4098,7 +4098,7 @@ body.view-only .task-chip {
     padding: 2px 4px !important;
     flex: 1 !important;
     min-width: 0 !important;
-    max-width: 135px !important;
+    max-width: 105px !important;
     height: 30px !important;
     text-overflow: ellipsis !important;
   }
@@ -4146,11 +4146,7 @@ body.view-only .task-chip {
     min-width: 100% !important;
   }
 
-  /* Mobile Header Beacon: Clean dot lamp docked directly on user avatar */
-  .user-picker-btn {
-    position: relative !important;
-  }
-
+  /* Mobile Header Beacon: Dedicated status lamp on the left of the month calendar */
   .status-beacon {
     padding: 4px !important;
     gap: 0 !important;
@@ -4166,45 +4162,36 @@ body.view-only .task-chip {
     display: none !important;
   }
 
-  .user-picker-btn .status-beacon {
-    position: absolute !important;
-    bottom: 0px !important;
-    left: 17px !important;
-    width: 10px !important;
-    height: 10px !important;
-    min-width: 10px !important;
+  .header-right .status-beacon {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 30px !important;
     padding: 0 !important;
     margin: 0 !important;
-    border-radius: 50% !important;
-    background: var(--card-bg, #ffffff) !important;
-    border: 1.5px solid var(--card-bg, #ffffff) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
-    display: flex !important;
+    border-radius: 8px !important;
+    background: #f1f5f9 !important;
+    border: 1px solid var(--border-light) !important;
+    display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    z-index: 5 !important;
-    pointer-events: none !important;
+    flex-shrink: 0 !important;
+    cursor: default !important;
   }
 
-  .user-picker-btn .status-beacon .beacon-dot {
-    width: 6.5px !important;
-    height: 6.5px !important;
+  [data-theme="dark"] .header-right .status-beacon {
+    background: #1e293b !important;
+    border-color: var(--border-light) !important;
+  }
+
+  .header-right .status-beacon .beacon-dot {
+    width: 8px !important;
+    height: 8px !important;
     border-radius: 50% !important;
     flex-shrink: 0 !important;
   }
 
-  [data-theme="dark"] .user-picker-btn .status-beacon {
-    background: #111827 !important;
-    border-color: #111827 !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-  }
-
-  .header-left .status-beacon {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
-    width: 12px !important;
-    height: 12px !important;
+  .header-right .status-beacon .beacon-text {
+    display: none !important;
   }
 
   /* Mobile Settings Drawer: Hide Bulk Fill Schedule button (use mobile logger instead) */
@@ -4796,10 +4783,6 @@ body.mobile-readonly-grid .schedule-table td.col-user {
 }
 
 /* Deterministic Device Scope Rules */
-body.is-mobile-device .user-picker-btn {
-  position: relative !important;
-}
-
 body.is-mobile-device .status-beacon {
   padding: 4px !important;
   gap: 0 !important;
@@ -4816,45 +4799,40 @@ body.is-mobile-device .status-beacon .beacon-text {
   display: none !important;
 }
 
-body.is-mobile-device .user-picker-btn .status-beacon {
-  position: absolute !important;
-  bottom: 0px !important;
-  left: 17px !important;
-  width: 10px !important;
-  height: 10px !important;
-  min-width: 10px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border-radius: 50% !important;
-  background: var(--card-bg, #ffffff) !important;
-  border: 1.5px solid var(--card-bg, #ffffff) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 5 !important;
-  pointer-events: none !important;
+body.is-mobile-device .period-select {
+  max-width: 105px !important;
 }
 
-body.is-mobile-device .user-picker-btn .status-beacon .beacon-dot {
-  width: 6.5px !important;
-  height: 6.5px !important;
+body.is-mobile-device .header-right .status-beacon {
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  background: #f1f5f9 !important;
+  border: 1px solid var(--border-light) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  cursor: default !important;
+}
+
+[data-theme="dark"] body.is-mobile-device .header-right .status-beacon {
+  background: #1e293b !important;
+  border-color: var(--border-light) !important;
+}
+
+body.is-mobile-device .header-right .status-beacon .beacon-dot {
+  width: 8px !important;
+  height: 8px !important;
   border-radius: 50% !important;
   flex-shrink: 0 !important;
 }
 
-[data-theme="dark"] body.is-mobile-device .user-picker-btn .status-beacon {
-  background: #111827 !important;
-  border-color: #111827 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-}
-
-body.is-mobile-device .header-left .status-beacon {
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  width: 12px !important;
-  height: 12px !important;
+body.is-mobile-device .header-right .status-beacon .beacon-text {
+  display: none !important;
 }
 
 body.is-mobile-device #topbarBulkFillBtn {

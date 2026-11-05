@@ -913,7 +913,7 @@
 
   function updateUserDisplay() {
     if (state.isViewOnly) {
-      dockMobileConnectionBadge(false);
+      dockMobileConnectionBadge(isMobileInterface());
       if (el.userPermissionBanner) {
         el.userPermissionBanner.classList.remove('admin-active-banner');
         el.userPermissionBanner.classList.add('hidden');
@@ -6933,15 +6933,18 @@
 
   function dockMobileConnectionBadge(isMobile) {
     const badge = el.connectionBadge || document.getElementById('connectionBadge');
-    const userBtn = el.userPickerBtn || document.getElementById('userPickerBtn');
     const headerLeft = document.querySelector('.header-left');
+    const headerRight = document.querySelector('.header-right');
+    const periodNav = document.querySelector('.period-navigator');
     if (!badge) return;
 
-    if (isMobile && !state.isViewOnly && userBtn) {
-      if (badge.parentElement !== userBtn) {
-        userBtn.appendChild(badge);
+    if (isMobile && headerRight && periodNav) {
+      // Mobile: place the green/red lamp directly on the left of the month calendar
+      if (badge.parentElement !== headerRight || badge.nextElementSibling !== periodNav) {
+        headerRight.insertBefore(badge, periodNav);
       }
     } else {
+      // PC / Desktop: preserve original status beacon in header-left
       if (headerLeft && badge.parentElement !== headerLeft) {
         headerLeft.appendChild(badge);
       }
