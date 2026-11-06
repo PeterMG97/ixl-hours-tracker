@@ -1320,8 +1320,10 @@
           }
         }
 
+        const isNextEmpSelf = (empIdx < secEmployees.length - 1) && !state.isViewOnly && (secEmployees[empIdx + 1].id === state.currentUserId);
+
         secRowsHtml += `
-          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${isUnfocused ? 'unfocused-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
+          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${isNextEmpSelf ? 'precedes-active-user' : ''} ${isUnfocused ? 'unfocused-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
               data-emp-id="${emp.id}" 
               data-section-id="${sec.id}">
             <td class="col-user" data-emp-id="${emp.id}" title="Double-click to view monthly contributions for ${emp.name}">
@@ -1351,17 +1353,25 @@
         `;
       });
 
+      const isFirstEmpSelf = secEmployees.length > 0 && !state.isViewOnly && (secEmployees[0].id === state.currentUserId);
+
       bodyHtml += `
-        <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''}" 
+        <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''} ${isFirstEmpSelf ? 'precedes-active-user' : ''}" 
             data-section-id="${sec.id}" 
             title="Click to ${isCollapsed ? 'expand' : 'shrink'} ${sec.name}">
-          <td colspan="${days.length + 2}">
+          <td colspan="2" class="group-header-cell group-header-label-cell">
             <div class="group-header-content">
               <span class="group-toggle-icon">${isCollapsed ? '▶' : '▼'}</span>
               <strong class="group-title">${sec.name}</strong>
               <span class="group-badge">${secEmployees.length} members</span>
             </div>
           </td>
+          ${days.map(d => {
+            const isHoli = isWeekendForLocation(d.dow, sec.location);
+            const todayCls = d.isToday ? 'is-today' : '';
+            const holiCls = isHoli ? 'is-weekend' : '';
+            return `<td class="group-header-cell group-header-slot ${todayCls} ${holiCls}"></td>`;
+          }).join('')}
         </tr>
       ` + secRowsHtml;
     });
