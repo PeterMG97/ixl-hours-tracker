@@ -20,7 +20,7 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=4.5">
+  <link rel="stylesheet" href="styles.css?v=4.6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -222,12 +222,48 @@
             <button type="button" class="btn-range-chip" id="mobileRangeMonth">Entire Month</button>
           </div>
 
-          <!-- Project Selector -->
+          <!-- Project Selector with Starred & Mobile List Support -->
           <div class="form-group">
             <label class="form-label">Project / Allocation:</label>
-            <select id="mobileProjectSelect" class="form-select">
-              <!-- Dynamically populated -->
-            </select>
+
+            <!-- Quick Starred Favorites Chips (Mobile Logger) -->
+            <div id="mobileStarredContainer" class="starred-quick-container hidden">
+              <span class="starred-quick-label">
+                <svg class="star-icon inline-star" width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Starred Favorites:
+              </span>
+              <div class="starred-chips-row" id="mobileStarredChips"></div>
+            </div>
+
+            <div class="project-select-with-star">
+              <select id="mobileProjectSelect" class="form-select">
+                <!-- Dynamically populated with Starred optgroup -->
+              </select>
+              <button type="button" class="btn-star-input-toggle" id="mobileCurrentProjectStarBtn" title="Toggle star for selected project" aria-label="Toggle Star">
+                <svg class="star-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Mobile Interactive Projects List with Star Symbols Beside Each Project -->
+            <div class="mobile-project-browser" id="mobileProjectBrowser">
+              <div class="mobile-browser-header">
+                <span class="mobile-browser-title">Browse &amp; Star Projects List:</span>
+                <button type="button" class="btn-link-action" id="mobileToggleBrowserBtn">Hide List</button>
+              </div>
+              <div id="mobileBrowserContent">
+                <div class="popover-category-pills mobile-category-pills" id="mobileCategoryPills">
+                  <button type="button" class="category-pill active" data-category="all">All</button>
+                  <button type="button" class="category-pill" data-category="starred">Starred</button>
+                  <button type="button" class="category-pill" data-category="Project">Project</button>
+                  <button type="button" class="category-pill" data-category="Tender">Tender</button>
+                  <button type="button" class="category-pill" data-category="Special">Special</button>
+                </div>
+                <input type="text" id="mobileProjectSearchInput" class="form-control form-control-sm" placeholder="Filter projects...">
+                <div class="project-pill-list mobile-project-list" id="mobileProjectPillList"></div>
+              </div>
+            </div>
           </div>
 
           <!-- Daily Hours -->
@@ -335,16 +371,18 @@
 
       <input type="text" id="projectSearchInput" class="form-control form-control-sm" placeholder="Search project or tender...">
       
-      <!-- Category Filter List (Requirement 2) -->
+      <!-- Category Filter List (Requirement 2 & Starred Favorites) -->
       <div class="popover-category-filter">
         <select id="popoverCategorySelect" class="form-select form-control-sm popover-category-select" title="Choose category">
           <option value="all">All Categories</option>
+          <option value="starred">Starred (Favorites)</option>
           <option value="Project">Project</option>
           <option value="Tender">Tender</option>
           <option value="Special">Special (Academy / Different Team Support)</option>
         </select>
         <div class="popover-category-pills" id="popoverCategoryPills">
           <button type="button" class="category-pill active" data-category="all">All</button>
+          <button type="button" class="category-pill" data-category="starred">Starred</button>
           <button type="button" class="category-pill" data-category="Project">Project</button>
           <button type="button" class="category-pill" data-category="Tender">Tender</button>
           <button type="button" class="category-pill" data-category="Special">Special</button>
@@ -427,12 +465,47 @@
           <button type="button" class="btn-bulk-chip" id="bulkRangeMonth">Entire Month</button>
         </div>
 
-        <!-- Project Selection -->
+        <!-- Project Selection with Starred Favorites Support -->
         <div class="form-group">
           <label class="form-label">Project / Allocation for Workdays:</label>
-          <select id="bulkProjectSelect" class="form-select">
-            <!-- Dynamically populated -->
-          </select>
+
+          <!-- Quick Starred Favorites Chips (PC Bulk Fill) -->
+          <div id="bulkStarredContainer" class="starred-quick-container hidden">
+            <span class="starred-quick-label">
+              <svg class="star-icon inline-star" width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              Starred Favorites:
+            </span>
+            <div class="starred-chips-row" id="bulkStarredChips"></div>
+          </div>
+
+          <div class="project-select-with-star">
+            <select id="bulkProjectSelect" class="form-select">
+              <!-- Dynamically populated with Starred optgroup -->
+            </select>
+            <button type="button" class="btn-star-input-toggle" id="bulkCurrentProjectStarBtn" title="Toggle star for selected project" aria-label="Toggle Star">
+              <svg class="star-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Expandable Browse & Star Projects List for Bulk Fill -->
+          <div class="bulk-browse-toggle-wrapper">
+            <button type="button" class="btn-link-action" id="bulkToggleBrowseBtn">
+              <span id="bulkToggleBrowseIcon">+</span> Browse &amp; Star Projects List
+            </button>
+          </div>
+          <div id="bulkBrowseSection" class="bulk-browse-section hidden">
+            <div class="popover-category-pills bulk-category-pills" id="bulkCategoryPills">
+              <button type="button" class="category-pill active" data-category="all">All</button>
+              <button type="button" class="category-pill" data-category="starred">Starred</button>
+              <button type="button" class="category-pill" data-category="Project">Project</button>
+              <button type="button" class="category-pill" data-category="Tender">Tender</button>
+              <button type="button" class="category-pill" data-category="Special">Special</button>
+            </div>
+            <input type="text" id="bulkProjectSearchInput" class="form-control form-control-sm" placeholder="Search project or tender...">
+            <div class="project-pill-list bulk-project-list" id="bulkProjectList"></div>
+          </div>
         </div>
 
         <!-- Daily Hours -->
@@ -1737,6 +1810,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=4.5"></script>
+  <script src="app.js?v=4.6"></script>
 </body>
 </html>

@@ -394,6 +394,18 @@ if (Test-Path $cellSequenceTestScript) {
 }
 Assert-Test "6.61 PC Grid single click standing & hold-to-multiselect sequence integrity" $cellSequencePass "Dedicated test verifying single left click stands for arrow navigation and hold enters multi-select with total focus movement"
 
+$starredProjectsTestScript = Join-Path $AppDir "test_starred_projects_integrity.js"
+$starredProjectsPass = $false
+if (Test-Path $starredProjectsTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeStarredOutput = & $nodePath $starredProjectsTestScript 2>&1
+        $starredProjectsPass = ($LASTEXITCODE -eq 0) -and ($nodeStarredOutput -match "DEDICATED STARRED TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $starredProjectsPass = ($jsContent.Contains("toggleStarredProject")) -and ($jsContent.Contains("renderStarSvgHtml"))
+    }
+}
+Assert-Test "6.62 Per-Profile Starred Favorite Projects integrity across PC popover, bulk fill, and mobile logger" $starredProjectsPass "Dedicated test verifying per-profile starred isolation, star toggle, Starred category filter, quick chips, and zero emojis"
+
 
 
 

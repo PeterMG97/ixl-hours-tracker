@@ -111,7 +111,17 @@
     activeKeyboardCell: null,
     selectedEmpId: null,
     isMultiEditing: false,
+    userStarredProjects: (() => {
+      try {
+        const raw = getStoredItem('ixl_user_starred_projects');
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return {};
+      }
+    })(),
     popoverCategory: 'all',
+    bulkCategory: 'all',
+    mobileCategory: 'all',
     currentContribEmpId: null,
     currentContribMonth: null,
     currentProjectMonth: null,
@@ -215,6 +225,26 @@
     popoverHoursInput: document.getElementById('popoverHoursInput'),
     applyCellBtn: document.getElementById('applyCellBtn'),
     openBulkFillBtn: document.getElementById('openBulkFillBtn'),
+
+    // Starred Favorites & Project Browsers
+    mobileStarredContainer: document.getElementById('mobileStarredContainer'),
+    mobileStarredChips: document.getElementById('mobileStarredChips'),
+    mobileCurrentProjectStarBtn: document.getElementById('mobileCurrentProjectStarBtn'),
+    mobileProjectBrowser: document.getElementById('mobileProjectBrowser'),
+    mobileToggleBrowserBtn: document.getElementById('mobileToggleBrowserBtn'),
+    mobileBrowserContent: document.getElementById('mobileBrowserContent'),
+    mobileCategoryPills: document.getElementById('mobileCategoryPills'),
+    mobileProjectSearchInput: document.getElementById('mobileProjectSearchInput'),
+    mobileProjectPillList: document.getElementById('mobileProjectPillList'),
+
+    bulkStarredContainer: document.getElementById('bulkStarredContainer'),
+    bulkStarredChips: document.getElementById('bulkStarredChips'),
+    bulkCurrentProjectStarBtn: document.getElementById('bulkCurrentProjectStarBtn'),
+    bulkToggleBrowseBtn: document.getElementById('bulkToggleBrowseBtn'),
+    bulkBrowseSection: document.getElementById('bulkBrowseSection'),
+    bulkCategoryPills: document.getElementById('bulkCategoryPills'),
+    bulkProjectSearchInput: document.getElementById('bulkProjectSearchInput'),
+    bulkProjectList: document.getElementById('bulkProjectList'),
 
     // Bulk Fill Modal (Enhanced with Cairo/Istanbul holiday handling)
     topbarBulkFillBtn: document.getElementById('topbarBulkFillBtn'),
@@ -710,6 +740,12 @@
     state.history = data.history || [];
     state.deviceProfiles = data.deviceProfiles || {};
     state.deviceNames = Object.assign({ 'dev_2b155b6f80fd': 'PeterWorkPC' }, data.deviceNames || {});
+    if (data.userStarredProjects && typeof data.userStarredProjects === 'object') {
+      state.userStarredProjects = Object.assign({}, state.userStarredProjects || {}, data.userStarredProjects);
+      try {
+        setStoredItem('ixl_user_starred_projects', JSON.stringify(state.userStarredProjects));
+      } catch (e) {}
+    }
     if (!state.deviceProfiles['dev_2b155b6f80fd']) {
       state.deviceProfiles['dev_2b155b6f80fd'] = {
         deviceId: 'dev_2b155b6f80fd',
@@ -844,6 +880,7 @@
       statuses: state.statuses,
       allocations: state.allocations,
       adminPin: state.adminPin,
+      userStarredProjects: state.userStarredProjects || {},
       history: (state.history || []).slice(0, 1500),
       deviceProfiles: state.deviceProfiles || {},
       deviceNames: state.deviceNames || { 'dev_2b155b6f80fd': 'PeterWorkPC' },
@@ -967,6 +1004,7 @@
         el.userPermissionBanner.classList.add('hidden');
       }
     }
+    refreshAllStarredUIs();
   }
 
   function getInitials(name) {
@@ -2659,11 +2697,100 @@
     el.projectSearchInput.focus();
   }
 
-  function isProjectMatchingCategory(p, cat) {
+  // ==========================================
+  // STARRED FAVORITE PROJECTS (PER-PROFILE)
+  // ==========================================
+  function renderStarSvgHtml(isStarred, size = 16) {
+    if (isStarred) {
+      return `<svg class="star-icon is-starred" width="${size}" height="${size}" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+    }
+    return `<svg class="star-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+  }
+
+  function getEffectiveProfileId(contextEmpId = null) {
+    if (contextEmpId) return contextEmpId;
+    if (state.currentUserId && state.currentUserId !== 'view-all') return state.currentUserId;
+    if (state.mobileTargetEmpId) return state.mobileTargetEmpId;
+    const firstEmp = (state.employees && state.employees[0]) ? state.employees[0].id : 'emp_1';
+    return firstEmp;
+  }
+
+  function getStarredProjectsForProfile(empId = null) {
+    const pid = getEffectiveProfileId(empId);
+    if (!state.userStarredProjects) state.userStarredProjects = {};
+    if (!Array.isArray(state.userStarredProjects[pid])) {
+      state.userStarredProjects[pid] = [];
+    }
+    return state.userStarredProjects[pid];
+  }
+
+  function isProjectStarred(projectName, empId = null) {
+    if (!projectName) return false;
+    const list = getStarredProjectsForProfile(empId);
+    return list.includes(projectName);
+  }
+
+  function toggleStarredProject(projectName, empId = null) {
+    if (!projectName || projectName === 'Day OFF' || projectName === 'NO PROJECT' || projectName === 'NO STATUS' || projectName === '__CLEAR__') {
+      return false;
+    }
+    const pid = getEffectiveProfileId(empId);
+    if (!state.userStarredProjects) state.userStarredProjects = {};
+    if (!Array.isArray(state.userStarredProjects[pid])) {
+      state.userStarredProjects[pid] = [];
+    }
+    const idx = state.userStarredProjects[pid].indexOf(projectName);
+    let nowStarred = false;
+    if (idx >= 0) {
+      state.userStarredProjects[pid].splice(idx, 1);
+      nowStarred = false;
+    } else {
+      state.userStarredProjects[pid].push(projectName);
+      nowStarred = true;
+    }
+    try {
+      setStoredItem('ixl_user_starred_projects', JSON.stringify(state.userStarredProjects));
+    } catch (e) {}
+    syncToServer();
+    refreshAllStarredUIs();
+    return nowStarred;
+  }
+
+  function refreshAllStarredUIs() {
+    // 1. Refresh PC cell popover if open
+    if (el.cellPopover && !el.cellPopover.classList.contains('hidden')) {
+      renderPopoverProjectList(el.projectSearchInput ? el.projectSearchInput.value : '');
+    }
+    // 2. Refresh PC bulk fill if modal is active
+    if (el.bulkProjectSelect) {
+      const curBulkVal = el.bulkProjectSelect.value;
+      populateBulkProjectSelect(curBulkVal);
+      renderBulkStarredChips();
+      updateBulkStarBtnState();
+      if (el.bulkProjectList) {
+        renderBulkProjectList(el.bulkProjectSearchInput ? el.bulkProjectSearchInput.value : '');
+      }
+    }
+    // 3. Refresh mobile logger
+    if (el.mobileProjectSelect) {
+      const curMobileVal = el.mobileProjectSelect.value;
+      populateMobileProjectSelect(curMobileVal);
+      renderMobileStarredChips();
+      updateMobileStarBtnState();
+      if (el.mobileProjectPillList) {
+        renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
+      }
+    }
+  }
+
+  function isProjectMatchingCategory(p, cat, empId = null) {
     if (!cat || cat === 'all') return true;
     const name = p.name;
     const pCat = p.category || '';
 
+    if (cat === 'starred') {
+      return isProjectStarred(name, empId);
+    }
     if (cat === 'Special') {
       return pCat === 'Special' || pCat === 'Training' || pCat === 'Support' ||
              name.startsWith('Academy') || name.startsWith('Training') || name.includes('Different Team Support');
@@ -2683,9 +2810,19 @@
     const q = (query || '').toLowerCase();
     const cat = state.popoverCategory || 'all';
 
+    // Target profile for starring in popover
+    let targetEmpId = null;
+    if (state.selectedCell && state.selectedCell.empId) {
+      targetEmpId = state.selectedCell.empId;
+    } else if (state.isMultiEditing) {
+      const uniqueEmps = getSelectedUniqueEmployees();
+      if (uniqueEmps.length === 1) targetEmpId = uniqueEmps[0].id;
+    }
+    if (!targetEmpId) targetEmpId = getEffectiveProfileId();
+
     const filtered = state.projects.filter(p => {
       if (p.active === false) return false;
-      if (!isProjectMatchingCategory(p, cat)) return false;
+      if (!isProjectMatchingCategory(p, cat, targetEmpId)) return false;
       if (q && !(p.name.toLowerCase().includes(q) || (p.wbs && p.wbs.toLowerCase().includes(q)))) {
         return false;
       }
@@ -2696,24 +2833,44 @@
 
     if (filtered.length === 0) {
       el.popoverProjectList.innerHTML = `
-        <div style="padding:14px; text-align:center; color:var(--text-muted); font-size:11px;">
-          No matching ${cat !== 'all' ? cat : 'project'}s found.
+        <div class="empty-starred-hint">
+          ${cat === 'starred' 
+            ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it to your favorites.' 
+            : `No matching ${cat !== 'all' ? cat : 'project'}s found.`}
         </div>
       `;
       return;
     }
 
-    el.popoverProjectList.innerHTML = filtered.map(p => `
-      <div class="proj-item" data-val="${p.name}">
-        <strong>${p.name}</strong>
-        ${p.wbs ? `<span class="item-wbs">WBS: ${p.wbs}</span>` : ''}
-      </div>
-    `).join('');
+    el.popoverProjectList.innerHTML = filtered.map(p => {
+      const isStarred = isProjectStarred(p.name, targetEmpId);
+      return `
+        <div class="proj-item ${isStarred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
+          <div class="proj-item-main" style="flex:1; min-width:0;">
+            <strong>${escapeHtml(p.name)}</strong>
+            ${p.wbs ? `<span class="item-wbs">WBS: ${escapeHtml(p.wbs)}</span>` : ''}
+          </div>
+          <button type="button" class="btn-star-toggle ${isStarred ? 'is-starred' : ''}" data-project="${encodeURIComponent(p.name)}" title="${isStarred ? 'Remove from Starred' : 'Add to Starred'}" aria-label="Toggle Star">
+            ${renderStarSvgHtml(isStarred, 15)}
+          </button>
+        </div>
+      `;
+    }).join('');
 
     el.popoverProjectList.querySelectorAll('.proj-item').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-star-toggle')) return;
         saveCellAssignment(item.getAttribute('data-val'));
       });
+      const starBtn = item.querySelector('.btn-star-toggle');
+      if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const pName = decodeURIComponent(starBtn.getAttribute('data-project'));
+          toggleStarredProject(pName, targetEmpId);
+        });
+      }
     });
   }
 
@@ -3208,16 +3365,11 @@
     el.bulkFromDate.value = formatISOToDMY(startDt);
     el.bulkToDate.value = formatISOToDMY(startDt);
 
-    // Projects list
-    el.bulkProjectSelect.innerHTML = `
-      <option value="Day OFF">Day OFF</option>
-      <option value="NO PROJECT">NO PROJECT</option>
-      <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
-      <option value="">-- Clear / Erase Allocations --</option>
-      <optgroup label="Projects & Tenders (Alphabetical)">
-        ${state.projects.filter(p => p.active !== false).map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-      </optgroup>
-    `;
+    // Projects list with Starred favorites
+    populateBulkProjectSelect();
+    renderBulkStarredChips();
+    updateBulkStarBtnState();
+    if (el.bulkProjectList) renderBulkProjectList('');
 
     updateBulkOfficeDetails();
     openModal(el.bulkFillModal);
@@ -3244,7 +3396,214 @@
     }
   }
 
-  el.bulkEmployeeSelect.addEventListener('change', updateBulkOfficeDetails);
+  function populateBulkProjectSelect(selectedProject = null) {
+    if (!el.bulkProjectSelect) return;
+    const curVal = selectedProject !== null ? selectedProject : el.bulkProjectSelect.value;
+    const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
+    const starredList = getStarredProjectsForProfile(empId);
+    const activeProjects = state.projects.filter(p => p.active !== false);
+
+    let starredOptGroup = '';
+    if (starredList.length > 0) {
+      const starredOptions = starredList
+        .filter(name => activeProjects.some(p => p.name === name))
+        .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+        .join('');
+      if (starredOptions) {
+        starredOptGroup = `<optgroup label="Starred / Favorites">${starredOptions}</optgroup>`;
+      }
+    }
+
+    el.bulkProjectSelect.innerHTML = `
+      <option value="Day OFF">Day OFF</option>
+      <option value="NO PROJECT">NO PROJECT</option>
+      <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
+      <option value="">-- Clear / Erase Allocations --</option>
+      ${starredOptGroup}
+      <optgroup label="Projects &amp; Tenders (Alphabetical)">
+        ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
+      </optgroup>
+    `;
+
+    if (curVal) {
+      el.bulkProjectSelect.value = curVal;
+    }
+  }
+
+  function updateBulkStarBtnState() {
+    if (!el.bulkCurrentProjectStarBtn || !el.bulkProjectSelect) return;
+    const proj = el.bulkProjectSelect.value;
+    const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
+    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__');
+    
+    if (isSpecial) {
+      el.bulkCurrentProjectStarBtn.classList.remove('is-starred');
+      el.bulkCurrentProjectStarBtn.disabled = true;
+      el.bulkCurrentProjectStarBtn.style.opacity = '0.4';
+      el.bulkCurrentProjectStarBtn.innerHTML = renderStarSvgHtml(false, 18);
+      el.bulkCurrentProjectStarBtn.title = 'Select a project to star';
+      return;
+    }
+
+    el.bulkCurrentProjectStarBtn.disabled = false;
+    el.bulkCurrentProjectStarBtn.style.opacity = '1';
+    const starred = isProjectStarred(proj, empId);
+    el.bulkCurrentProjectStarBtn.classList.toggle('is-starred', starred);
+    el.bulkCurrentProjectStarBtn.innerHTML = renderStarSvgHtml(starred, 18);
+    el.bulkCurrentProjectStarBtn.title = starred ? 'Remove from Starred' : 'Add to Starred';
+  }
+
+  function renderBulkStarredChips() {
+    if (!el.bulkStarredChips || !el.bulkStarredContainer) return;
+    const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
+    const starredList = getStarredProjectsForProfile(empId);
+    const activeStarred = starredList.filter(name => state.projects.some(p => p.name === name && p.active !== false));
+
+    if (activeStarred.length === 0) {
+      el.bulkStarredContainer.classList.add('hidden');
+      el.bulkStarredChips.innerHTML = '';
+      return;
+    }
+
+    el.bulkStarredContainer.classList.remove('hidden');
+    const curProj = el.bulkProjectSelect ? el.bulkProjectSelect.value : '';
+
+    el.bulkStarredChips.innerHTML = activeStarred.map(name => `
+      <button type="button" class="btn-starred-chip ${curProj === name ? 'active' : ''}" data-project="${escapeHtml(name)}">
+        <svg class="star-icon inline-star is-starred" width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>${escapeHtml(name)}</span>
+      </button>
+    `).join('');
+
+    el.bulkStarredChips.querySelectorAll('.btn-starred-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const pName = chip.getAttribute('data-project');
+        if (el.bulkProjectSelect) {
+          el.bulkProjectSelect.value = pName;
+          updateBulkStarBtnState();
+          renderBulkStarredChips();
+        }
+      });
+    });
+  }
+
+  function renderBulkProjectList(query = '') {
+    if (!el.bulkProjectList) return;
+    const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
+    const q = (query || '').toLowerCase();
+    const cat = state.bulkCategory || 'all';
+
+    const filtered = state.projects.filter(p => {
+      if (p.active === false) return false;
+      if (!isProjectMatchingCategory(p, cat, empId)) return false;
+      if (q && !(p.name.toLowerCase().includes(q) || (p.wbs && p.wbs.toLowerCase().includes(q)))) {
+        return false;
+      }
+      return true;
+    });
+
+    filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+    if (filtered.length === 0) {
+      el.bulkProjectList.innerHTML = `
+        <div class="empty-starred-hint">
+          ${cat === 'starred' ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it.' : 'No matching projects found.'}
+        </div>
+      `;
+      return;
+    }
+
+    el.bulkProjectList.innerHTML = filtered.map(p => {
+      const starred = isProjectStarred(p.name, empId);
+      return `
+        <div class="proj-item ${starred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
+          <div class="proj-item-main" style="flex:1; min-width:0;">
+            <strong>${escapeHtml(p.name)}</strong>
+            ${p.wbs ? `<span class="item-wbs">WBS: ${escapeHtml(p.wbs)}</span>` : ''}
+          </div>
+          <button type="button" class="btn-star-toggle ${starred ? 'is-starred' : ''}" data-project="${encodeURIComponent(p.name)}" title="${starred ? 'Remove from Starred' : 'Add to Starred'}" aria-label="Toggle Star">
+            ${renderStarSvgHtml(starred, 15)}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    el.bulkProjectList.querySelectorAll('.proj-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-star-toggle')) return;
+        const pName = item.getAttribute('data-val');
+        if (el.bulkProjectSelect) {
+          el.bulkProjectSelect.value = pName;
+          updateBulkStarBtnState();
+          renderBulkStarredChips();
+        }
+      });
+      const starBtn = item.querySelector('.btn-star-toggle');
+      if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const pName = decodeURIComponent(starBtn.getAttribute('data-project'));
+          toggleStarredProject(pName, empId);
+        });
+      }
+    });
+  }
+
+  el.bulkEmployeeSelect.addEventListener('change', () => {
+    updateBulkOfficeDetails();
+    populateBulkProjectSelect();
+    renderBulkStarredChips();
+    updateBulkStarBtnState();
+    if (el.bulkProjectList) {
+      renderBulkProjectList(el.bulkProjectSearchInput ? el.bulkProjectSearchInput.value : '');
+    }
+  });
+
+  if (el.bulkProjectSelect) {
+    el.bulkProjectSelect.addEventListener('change', () => {
+      updateBulkStarBtnState();
+      renderBulkStarredChips();
+    });
+  }
+
+  if (el.bulkCurrentProjectStarBtn) {
+    el.bulkCurrentProjectStarBtn.addEventListener('click', () => {
+      const proj = el.bulkProjectSelect ? el.bulkProjectSelect.value : '';
+      const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
+      if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__') {
+        toggleStarredProject(proj, empId);
+      }
+    });
+  }
+
+  if (el.bulkToggleBrowseBtn && el.bulkBrowseSection) {
+    el.bulkToggleBrowseBtn.addEventListener('click', () => {
+      const isHidden = el.bulkBrowseSection.classList.toggle('hidden');
+      el.bulkToggleBrowseBtn.textContent = isHidden ? 'Browse & Star Projects...' : 'Hide Projects List';
+      if (!isHidden) {
+        renderBulkProjectList(el.bulkProjectSearchInput ? el.bulkProjectSearchInput.value : '');
+      }
+    });
+  }
+
+  if (el.bulkCategoryPills) {
+    el.bulkCategoryPills.querySelectorAll('.category-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.bulkCategory = btn.getAttribute('data-category');
+        el.bulkCategoryPills.querySelectorAll('.category-pill').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-category') === state.bulkCategory);
+        });
+        renderBulkProjectList(el.bulkProjectSearchInput ? el.bulkProjectSearchInput.value : '');
+      });
+    });
+  }
+
+  if (el.bulkProjectSearchInput) {
+    el.bulkProjectSearchInput.addEventListener('input', (e) => {
+      renderBulkProjectList(e.target.value);
+    });
+  }
 
   // Radio button choice styling in bulk fill
   document.querySelectorAll('input[name="bulkHolidayOption"]').forEach(r => {
@@ -3397,11 +3756,24 @@
     const activeProjects = state.projects.filter(p => p.active !== false);
     activeProjects.sort((a,b) => a.name.localeCompare(b.name));
 
+    const starredNoProj = getStarredProjectsForProfile(chosenId);
+    let starredOptGroupNoProj = '';
+    if (starredNoProj.length > 0) {
+      const opts = starredNoProj
+        .filter(n => activeProjects.some(p => p.name === n))
+        .map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`)
+        .join('');
+      if (opts) {
+        starredOptGroupNoProj = `<optgroup label="Starred / Favorites">${opts}</optgroup>`;
+      }
+    }
+
     el.noProjectBatchSelect.innerHTML = `
       <option value="">-- Choose Project to Apply to All --</option>
       <option value="Day OFF">Day OFF</option>
-      <optgroup label="Projects & Tenders (Alphabetical)">
-        ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+      ${starredOptGroupNoProj}
+      <optgroup label="Projects &amp; Tenders (Alphabetical)">
+        ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
       </optgroup>
     `;
 
@@ -7164,20 +7536,14 @@
       el.mobileEmployeeSelect.disabled = !isAdminUser;
     }
 
-    // 3. Project Select in Mobile Logger
+    // 3. Project Select & Starred Favorites in Mobile Logger
     if (el.mobileProjectSelect) {
       const prevProj = el.mobileProjectSelect.value;
-      const activeProjects = state.projects.filter(p => p.active !== false);
-      el.mobileProjectSelect.innerHTML = `
-        <option value="Day OFF">Day OFF</option>
-        <option value="NO PROJECT">NO PROJECT</option>
-        <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
-        <optgroup label="Projects & Tenders (Alphabetical)">
-          ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-        </optgroup>
-      `;
-      if (prevProj) {
-        el.mobileProjectSelect.value = prevProj;
+      populateMobileProjectSelect(prevProj);
+      renderMobileStarredChips();
+      updateMobileStarBtnState();
+      if (el.mobileProjectPillList) {
+        renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
       }
     }
 
@@ -7190,6 +7556,163 @@
 
     updateMobileOfficeDetails();
     renderMobileSummary();
+  }
+
+  function populateMobileProjectSelect(selectedProject = null) {
+    if (!el.mobileProjectSelect) return;
+    const curVal = selectedProject !== null ? selectedProject : el.mobileProjectSelect.value;
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
+    const starredList = getStarredProjectsForProfile(empId);
+    const activeProjects = state.projects.filter(p => p.active !== false);
+
+    let starredOptGroup = '';
+    if (starredList.length > 0) {
+      const starredOptions = starredList
+        .filter(name => activeProjects.some(p => p.name === name))
+        .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+        .join('');
+      if (starredOptions) {
+        starredOptGroup = `<optgroup label="Starred / Favorites">${starredOptions}</optgroup>`;
+      }
+    }
+
+    el.mobileProjectSelect.innerHTML = `
+      <option value="Day OFF">Day OFF</option>
+      <option value="NO PROJECT">NO PROJECT</option>
+      <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
+      ${starredOptGroup}
+      <optgroup label="Projects &amp; Tenders (Alphabetical)">
+        ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
+      </optgroup>
+    `;
+
+    if (curVal) {
+      el.mobileProjectSelect.value = curVal;
+    }
+  }
+
+  function updateMobileStarBtnState() {
+    if (!el.mobileCurrentProjectStarBtn || !el.mobileProjectSelect) return;
+    const proj = el.mobileProjectSelect.value;
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
+    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__');
+    
+    if (isSpecial) {
+      el.mobileCurrentProjectStarBtn.classList.remove('is-starred');
+      el.mobileCurrentProjectStarBtn.disabled = true;
+      el.mobileCurrentProjectStarBtn.style.opacity = '0.4';
+      el.mobileCurrentProjectStarBtn.innerHTML = renderStarSvgHtml(false, 18);
+      el.mobileCurrentProjectStarBtn.title = 'Select a project to star';
+      return;
+    }
+
+    el.mobileCurrentProjectStarBtn.disabled = false;
+    el.mobileCurrentProjectStarBtn.style.opacity = '1';
+    const starred = isProjectStarred(proj, empId);
+    el.mobileCurrentProjectStarBtn.classList.toggle('is-starred', starred);
+    el.mobileCurrentProjectStarBtn.innerHTML = renderStarSvgHtml(starred, 18);
+    el.mobileCurrentProjectStarBtn.title = starred ? 'Remove from Starred' : 'Add to Starred';
+  }
+
+  function renderMobileStarredChips() {
+    if (!el.mobileStarredChips || !el.mobileStarredContainer) return;
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
+    const starredList = getStarredProjectsForProfile(empId);
+    const activeStarred = starredList.filter(name => state.projects.some(p => p.name === name && p.active !== false));
+
+    if (activeStarred.length === 0) {
+      el.mobileStarredContainer.classList.add('hidden');
+      el.mobileStarredChips.innerHTML = '';
+      return;
+    }
+
+    el.mobileStarredContainer.classList.remove('hidden');
+    const curProj = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
+
+    el.mobileStarredChips.innerHTML = activeStarred.map(name => `
+      <button type="button" class="btn-starred-chip ${curProj === name ? 'active' : ''}" data-project="${escapeHtml(name)}">
+        <svg class="star-icon inline-star is-starred" width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>${escapeHtml(name)}</span>
+      </button>
+    `).join('');
+
+    el.mobileStarredChips.querySelectorAll('.btn-starred-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const pName = chip.getAttribute('data-project');
+        if (el.mobileProjectSelect) {
+          el.mobileProjectSelect.value = pName;
+          updateMobileStarBtnState();
+          renderMobileStarredChips();
+        }
+      });
+    });
+  }
+
+  function renderMobileProjectPillList(query = '') {
+    if (!el.mobileProjectPillList) return;
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
+    const q = (query || '').toLowerCase();
+    const cat = state.mobileCategory || 'all';
+
+    const filtered = state.projects.filter(p => {
+      if (p.active === false) return false;
+      if (!isProjectMatchingCategory(p, cat, empId)) return false;
+      if (q && !(p.name.toLowerCase().includes(q) || (p.wbs && p.wbs.toLowerCase().includes(q)))) {
+        return false;
+      }
+      return true;
+    });
+
+    filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+    if (filtered.length === 0) {
+      el.mobileProjectPillList.innerHTML = `
+        <div class="empty-starred-hint">
+          ${cat === 'starred' ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it.' : 'No matching projects found.'}
+        </div>
+      `;
+      return;
+    }
+
+    el.mobileProjectPillList.innerHTML = filtered.map(p => {
+      const starred = isProjectStarred(p.name, empId);
+      return `
+        <div class="proj-item ${starred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
+          <div class="proj-item-main" style="flex:1; min-width:0;">
+            <strong>${escapeHtml(p.name)}</strong>
+            ${p.wbs ? `<span class="item-wbs">WBS: ${escapeHtml(p.wbs)}</span>` : ''}
+          </div>
+          <button type="button" class="btn-star-toggle ${starred ? 'is-starred' : ''}" data-project="${encodeURIComponent(p.name)}" title="${starred ? 'Remove from Starred' : 'Add to Starred'}" aria-label="Toggle Star">
+            ${renderStarSvgHtml(starred, 15)}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    el.mobileProjectPillList.querySelectorAll('.proj-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-star-toggle')) return;
+        const pName = item.getAttribute('data-val');
+        if (el.mobileProjectSelect) {
+          el.mobileProjectSelect.value = pName;
+          updateMobileStarBtnState();
+          renderMobileStarredChips();
+        }
+      });
+      const starBtn = item.querySelector('.btn-star-toggle');
+      if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const pName = decodeURIComponent(starBtn.getAttribute('data-project'));
+          toggleStarredProject(pName, empId);
+        });
+      }
+    });
   }
 
   function updateMobileOfficeDetails() {
@@ -7524,7 +8047,59 @@
       el.mobileEmployeeSelect.addEventListener('change', (e) => {
         state.mobileTargetEmpId = e.target.value;
         updateMobileOfficeDetails();
+        populateMobileProjectSelect();
+        renderMobileStarredChips();
+        updateMobileStarBtnState();
+        if (el.mobileProjectPillList) {
+          renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
+        }
         renderMobileSummary();
+      });
+    }
+
+    if (el.mobileProjectSelect) {
+      el.mobileProjectSelect.addEventListener('change', () => {
+        updateMobileStarBtnState();
+        renderMobileStarredChips();
+      });
+    }
+
+    if (el.mobileCurrentProjectStarBtn) {
+      el.mobileCurrentProjectStarBtn.addEventListener('click', () => {
+        const proj = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
+        const isAdminUser = state.isAdmin && isCurrentUserPeter();
+        const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
+        if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__') {
+          toggleStarredProject(proj, empId);
+        }
+      });
+    }
+
+    if (el.mobileToggleBrowserBtn && el.mobileBrowserContent) {
+      el.mobileToggleBrowserBtn.addEventListener('click', () => {
+        const isHidden = el.mobileBrowserContent.classList.toggle('hidden');
+        el.mobileToggleBrowserBtn.textContent = isHidden ? 'Show List' : 'Hide List';
+        if (!isHidden && el.mobileProjectPillList) {
+          renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
+        }
+      });
+    }
+
+    if (el.mobileCategoryPills) {
+      el.mobileCategoryPills.querySelectorAll('.category-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.mobileCategory = btn.getAttribute('data-category');
+          el.mobileCategoryPills.querySelectorAll('.category-pill').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-category') === state.mobileCategory);
+          });
+          renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
+        });
+      });
+    }
+
+    if (el.mobileProjectSearchInput) {
+      el.mobileProjectSearchInput.addEventListener('input', (e) => {
+        renderMobileProjectPillList(e.target.value);
       });
     }
 
