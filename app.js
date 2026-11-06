@@ -1250,7 +1250,7 @@
       const isCollapsed = state.collapsedSections.has(sec.id);
       let secRowsHtml = '';
 
-      secEmployees.forEach(emp => {
+      secEmployees.forEach((emp, empIdx) => {
         activeEmpCount++;
         const empHours = emp.defaultHoursPerDay || 8;
         let empMonthHours = 0;
