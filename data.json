@@ -241,7 +241,7 @@
       "name": "Academy - ERA - Cairo",
       "id": "proj_52",
       "wbs": "",
-      "initialHours": 16
+      "initialHours": 0
     },
     {
       "id": "proj_support",
@@ -249,7 +249,7 @@
       "category": "Support",
       "active": true,
       "wbs": "",
-      "initialHours": 1768
+      "initialHours": 0
     },
     {
       "active": true,
@@ -257,7 +257,7 @@
       "name": "Project - A6O Lot 1 - Cairo",
       "id": "proj_27",
       "wbs": "",
-      "initialHours": 296
+      "initialHours": 0
     },
     {
       "active": true,
@@ -265,7 +265,7 @@
       "name": "Project - A6O Lot 2 - Cairo",
       "id": "proj_28",
       "wbs": "",
-      "initialHours": 328
+      "initialHours": 0
     },
     {
       "active": true,
@@ -273,7 +273,7 @@
       "name": "Project - A6O Lot 3 - Cairo",
       "id": "proj_29",
       "wbs": "",
-      "initialHours": 24
+      "initialHours": 0
     },
     {
       "active": true,
@@ -281,7 +281,7 @@
       "name": "Project - Algeria - Basic Design - Cairo",
       "id": "proj_18",
       "wbs": "",
-      "initialHours": 438
+      "initialHours": 0
     },
     {
       "active": true,
@@ -289,7 +289,7 @@
       "name": "Project - Algeria - ILS - Cairo",
       "id": "proj_19",
       "wbs": "",
-      "initialHours": 736
+      "initialHours": 0
     },
     {
       "active": true,
@@ -297,7 +297,7 @@
       "name": "Project - Algeria - ILS - Istanbul",
       "id": "proj_20",
       "wbs": "",
-      "initialHours": 272
+      "initialHours": 0
     },
     {
       "active": true,
@@ -305,7 +305,7 @@
       "name": "Project - Algeria - QL - Cairo",
       "id": "proj_21",
       "wbs": "",
-      "initialHours": 350
+      "initialHours": 0
     },
     {
       "active": true,
@@ -313,7 +313,7 @@
       "name": "Project - B10 - Cairo",
       "id": "proj_26",
       "wbs": "",
-      "initialHours": 272
+      "initialHours": 0
     },
     {
       "id": "proj_56",
@@ -321,7 +321,7 @@
       "category": "Project",
       "active": true,
       "wbs": "",
-      "initialHours": 8
+      "initialHours": 0
     },
     {
       "active": true,
@@ -329,7 +329,7 @@
       "name": "Project - BBYO - ICC - Cairo",
       "id": "proj_32",
       "wbs": "",
-      "initialHours": 584
+      "initialHours": 0
     },
     {
       "id": "proj_57",
@@ -337,7 +337,7 @@
       "category": "Project",
       "active": true,
       "wbs": "",
-      "initialHours": 2575
+      "initialHours": 0
     },
     {
       "id": "proj_58",
@@ -345,7 +345,7 @@
       "category": "Project",
       "active": true,
       "wbs": "",
-      "initialHours": 1056
+      "initialHours": 0
     },
     {
       "id": "proj_59",
@@ -361,7 +361,7 @@
       "name": "Project - Cairo Metro Line 3 - Cairo",
       "id": "proj_33",
       "wbs": "",
-      "initialHours": 540
+      "initialHours": 0
     },
     {
       "active": true,
@@ -369,7 +369,7 @@
       "name": "Project - Monorail - Cairo",
       "id": "proj_31",
       "wbs": "",
-      "initialHours": 632
+      "initialHours": 0
     },
     {
       "active": true,
@@ -377,7 +377,7 @@
       "name": "Project - Morocco programe de development - Basic design - Cairo",
       "id": "proj_22",
       "wbs": "",
-      "initialHours": 14396
+      "initialHours": 0
     },
     {
       "id": "proj_69",
@@ -385,7 +385,7 @@
       "category": "Project",
       "active": true,
       "wbs": "",
-      "initialHours": 888
+      "initialHours": 0
     },
     {
       "active": true,
@@ -393,7 +393,7 @@
       "name": "Project - Morocco programe de development - ILS - Cairo",
       "id": "proj_23",
       "wbs": "",
-      "initialHours": 608
+      "initialHours": 0
     },
     {
       "active": true,
@@ -401,7 +401,7 @@
       "name": "Project - Morocco programe de development - TC Plan - Cairo",
       "id": "proj_24",
       "wbs": "",
-      "initialHours": 2504
+      "initialHours": 0
     },
     {
       "id": "proj_60",
@@ -409,7 +409,7 @@
       "category": "Project",
       "active": true,
       "wbs": "",
-      "initialHours": 544
+      "initialHours": 0
     },
     {
       "id": "proj_61",
@@ -425,7 +425,7 @@
       "category": "Project",
       "active": true,
       "wbs": "",
-      "initialHours": 1544
+      "initialHours": 0
     },
     {
       "id": "proj_63",
@@ -441,7 +441,7 @@
       "name": "Project - Tanzania - Lot 1 - ILS - Cairo",
       "id": "proj_7",
       "wbs": "",
-      "initialHours": 312
+      "initialHours": 0
     },
     {
       "active": true,
@@ -449,7 +449,7 @@
       "name": "Project - Tanzania - Lot 1 - ILS - Istanbul",
       "id": "proj_8",
       "wbs": "",
-      "initialHours": 240
+      "initialHours": 0
     },
     {
       "active": true,
@@ -457,7 +457,7 @@
       "name": "Project - Tanzania - Lot 1 - SDM - Cairo",
       "id": "proj_9",
       "wbs": "",
-      "initialHours": 32
+      "initialHours": 0
     },
     {
       "active": true,
@@ -465,7 +465,7 @@
       "name": "Project - Tanzania - Lot 2 - Basic Design - Istanbul",
       "id": "proj_10",
       "wbs": "",
-      "initialHours": 400
+      "initialHours": 0
     },
     {
       "active": true,
@@ -473,7 +473,7 @@
       "name": "Project - Tanzania - Lot 2 - ILS - Cairo",
       "id": "proj_11",
       "wbs": "",
-      "initialHours": 3672
+      "initialHours": 0
     },
     {
       "active": true,
@@ -481,7 +481,7 @@
       "name": "Project - Tanzania - Lot 2 - ILS - Istanbul",
       "id": "proj_12",
       "wbs": "",
-      "initialHours": 2752
+      "initialHours": 0
     },
     {
       "active": true,
@@ -489,7 +489,7 @@
       "name": "Project - Tanzania - Lot 2 - QL - Cairo",
       "id": "proj_13",
       "wbs": "",
-      "initialHours": 1866
+      "initialHours": 0
     },
     {
       "active": true,
@@ -497,7 +497,7 @@
       "name": "Project - Tanzania - Lot 2 - SDM - Cairo",
       "id": "proj_14",
       "wbs": "",
-      "initialHours": 488
+      "initialHours": 0
     },
     {
       "active": true,
@@ -505,7 +505,7 @@
       "name": "Project - Tanzania - Lot 5 - Basic Design - Istanbul",
       "id": "proj_15",
       "wbs": "",
-      "initialHours": 1296
+      "initialHours": 0
     },
     {
       "active": true,
@@ -513,7 +513,7 @@
       "name": "Project - Tanzania - Lot 5 - QL - Cairo",
       "id": "proj_16",
       "wbs": "",
-      "initialHours": 778
+      "initialHours": 0
     },
     {
       "active": true,
@@ -521,7 +521,7 @@
       "name": "Project - Tanzania - Lot 5 - SDM - Cairo",
       "id": "proj_17",
       "wbs": "",
-      "initialHours": 80
+      "initialHours": 0
     },
     {
       "active": true,
@@ -529,7 +529,7 @@
       "name": "Project - TGK  Sale VO - Cairo",
       "id": "proj_25",
       "wbs": "",
-      "initialHours": 64
+      "initialHours": 0
     },
     {
       "active": true,
@@ -537,7 +537,7 @@
       "name": "Project - TGK  TCT VO - Cairo",
       "id": "proj_30",
       "wbs": "",
-      "initialHours": 64
+      "initialHours": 0
     },
     {
       "active": true,
@@ -545,7 +545,7 @@
       "name": "Tender - A6O - Lot 1 - Cairo",
       "id": "proj_34",
       "wbs": "",
-      "initialHours": 288
+      "initialHours": 0
     },
     {
       "id": "proj_64",
@@ -561,7 +561,7 @@
       "name": "Tender - A6O - Lot 2 - Cairo",
       "id": "proj_36",
       "wbs": "",
-      "initialHours": 208
+      "initialHours": 0
     },
     {
       "id": "proj_65",
@@ -577,7 +577,7 @@
       "name": "Tender - A6O - Lot 3 - Cairo",
       "id": "proj_37",
       "wbs": "",
-      "initialHours": 288
+      "initialHours": 0
     },
     {
       "id": "proj_66",
@@ -593,7 +593,7 @@
       "name": "Tender - B10 - Cairo",
       "id": "proj_38",
       "wbs": "",
-      "initialHours": 352
+      "initialHours": 0
     },
     {
       "id": "proj_67",
@@ -609,7 +609,7 @@
       "category": "Tender",
       "active": true,
       "wbs": "",
-      "initialHours": 32
+      "initialHours": 0
     },
     {
       "active": true,
@@ -617,7 +617,7 @@
       "name": "Tender - IKZ - Cairo",
       "id": "proj_44",
       "wbs": "",
-      "initialHours": 320
+      "initialHours": 0
     },
     {
       "active": true,
@@ -625,7 +625,7 @@
       "name": "Tender - IKZ - Istanbul",
       "id": "proj_45",
       "wbs": "",
-      "initialHours": 424
+      "initialHours": 0
     },
     {
       "active": true,
@@ -633,7 +633,7 @@
       "name": "Tender - Jordon - Cairo",
       "id": "proj_42",
       "wbs": "",
-      "initialHours": 48
+      "initialHours": 0
     },
     {
       "active": true,
@@ -641,7 +641,7 @@
       "name": "Tender - Jordon - Istanbul",
       "id": "proj_43",
       "wbs": "",
-      "initialHours": 512
+      "initialHours": 0
     },
     {
       "active": true,
@@ -649,7 +649,7 @@
       "name": "Tender - Kenitra-Marrakech HSL Mainline SIG - Cairo",
       "id": "proj_39",
       "wbs": "",
-      "initialHours": 48
+      "initialHours": 0
     },
     {
       "id": "proj_68",
@@ -665,7 +665,7 @@
       "name": "Tender - Morocco - ATM - Cairo",
       "id": "proj_50",
       "wbs": "",
-      "initialHours": 144
+      "initialHours": 0
     },
     {
       "active": true,
@@ -673,7 +673,7 @@
       "name": "Tender - Morocco Programe de Development - Cairo",
       "id": "proj_40",
       "wbs": "",
-      "initialHours": 1660
+      "initialHours": 0
     },
     {
       "active": true,
@@ -681,7 +681,7 @@
       "name": "Tender - Morocco Programe de Development - Istanbul",
       "id": "proj_41",
       "wbs": "",
-      "initialHours": 104
+      "initialHours": 0
     },
     {
       "id": "proj_71",
@@ -689,7 +689,7 @@
       "category": "Tender",
       "active": true,
       "wbs": "",
-      "initialHours": 112
+      "initialHours": 0
     },
     {
       "active": true,
@@ -697,7 +697,7 @@
       "name": "Tender - OTT - Cairo",
       "id": "proj_46",
       "wbs": "",
-      "initialHours": 352
+      "initialHours": 0
     },
     {
       "active": true,
@@ -705,7 +705,7 @@
       "name": "Tender - Settet Marrakech - Lot 1 - Cairo",
       "id": "proj_51",
       "wbs": "",
-      "initialHours": 512
+      "initialHours": 0
     },
     {
       "active": true,
@@ -713,7 +713,7 @@
       "name": "Tender - Sidi Ichou - Lot 2 - Cairo",
       "id": "proj_49",
       "wbs": "",
-      "initialHours": 440
+      "initialHours": 0
     },
     {
       "active": true,
@@ -721,7 +721,7 @@
       "name": "Tender - Tanta Mansourah Domyat [TMD] - Cairo",
       "id": "proj_35",
       "wbs": "",
-      "initialHours": 1304
+      "initialHours": 0
     },
     {
       "active": true,
@@ -729,7 +729,7 @@
       "name": "Tender - Tanzania - Lot 6 - Cairo",
       "id": "proj_48",
       "wbs": "",
-      "initialHours": 80
+      "initialHours": 0
     },
     {
       "active": true,
@@ -737,7 +737,7 @@
       "name": "Tender - Tanzania - Lot 6 - Istanbul",
       "id": "proj_47",
       "wbs": "",
-      "initialHours": 32
+      "initialHours": 0
     },
     {
       "active": true,
@@ -745,7 +745,7 @@
       "name": "Training - Engineering Center - Cairo",
       "id": "proj_53",
       "wbs": "",
-      "initialHours": 3826
+      "initialHours": 0
     },
     {
       "active": true,
@@ -753,7 +753,7 @@
       "name": "Training - Engineering Center - Istanbul",
       "id": "proj_54",
       "wbs": "",
-      "initialHours": 600
+      "initialHours": 0
     },
     {
       "active": true,
@@ -761,7 +761,7 @@
       "name": "Training - Engineering Center 2 - Istanbul",
       "id": "proj_55",
       "wbs": "",
-      "initialHours": 600
+      "initialHours": 0
     }
   ],
   "statuses": [
@@ -904,7 +904,7 @@
     }
   },
   "adminPin": "IXL2026",
-  "lastUpdated": "2026-11-04T09:45:46.292Z",
+  "lastUpdated": "2026-11-06T16:01:45.009Z",
   "deviceNames": {
     "dev_2b155b6f80fd": "PeterWorkPC"
   },

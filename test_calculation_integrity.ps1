@@ -248,7 +248,7 @@ try {
     $baseline = if ($pObj.initialHours) { [double]$pObj.initialHours } else { 0.0 }
     $logged   = $academyHoursBefore
     $totalCombined = $baseline + $logged
-    Assert-Check "4.1 Initial baseline hours ($baseline h) + Logged ($logged h) = Combined ($totalCombined h)" ($totalCombined -eq ($baseline + $logged) -and $totalCombined -eq 176.0) "Combined: $totalCombined"
+    Assert-Check "4.1 Initial baseline hours ($baseline h) + Logged ($logged h) = Combined ($totalCombined h)" ($totalCombined -eq ($baseline + $logged) -and $totalCombined -eq 160.0) "Combined: $totalCombined"
 
     # Dynamic baseline adjustment test
     $newBaseline = 150.5
