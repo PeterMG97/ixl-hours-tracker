@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.2 in index.html', () => {
-  assert(html.includes('styles.css?v=6.2'), 'styles.css v=6.2 not found');
-  assert(html.includes('app.js?v=6.2'), 'app.js v=6.2 not found');
+test('1.2 Cache buster is v=6.3 in index.html', () => {
+  assert(html.includes('styles.css?v=6.3'), 'styles.css v=6.3 not found');
+  assert(html.includes('app.js?v=6.3'), 'app.js v=6.3 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -123,6 +123,12 @@ test('1.17 Dark mode: all employee names visible in white, and chosen profile in
   assert(css.includes('[data-theme="dark"] #currentUserNameDisplay'), 'Missing dark theme currentUserNameDisplay');
   assert(css.includes('[data-theme="dark"] #mobileUserNameDisplay'), 'Missing dark theme mobileUserNameDisplay');
   assert(css.includes('font-weight: 800 !important;'), 'Missing font-weight: 800 for bold chosen profile');
+});
+
+test('1.18 Settings drawer: Bulk Fill renamed and unhighlighted', () => {
+  assert(html.includes('<button class="settings-action-card" id="topbarBulkFillBtn">'), 'topbarBulkFillBtn still has primary class or wrong structure');
+  assert(html.includes('<strong>Bulk Fill</strong>'), 'Missing Bulk Fill in topbarBulkFillBtn');
+  assert(!html.includes('<strong>Bulk Fill Schedule</strong>'), 'Bulk Fill Schedule still present in settings drawer');
 });
 
 console.log(`\n==========================================================`);
