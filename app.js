@@ -8478,6 +8478,40 @@
       overlay.classList.remove('is-night');
     }
 
+    // Force hide any accessible button visually
+    if (enterBtn) {
+      enterBtn.style.display = 'none';
+    }
+
+    // Ensure logo center is higher at 42%
+    const logoCenter = overlay.querySelector('.mobile-launch-center');
+    if (logoCenter) {
+      logoCenter.style.position = 'absolute';
+      logoCenter.style.top = '42%';
+      logoCenter.style.left = '50%';
+      logoCenter.style.transform = 'translate(-50%, -50%)';
+    }
+
+    // Explicitly guarantee 2 separate centered lines for "by IXL Team"
+    const footer = document.getElementById('mobileLaunchFooter');
+    if (footer) {
+      footer.style.position = 'absolute';
+      footer.style.bottom = 'calc(env(safe-area-inset-bottom, 20px) + 38px)';
+      footer.style.left = '0';
+      footer.style.right = '0';
+      footer.style.width = '100%';
+      footer.style.display = 'flex';
+      footer.style.flexDirection = 'column';
+      footer.style.alignItems = 'center';
+      footer.style.justifyContent = 'center';
+      footer.style.textAlign = 'center';
+      footer.style.margin = '0 auto';
+      footer.style.pointerEvents = 'none';
+      const subColor = shouldUseDark ? '#94a3b8' : '#64748b';
+      const brandColor = shouldUseDark ? '#ffffff' : '#0f172a';
+      footer.innerHTML = '<div class="launch-footer-sub" style="display:block !important; width:100% !important; text-align:center !important; font-size:13px !important; font-weight:500 !important; line-height:1.2 !important; color:' + subColor + ' !important;">by</div><div class="launch-footer-brand" style="display:block !important; width:100% !important; text-align:center !important; font-size:16px !important; font-weight:700 !important; line-height:1.25 !important; color:' + brandColor + ' !important;">IXL Team</div>';
+    }
+
     // Overlay is already visible from HTML & critical CSS without FOUC
     overlay.classList.remove('hidden');
     overlay.classList.remove('hidden-permanently');
