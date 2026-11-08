@@ -8464,13 +8464,13 @@
     if (!isMobileInterface()) return;
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
+    const logoEl = document.getElementById('mobileWelcomeLogo');
+    const centerEl = document.getElementById('mobileWelcomeCenter');
     const greetingEl = document.getElementById('mobileWelcomeGreeting');
     const text1 = document.getElementById('mobileWelcomeText1');
     const text2 = document.getElementById('mobileWelcomeText2');
     const actions = document.getElementById('mobileWelcomeActions');
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
-    const progressFill = document.getElementById('mobileWelcomeProgress');
-    const statusText = document.getElementById('mobileWelcomeStatus');
 
     // Dynamic greeting calculation
     const hr = new Date().getHours();
@@ -8501,25 +8501,10 @@
     overlay.classList.remove('hidden');
 
     let dismissed = false;
-    let autoDismissTimer = null;
-
-    function setStatus(text) {
-      if (!statusText || dismissed) return;
-      statusText.style.opacity = '0';
-      setTimeout(() => {
-        if (dismissed) return;
-        statusText.textContent = text;
-        statusText.style.opacity = '1';
-      }, 250);
-    }
 
     function dismissWelcome() {
       if (dismissed) return;
       dismissed = true;
-      if (autoDismissTimer) {
-        clearTimeout(autoDismissTimer);
-        autoDismissTimer = null;
-      }
       overlay.classList.add('fade-out');
       setTimeout(() => {
         overlay.classList.add('hidden');
@@ -8531,51 +8516,42 @@
       }, 500);
     }
 
-    // Dynamic Progress & Sequential Fade Sequence
-    if (progressFill) progressFill.style.width = '20%';
-
+    // Step 1: Alstom logo appears slowly (fade-in first)
     setTimeout(() => {
       if (dismissed) return;
-      if (progressFill) progressFill.style.width = '48%';
-    }, 600);
+      if (logoEl) {
+        logoEl.classList.remove('hidden-step');
+        logoEl.classList.add('visible-step');
+      }
+    }, 80);
 
-    // Step 2: At 1000ms, Text 1 fades in smoothly
+    // Step 2: Then the other parts appear slowly together
     setTimeout(() => {
       if (dismissed) return;
+      if (centerEl) {
+        centerEl.classList.remove('hidden-step');
+        centerEl.classList.add('visible-step');
+      }
       if (text1) {
         text1.classList.remove('hidden-step');
         text1.classList.add('visible-step');
       }
-      if (progressFill) progressFill.style.width = '70%';
-      setStatus('Preparing Mobile Editor...');
-    }, 1000);
-
-    // Step 3: At 2000ms, Text 2 & actions fade in smoothly
-    setTimeout(() => {
-      if (dismissed) return;
       if (text2) {
         text2.classList.remove('hidden-step');
         text2.classList.add('visible-step');
       }
+    }, 1000);
+
+    // Step 3: Finally the "Tap anywhere to start" appears slowly (User must tap screen to enter)
+    setTimeout(() => {
+      if (dismissed) return;
       if (actions) {
         actions.classList.remove('hidden-step');
         actions.classList.add('visible-step');
       }
-      if (progressFill) progressFill.style.width = '95%';
-      setStatus('Ready!');
     }, 2000);
 
-    // Full progress complete
-    setTimeout(() => {
-      if (dismissed) return;
-      if (progressFill) progressFill.style.width = '100%';
-    }, 2800);
-
-    // Auto-dismiss after user has had 3.6s to view
-    autoDismissTimer = setTimeout(() => {
-      dismissWelcome();
-    }, 4500);
-
+    // Strictly tap to enter - NO auto-dismiss
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
         e.stopPropagation();

@@ -28,7 +28,7 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=7.1">
+  <link rel="stylesheet" href="styles.css?v=7.2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -36,10 +36,9 @@
 <body>
   <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
   <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden" aria-modal="true" role="dialog" aria-label="Welcome to IXL Project Allocation Tool">
-    <div class="welcome-stars" aria-hidden="true"></div>
     <div class="mobile-welcome-stage">
-      <!-- Top Brand Logo -->
-      <div class="mobile-welcome-brand" id="mobileWelcomeLogo">
+      <!-- Top Brand Logo (fades in first) -->
+      <div class="mobile-welcome-brand hidden-step" id="mobileWelcomeLogo">
         <div class="brand-logo-text welcome-brand-logo-text" title="ALSTOM" aria-label="ALSTOM">
           <img src="alstom-logo-light.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-light welcome-wordmark" width="160" height="32" loading="eager" decoding="sync">
           <img src="alstom-logo-dark.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-dark welcome-wordmark" width="160" height="32" loading="eager" decoding="sync">
@@ -47,8 +46,8 @@
         </div>
       </div>
 
-      <!-- Center Dynamic Greeting & Messages -->
-      <div class="mobile-welcome-center">
+      <!-- Center Parts (appear slowly together) -->
+      <div class="mobile-welcome-center hidden-step" id="mobileWelcomeCenter">
         <div class="mobile-welcome-greeting" id="mobileWelcomeGreeting">
           <span class="welcome-greeting-kicker">Welcome</span>
         </div>
@@ -60,17 +59,13 @@
         </div>
       </div>
 
-      <!-- Bottom Progress Track, Dynamic Status, and Actions -->
+      <!-- Bottom Action (appears slowly finally, no auto-dismiss) -->
       <div class="mobile-welcome-bottom">
-        <div class="welcome-progress-track">
-          <div class="welcome-progress-fill" id="mobileWelcomeProgress"></div>
-        </div>
-        <div class="welcome-status-caption" id="mobileWelcomeStatus">Getting your board ready...</div>
         <div class="mobile-welcome-actions hidden-step" id="mobileWelcomeActions">
           <button type="button" class="mobile-welcome-btn" id="mobileWelcomeEnterBtn">
-            Open Mobile Editor
+            Tap anywhere to start
           </button>
-          <span class="mobile-welcome-hint">Tap anywhere to enter</span>
+          <span class="mobile-welcome-hint">Tap anywhere to start</span>
         </div>
       </div>
     </div>
@@ -1836,6 +1831,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=7.1"></script>
+  <script src="app.js?v=7.2"></script>
 </body>
 </html>
