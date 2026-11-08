@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.6 in index.html', () => {
-  assert(html.includes('styles.css?v=6.6'), 'styles.css v=6.5 not found');
-  assert(html.includes('app.js?v=6.6'), 'app.js v=6.5 not found');
+test('1.2 Cache buster is v=6.7 in index.html', () => {
+  assert(html.includes('styles.css?v=6.7'), 'styles.css v=6.5 not found');
+  assert(html.includes('app.js?v=6.7'), 'app.js v=6.5 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -150,6 +150,13 @@ test('1.20 Dark mode: Project analytics period allocation calculator has dark ca
   assert(css.includes('[data-theme="dark"] .project-range-card strong'), 'Missing dark theme rule for .project-range-card strong');
   assert(css.includes('[data-theme="dark"] .project-range-card label'), 'Missing dark theme rule for .project-range-card label');
   assert(css.includes('[data-theme="dark"] .project-range-card .text-muted'), 'Missing dark theme rule for .project-range-card .text-muted');
+});
+
+
+test('1.21 Export CSV option removed from all places in the app', () => {
+  assert(!html.includes('<span>Export CSV</span>'), 'Export CSV button span still found in index.html');
+  assert(!html.includes('id="auditExportCsvBtn"'), 'auditExportCsvBtn still found in index.html');
+  assert(!html.includes('id="exportHistoryCsvBtn"'), 'exportHistoryCsvBtn still found in index.html');
 });
 
 console.log(`\n==========================================================`);

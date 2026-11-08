@@ -5568,3 +5568,9 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   color: #ffffff !important;
   font-weight: 800 !important;
 }
+
+/* Remove Export CSV Option Everywhere */
+#auditExportCsvBtn,
+#exportHistoryCsvBtn {
+  display: none !important;
+}

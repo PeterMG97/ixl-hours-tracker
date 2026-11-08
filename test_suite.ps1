@@ -336,7 +336,7 @@ $monthAuditVerified = ($htmlContent.Contains('id="auditModal"')) -and `
     ($jsContent.Contains('calculateAuditData')) -and `
     ($jsContent.Contains('exportAuditToCsv')) -and `
     ($cssContent.Contains('.audit-kpi-card'))
-Assert-Test "6.56 Month-End Completeness Audit module with team KPIs and CSV export" $monthAuditVerified "Audit modal, team completeness metrics, missing days breakdown, and CSV export verified"
+Assert-Test "6.56 Month-End Completeness Audit module with team KPIs" $monthAuditVerified "Audit modal, team completeness metrics, missing days breakdown, and CSV export verified"
 
 $syncStatusVerified = ($jsContent.Contains("el.connectionText.textContent = 'Synced'")) -and `
     ($jsContent.Contains("el.connectionText.textContent = 'Not Synced'")) -and `
@@ -357,7 +357,7 @@ $auditHistoryVerified = ($htmlContent.Contains('id="openAuditHistoryBtn"')) -and
     ($htmlContent.Contains('id="auditHistoryModal"')) -and `
     ($htmlContent.Contains('id="histLogTableBody"')) -and `
     ($htmlContent.Contains('id="histDevicesTableBody"')) -and `
-    ($htmlContent.Contains('id="exportHistoryCsvBtn"')) -and `
+    (-not $htmlContent.Contains('<span>Export CSV</span>')) -and `
     ($jsContent.Contains('getOrCreateDeviceId')) -and `
     ($jsContent.Contains('getDeviceFingerprint')) -and `
     ($jsContent.Contains('logAuditEvent')) -and `
