@@ -28,32 +28,69 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=7.7">
+  <style id="mobileLaunchCritical">
+    @media (max-width: 768px) {
+      #mobileWelcomeOverlay:not(.hidden-permanently) {
+        display: flex !important;
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        z-index: 999999 !important;
+      }
+    }
+    @media (min-width: 769px) {
+      #mobileWelcomeOverlay,
+      .mobile-welcome-overlay {
+        display: none !important;
+      }
+    }
+    html[data-theme="dark"] #mobileWelcomeOverlay {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    html[data-theme="light"] #mobileWelcomeOverlay {
+      background: #ffffff !important;
+      color: #0f172a !important;
+    }
+    html[data-theme="dark"] #mobileWelcomeOverlay .brand-wordmark-light {
+      display: none !important;
+    }
+    html[data-theme="dark"] #mobileWelcomeOverlay .brand-wordmark-dark {
+      display: block !important;
+    }
+    html[data-theme="light"] #mobileWelcomeOverlay .brand-wordmark-light {
+      display: block !important;
+    }
+    html[data-theme="light"] #mobileWelcomeOverlay .brand-wordmark-dark {
+      display: none !important;
+    }
+  </style>
+  <link rel="stylesheet" href="styles.css?v=7.8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
-  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
-    <!-- Top spacer for vertical balance -->
-    <div class="launch-top-spacer" aria-hidden="true"></div>
-
-    <!-- Centered Main Logo & Branding (Bigger, Sharp, Non-Fading) -->
+  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
+    <!-- Centered Main Logo & Branding (Bigger, Lower at 47% top, Sharp, Non-Fading) -->
     <div class="mobile-launch-center">
       <div class="mobile-welcome-brand" id="mobileWelcomeLogo" title="ALSTOM" aria-label="ALSTOM">
-        <img src="alstom-logo-light.png" alt="ALSTOM" class="welcome-wordmark brand-wordmark-light" width="185" height="36" loading="eager" decoding="sync">
-        <img src="alstom-logo-dark.png" alt="ALSTOM" class="welcome-wordmark brand-wordmark-dark" width="185" height="36" loading="eager" decoding="sync">
+        <img src="alstom-logo-light.png" alt="ALSTOM" class="welcome-wordmark brand-wordmark-light" width="220" height="43" loading="eager" decoding="sync">
+        <img src="alstom-logo-dark.png" alt="ALSTOM" class="welcome-wordmark brand-wordmark-dark" width="220" height="43" loading="eager" decoding="sync">
       </div>
     </div>
 
-    <!-- Bottom Branding / Footer ("by IXL Team" - highly visible, non-fading) -->
-    <div class="mobile-launch-footer" id="mobileLaunchFooter">
-      <span class="launch-footer-text">by IXL Team</span>
+    <!-- Bottom Branding / Footer ("by IXL Team" in 2 lines at green line reference) -->
+    <div class="mobile-launch-footer" id="mobileLaunchFooter" aria-label="by IXL Team">
+      <span class="launch-footer-sub">by</span>
+      <span class="launch-footer-brand">IXL Team</span>
     </div>
 
-    <!-- Accessible / Test Button -->
-    <button type="button" class="mobile-welcome-btn sr-only" id="mobileWelcomeEnterBtn" aria-label="Open Mobile Editor">
+    <!-- Hidden Accessible / Test Button -->
+    <button type="button" class="sr-only" id="mobileWelcomeEnterBtn" aria-label="Open Mobile Editor">
       Open Mobile Editor
     </button>
   </div>
@@ -1818,6 +1855,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=7.7"></script>
+  <script src="app.js?v=7.8"></script>
 </body>
 </html>

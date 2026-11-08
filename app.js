@@ -8478,8 +8478,9 @@
       overlay.classList.remove('is-night');
     }
 
-    // Both Alstom logo and "by IXL Team" appear together from the start
+    // Overlay is already visible from HTML & critical CSS without FOUC
     overlay.classList.remove('hidden');
+    overlay.classList.remove('hidden-permanently');
 
     let dismissed = false;
 
@@ -8488,9 +8489,11 @@
       dismissed = true;
       overlay.classList.add('fade-out');
       setTimeout(() => {
+        overlay.classList.add('hidden-permanently');
         overlay.classList.add('hidden');
+        overlay.style.display = 'none';
         overlay.classList.remove('fade-out');
-        if (state.mobileViewMode !== 'form') {
+        if (state && state.mobileViewMode !== 'form') {
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
         }
@@ -8515,6 +8518,9 @@
     overlay.addEventListener('click', () => {
       dismissWelcome();
     });
+    overlay.addEventListener('touchstart', () => {
+      dismissWelcome();
+    }, { passive: true });
   }
 
   // Boot Application
