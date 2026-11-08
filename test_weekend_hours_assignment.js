@@ -50,9 +50,9 @@ test('1.3 styles.css contains zero unicode emojis', () => {
   assert(!emojiRegex.test(css), 'Found emoji in styles.css');
 });
 
-test('1.4 Cache buster bumped to v=5.7 in index.html', () => {
-  assert(html.includes('styles.css?v=5.7'), 'styles.css cache buster not bumped');
-  assert(html.includes('app.js?v=5.7'), 'app.js cache buster not bumped');
+test('1.4 Cache buster bumped to v=5.8 in index.html', () => {
+  assert(html.includes('styles.css?v=5.8'), 'styles.css cache buster not bumped');
+  assert(html.includes('app.js?v=5.8'), 'app.js cache buster not bumped');
 });
 
 test('1.5 app.js implements isPeriodWithWeekendForRange helper', () => {
@@ -69,6 +69,18 @@ test('1.7 Mobile logger has id="mobileHolidayTreatment"', () => {
   assert(html.includes('id="mobileHolidayTreatment"'), 'Missing mobileHolidayTreatment in HTML');
   assert(js.includes('mobileHolidayTreatment:'), 'Missing mobileHolidayTreatment in app.js el');
   assert(js.includes('updateMobileHolidayTreatmentVisibility'), 'Missing updateMobileHolidayTreatmentVisibility in app.js');
+});
+
+test('1.8 Chosen profile name in mobile interface is bold in pure black (#000000)', () => {
+  assert(css.includes('#mobileUserNameDisplay'), 'Missing #mobileUserNameDisplay');
+  assert(css.includes('color: #000000 !important;'), 'Missing #000000 color for bold black text');
+  assert(css.includes('[data-theme="dark"] #mobileUserNameDisplay'), 'Missing dark theme mobileUserNameDisplay');
+  assert(css.includes('color: #ffffff !important;'), 'Missing #ffffff color for dark mode bold text');
+});
+
+test('1.9 Chosen profile in schedule grid on PC & mobile is bold in pure black (#000000)', () => {
+  assert(css.includes('.user-row.active-user-row td.col-user .user-name-text'), 'Missing active-user-row rule');
+  assert(css.includes('body.is-mobile-device .schedule-table .user-row.active-user-row td.col-user .user-name-text'), 'Missing mobile grid active-user-row rule');
 });
 
 // ========================================================
@@ -395,3 +407,4 @@ console.log('==========================================================');
 if (failCount > 0) {
   process.exit(1);
 }
+
