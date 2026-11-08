@@ -207,6 +207,7 @@
     mobileHolIncludeLabel: document.getElementById('mobileHolIncludeLabel'),
     mobileHolSkipLabel: document.getElementById('mobileHolSkipLabel'),
     mobileHolDayOffDetail: document.getElementById('mobileHolDayOffDetail'),
+    mobileHolidayTreatment: document.getElementById('mobileHolidayTreatment'),
     mobileApplyBtn: document.getElementById('mobileApplyBtn'),
     toggleMobileDesktopGridViewBtn: document.getElementById('toggleMobileDesktopGridViewBtn'),
     toggleMobileDesktopGridLabel: document.getElementById('toggleMobileDesktopGridLabel'),
@@ -266,6 +267,7 @@
     holidayDayOffLabel: document.getElementById('holidayDayOffLabel'),
     holidayIncludeLabel: document.getElementById('holidayIncludeLabel'),
     holidaySkipLabel: document.getElementById('holidaySkipLabel'),
+    bulkHolidayTreatmentGroup: document.getElementById('bulkHolidayTreatmentGroup'),
 
     // Modals
     projectsModal: document.getElementById('projectsModal'),
@@ -1159,6 +1161,25 @@
     }
     // Cairo: Friday (5) and Saturday (6)
     return (dow === 5 || dow === 6);
+  }
+
+  function isPeriodWithWeekendForRange(fromStr, toStr, location) {
+    if (!fromStr || !toStr || fromStr > toStr) return false;
+    let scanCur = parseLocalDate(fromStr);
+    let scanStr = fromStr;
+    let workdays = 0;
+    let weekends = 0;
+    while (scanStr <= toStr) {
+      const dow = scanCur.getDay();
+      if (isWeekendForLocation(dow, location)) {
+        weekends++;
+      } else {
+        workdays++;
+      }
+      scanCur.setDate(scanCur.getDate() + 1);
+      scanStr = formatLocalDate(scanCur);
+    }
+    return (workdays > 0 && weekends > 0);
   }
 
   function getProjectBadgeClass(projectName) {
@@ -3273,6 +3294,7 @@
       const t = state.todayStr || (state.currentMonth + '-01');
       if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(t);
       if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(t);
+      updateBulkHolidayTreatmentVisibility();
       showToast('Range set to Today (' + formatDateDMY(t) + ')');
     });
   }
@@ -3311,6 +3333,7 @@
 
       if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(fStr);
       if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(tStr);
+      updateBulkHolidayTreatmentVisibility();
       showToast(`Range set to Current Work Week (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
     });
   }
@@ -3323,6 +3346,7 @@
       const tStr = `${state.currentMonth}-${String(lastDay).padStart(2, '0')}`;
       if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(fStr);
       if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(tStr);
+      updateBulkHolidayTreatmentVisibility();
       showToast(`Range set to Entire Month (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
     });
   }
@@ -3378,6 +3402,7 @@
     if (el.bulkProjectList) renderBulkProjectList('');
 
     updateBulkOfficeDetails();
+    updateBulkHolidayTreatmentVisibility();
     openModal(el.bulkFillModal);
   }
 
@@ -3400,6 +3425,22 @@
       el.bulkEmployeeOfficeHint.textContent = `Office: Cairo Team • Holidays: Friday & Saturday`;
       el.holidayDayOffDetail.innerHTML = `Fills workdays with your project, and automatically sets all holidays as <strong>Day OFF</strong> (Cairo: <strong>Friday &amp; Saturday</strong>).`;
     }
+    updateBulkHolidayTreatmentVisibility();
+  }
+
+  function updateBulkHolidayTreatmentVisibility() {
+    const container = el.bulkHolidayTreatmentGroup || document.getElementById('bulkHolidayTreatmentGroup');
+    if (!container) return;
+    const rawFrom = el.bulkFromDate ? el.bulkFromDate.value : '';
+    const rawTo = el.bulkToDate ? el.bulkToDate.value : '';
+    const fromStr = parseDateInputToISO(rawFrom);
+    const toStr = parseDateInputToISO(rawTo);
+    const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : state.currentUserId;
+    const emp = state.employees.find(e => e.id === empId);
+    const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+
+    const shouldShow = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
+    container.classList.toggle('hidden', !shouldShow);
   }
 
   function populateBulkProjectSelect(selectedProject = null) {
@@ -3621,6 +3662,15 @@
     });
   });
 
+  if (el.bulkFromDate) {
+    el.bulkFromDate.addEventListener('input', updateBulkHolidayTreatmentVisibility);
+    el.bulkFromDate.addEventListener('change', updateBulkHolidayTreatmentVisibility);
+  }
+  if (el.bulkToDate) {
+    el.bulkToDate.addEventListener('input', updateBulkHolidayTreatmentVisibility);
+    el.bulkToDate.addEventListener('change', updateBulkHolidayTreatmentVisibility);
+  }
+
   // Execute Bulk Fill (Treating holidays as Day OFF option)
   el.confirmBulkFillBtn.addEventListener('click', () => {
     const empId = el.bulkEmployeeSelect.value;
@@ -3655,12 +3705,17 @@
       return;
     }
 
+    const isPeriodWithWeekend = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
+    const isExplicitDayOff = (proj === 'Day OFF');
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__');
+
     let cur = parseLocalDate(fromStr);
     let currentStr = fromStr;
 
     let filledWorkdaysCount = 0;
     let holidaysDayOffCount = 0;
     let holidaysSkippedCount = 0;
+    let clearedCount = 0;
 
     // Inclusive loop: exactly fills all days from fromStr up to and including toStr
     while (currentStr <= toStr) {
@@ -3668,30 +3723,27 @@
       const isHoli = isWeekendForLocation(dow, sec.location);
       const key = `${empId}_${currentStr}`;
 
-      if (isHoli) {
+      if (isClearAction) {
+        delete state.allocations[key];
+        clearedCount++;
+      } else if (isExplicitDayOff) {
+        state.allocations[key] = { project: 'Day OFF', hours: 0 };
+        holidaysDayOffCount++;
+      } else if (isPeriodWithWeekend && isHoli) {
         if (holidayOption === 'dayoff') {
-          // Consider holidays as DAY OFF option
+          // Consider holidays as DAY OFF option when bulk filling mixed period
           state.allocations[key] = { project: 'Day OFF', hours: 0 };
           holidaysDayOffCount++;
         } else if (holidayOption === 'include') {
-          // Work on holidays
-          if (!proj || proj.trim() === '' || proj === '__CLEAR__') {
-            delete state.allocations[key];
-          } else {
-            state.allocations[key] = { project: proj.trim(), hours: hours };
-          }
+          state.allocations[key] = { project: proj.trim(), hours: hours };
           filledWorkdaysCount++;
         } else {
           // 'skip'
           holidaysSkippedCount++;
         }
       } else {
-        // Normal workday
-        if (!proj || proj.trim() === '' || proj === '__CLEAR__') {
-          delete state.allocations[key];
-        } else {
-          state.allocations[key] = { project: proj.trim(), hours: hours };
-        }
+        // Normal workday, OR single day (even if weekend!), OR pure weekend days:
+        state.allocations[key] = { project: proj.trim(), hours: hours };
         filledWorkdaysCount++;
       }
 
@@ -3703,17 +3755,33 @@
     logAuditEvent({
       targetEmpId: empId,
       targetEmpName: emp ? emp.name : empId,
-      dateStr: `${formatDateDMY(fromStr)} to ${formatDateDMY(toStr)}`,
+      dateStr: (fromStr === toStr) ? formatDateDMY(fromStr) : `${formatDateDMY(fromStr)} to ${formatDateDMY(toStr)}`,
       actionType: 'bulk_fill',
-      summary: `Bulk filled ${filledWorkdaysCount} workdays with '${proj}' (${hours}h)`,
-      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}, Holiday Option: ${holidayOption}`
+      summary: isClearAction
+        ? `Bulk cleared allocations across ${clearedCount} days`
+        : isExplicitDayOff
+          ? `Bulk marked ${holidaysDayOffCount} days as Day OFF`
+          : (fromStr === toStr)
+            ? `Assigned '${proj}' (${hours}h) on ${formatDateDMY(fromStr)}`
+            : `Bulk filled ${filledWorkdaysCount} days with '${proj}' (${hours}h)`,
+      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}${isPeriodWithWeekend ? `, Holiday Option: ${holidayOption}` : ''}`
     });
 
     closeModal(el.bulkFillModal);
     renderSchedule();
     syncToServer();
 
-    if (holidayOption === 'dayoff') {
+    if (isClearAction) {
+      showToast(`Cleared allocations for ${clearedCount} dates for ${emp.name}.`);
+    } else if (isExplicitDayOff) {
+      showToast(`Marked ${fromStr === toStr ? formatDateDMY(fromStr) : `${holidaysDayOffCount} dates`} as "Day OFF" for ${emp.name}.`);
+    } else if (!isPeriodWithWeekend) {
+      if (fromStr === toStr) {
+        showToast(`Filled ${formatDateDMY(fromStr)} with "${proj}" (${hours}h) for ${emp.name}.`);
+      } else {
+        showToast(`Filled ${filledWorkdaysCount} days with "${proj}" (${hours}h) for ${emp.name}.`);
+      }
+    } else if (holidayOption === 'dayoff') {
       showToast(`Filled ${filledWorkdaysCount} workdays with "${proj}" and marked ${holidaysDayOffCount} holidays as "Day OFF" for ${emp.name}.`);
     } else if (holidayOption === 'include') {
       showToast(`Filled all ${filledWorkdaysCount} calendar days with "${proj}" for ${emp.name}.`);
@@ -7564,6 +7632,7 @@
 
     updateMobileOfficeDetails();
     renderMobileSummary();
+    updateMobileHolidayTreatmentVisibility();
   }
 
   function populateMobileProjectSelect(selectedProject = null) {
@@ -7754,6 +7823,24 @@
         el.mobileHolDayOffDetail.innerHTML = 'Fills workdays with selected project, and sets holidays (<strong>Friday &amp; Saturday</strong>) as Day OFF.';
       }
     }
+    updateMobileHolidayTreatmentVisibility();
+  }
+
+  function updateMobileHolidayTreatmentVisibility() {
+    const container = el.mobileHolidayTreatment || document.getElementById('mobileHolidayTreatment') || document.querySelector('.mobile-holiday-treatment');
+    if (!container) return;
+    const rawFrom = el.mobileFromDate ? el.mobileFromDate.value : '';
+    const rawTo = el.mobileToDate ? el.mobileToDate.value : '';
+    const fromStr = parseDateInputToISO(rawFrom);
+    const toStr = parseDateInputToISO(rawTo);
+
+    const isAdminUser = state.isAdmin && isCurrentUserPeter();
+    const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : state.currentUserId;
+    const emp = state.employees.find(e => e.id === empId);
+    const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
+
+    const shouldShow = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
+    container.classList.toggle('hidden', !shouldShow);
   }
 
   function renderMobileSummary() {
@@ -7908,6 +7995,7 @@
           const hVal = row.getAttribute('data-hours');
           if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(dStr);
           if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(dStr);
+          updateMobileHolidayTreatmentVisibility();
           if (el.mobileProjectSelect && pName) el.mobileProjectSelect.value = pName;
           if (el.mobileHoursInput && hVal && Number(hVal) > 0) el.mobileHoursInput.value = hVal;
 
@@ -7918,6 +8006,7 @@
         });
       });
     }
+    updateMobileHolidayTreatmentVisibility();
   }
 
   function handleMobileApply() {
@@ -7968,6 +8057,10 @@
       return;
     }
 
+    const isPeriodWithWeekend = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
+    const isExplicitDayOff = (proj === 'Day OFF');
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__');
+
     let cur = parseLocalDate(fromStr);
     let currentStr = fromStr;
     let filledWorkdaysCount = 0;
@@ -7975,36 +8068,33 @@
     let holidaysSkippedCount = 0;
     let clearedCount = 0;
 
-    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__');
-
     while (currentStr <= toStr) {
       const dow = cur.getDay();
       const isHoli = isWeekendForLocation(dow, sec.location);
       const key = `${empId}_${currentStr}`;
 
-      if (isHoli) {
+      if (isClearAction) {
+        delete state.allocations[key];
+        clearedCount++;
+      } else if (isExplicitDayOff) {
+        state.allocations[key] = { project: 'Day OFF', hours: 0 };
+        holidaysDayOffCount++;
+      } else if (isPeriodWithWeekend && isHoli) {
         if (holidayOption === 'dayoff') {
+          // Mark holidays as Day OFF only for multi-day bulk periods spanning workdays & weekend
           state.allocations[key] = { project: 'Day OFF', hours: 0 };
           holidaysDayOffCount++;
         } else if (holidayOption === 'include') {
-          if (isClearAction) {
-            delete state.allocations[key];
-            clearedCount++;
-          } else {
-            state.allocations[key] = { project: proj.trim(), hours: hours };
-            filledWorkdaysCount++;
-          }
+          state.allocations[key] = { project: proj.trim(), hours: hours };
+          filledWorkdaysCount++;
         } else {
+          // 'skip'
           holidaysSkippedCount++;
         }
       } else {
-        if (isClearAction) {
-          delete state.allocations[key];
-          clearedCount++;
-        } else {
-          state.allocations[key] = { project: proj.trim(), hours: hours };
-          filledWorkdaysCount++;
-        }
+        // Normal workday, OR single day (even if weekend!), OR pure weekend days:
+        state.allocations[key] = { project: proj.trim(), hours: hours };
+        filledWorkdaysCount++;
       }
 
       cur.setDate(cur.getDate() + 1);
@@ -8014,12 +8104,16 @@
     logAuditEvent({
       targetEmpId: empId,
       targetEmpName: emp ? emp.name : empId,
-      dateStr: `${formatDateDMY(fromStr)} to ${formatDateDMY(toStr)}`,
+      dateStr: (fromStr === toStr) ? formatDateDMY(fromStr) : `${formatDateDMY(fromStr)} to ${formatDateDMY(toStr)}`,
       actionType: 'mobile_fill',
       summary: isClearAction 
         ? `Mobile cleared allocations across ${clearedCount} days`
-        : `Mobile filled ${filledWorkdaysCount} workdays with '${proj}' (${hours}h)`,
-      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}, Holiday Option: ${holidayOption}`
+        : isExplicitDayOff
+          ? `Mobile marked ${holidaysDayOffCount} days as Day OFF`
+          : (fromStr === toStr)
+            ? `Mobile assigned '${proj}' (${hours}h) on ${formatDateDMY(fromStr)}`
+            : `Mobile filled ${filledWorkdaysCount} days with '${proj}' (${hours}h)`,
+      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}${isPeriodWithWeekend ? `, Holiday Option: ${holidayOption}` : ''}`
     });
 
     renderSchedule();
@@ -8030,10 +8124,18 @@
     const targetLabel = isSelf ? 'your schedule' : emp.name;
     if (isClearAction) {
       showToast(`Cleared allocations for ${clearedCount} dates for ${targetLabel}.`);
+    } else if (isExplicitDayOff) {
+      showToast(`Marked ${fromStr === toStr ? formatDateDMY(fromStr) : `${holidaysDayOffCount} dates`} as Day OFF for ${targetLabel}.`);
+    } else if (!isPeriodWithWeekend) {
+      if (fromStr === toStr) {
+        showToast(`Logged ${hours}h on ${proj} for ${formatDateDMY(fromStr)} (${targetLabel}).`);
+      } else {
+        showToast(`Filled ${filledWorkdaysCount} days with "${proj}" (${hours}h) for ${targetLabel}.`);
+      }
     } else if (holidayOption === 'dayoff') {
       showToast(`Filled ${filledWorkdaysCount} workdays with "${proj}" and marked ${holidaysDayOffCount} holidays as Day OFF for ${targetLabel}.`);
     } else if (holidayOption === 'include') {
-      showToast(`Filled ${filledWorkdaysCount} calendar days with "${proj}" for ${targetLabel}.`);
+      showToast(`Filled all ${filledWorkdaysCount} calendar days with "${proj}" for ${targetLabel}.`);
     } else {
       showToast(`Filled ${filledWorkdaysCount} workdays for ${targetLabel} (left ${holidaysSkippedCount} holidays untouched).`);
     }
@@ -8126,6 +8228,7 @@
         const t = state.todayStr || (state.currentMonth + '-01');
         if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(t);
         if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(t);
+        updateMobileHolidayTreatmentVisibility();
         showToast('Range set to Today (' + formatDateDMY(t) + ')');
       });
     }
@@ -8165,6 +8268,7 @@
 
         if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(fStr);
         if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(tStr);
+        updateMobileHolidayTreatmentVisibility();
         showToast(`Range set to Current Work Week (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
       });
     }
@@ -8177,8 +8281,18 @@
         const tStr = `${state.currentMonth}-${String(lastDay).padStart(2, '0')}`;
         if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(fStr);
         if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(tStr);
+        updateMobileHolidayTreatmentVisibility();
         showToast(`Range set to Entire Month (${formatDateDMY(fStr)} to ${formatDateDMY(tStr)})`);
       });
+    }
+
+    if (el.mobileFromDate) {
+      el.mobileFromDate.addEventListener('input', updateMobileHolidayTreatmentVisibility);
+      el.mobileFromDate.addEventListener('change', updateMobileHolidayTreatmentVisibility);
+    }
+    if (el.mobileToDate) {
+      el.mobileToDate.addEventListener('input', updateMobileHolidayTreatmentVisibility);
+      el.mobileToDate.addEventListener('change', updateMobileHolidayTreatmentVisibility);
     }
 
     // Quick hour pills
