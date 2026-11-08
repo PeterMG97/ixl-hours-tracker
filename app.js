@@ -1359,12 +1359,14 @@
         <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''} ${isFirstEmpSelf ? 'precedes-active-user' : ''}" 
             data-section-id="${sec.id}" 
             title="Click to ${isCollapsed ? 'expand' : 'shrink'} ${sec.name}">
-          <td colspan="2" class="group-header-cell group-header-label-cell">
+          <td class="col-user group-header-cell group-header-label-cell" title="${sec.name}">
             <div class="group-header-content">
               <span class="group-toggle-icon">${isCollapsed ? '▶' : '▼'}</span>
               <strong class="group-title">${sec.name}</strong>
-              <span class="group-badge">${secEmployees.length} members</span>
             </div>
+          </td>
+          <td class="col-metric group-header-cell group-header-metric-cell" title="${secEmployees.length} active members in ${sec.name}">
+            <span class="group-badge">${secEmployees.length}</span>
           </td>
           ${days.map(d => {
             const isHoli = isWeekendForLocation(d.dow, sec.location);
@@ -7794,11 +7796,11 @@
       }
     }
 
-    // Month label
+    // Month label (compact 3-digit month for mobile view)
     const [y, m] = state.currentMonth.split('-').map(Number);
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     if (el.mobileMonthLabel) {
-      el.mobileMonthLabel.textContent = `${monthNames[m - 1] || 'Month'} ${y}`;
+      el.mobileMonthLabel.textContent = `${shortMonthNames[m - 1] || 'Month'} ${y}`;
     }
 
     if (!emp) {

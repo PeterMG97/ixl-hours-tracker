@@ -855,9 +855,11 @@ body {
   border-top-color: var(--border-medium);
   border-bottom-color: var(--border-light);
 }
-[data-theme="dark"] .group-header-label-cell {
-  background: #1e293b;
-  border-right-color: var(--border-medium);
+[data-theme="dark"] .group-header-label-cell,
+[data-theme="dark"] .group-header-metric-cell {
+  background: #1e293b !important;
+  border-right-color: var(--border-medium) !important;
+  color: #f8fafc;
 }
 [data-theme="dark"] .group-header-row:hover td {
   background: #334155;
@@ -1476,18 +1478,41 @@ body.is-resizing-columns {
 }
 
 .group-header-label-cell {
-  position: sticky;
-  left: 0;
-  z-index: 24;
-  padding: 6px 14px !important;
-  border-right: 2px solid var(--border-light);
-  white-space: nowrap;
-  background: #f1f5f9;
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 24 !important;
+  width: var(--user-col-width, 210px) !important;
+  min-width: var(--user-col-width, 210px) !important;
+  max-width: var(--user-col-width, 210px) !important;
+  padding: 6px 10px !important;
+  border-right: 2px solid var(--border-light) !important;
+  white-space: nowrap !important;
+  background: #f1f5f9 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.group-header-metric-cell {
+  position: sticky !important;
+  left: var(--user-col-width, 210px) !important;
+  z-index: 22 !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  max-width: 60px !important;
+  text-align: center !important;
+  padding: 4px 2px !important;
+  border-right: 2px solid var(--border-light) !important;
+  background: #f1f5f9 !important;
+  box-sizing: border-box !important;
 }
 
 .group-header-slot {
+  width: var(--day-col-width, 48px);
+  min-width: var(--day-col-width, 48px);
+  max-width: var(--day-col-width, 48px);
   border-right: 1px solid var(--border-subtle);
   padding: 0 !important;
+  box-sizing: border-box;
 }
 
 .group-header-slot.is-weekend {
@@ -1503,10 +1528,19 @@ body.is-resizing-columns {
 }
 
 .group-header-content {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  max-width: 100%;
+  gap: 6px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.group-title {
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1785,8 +1819,6 @@ td.col-slot.is-selected-cell .task-chip {
 /* Focused User Spotlight & Continuous Name Highlight Frame */
 .has-focused-user .user-row.active-user-row,
 .user-row.active-user-row {
-  position: relative;
-  z-index: 6;
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2) !important;
 }
 
@@ -1794,24 +1826,26 @@ td.col-slot.is-selected-cell .task-chip {
 .user-row.active-user-row td {
   border-top: 2px solid #10b981 !important;
   border-bottom: 2px solid #10b981 !important;
-  position: relative;
-  z-index: 6;
 }
 
 .has-focused-user .user-row.active-user-row td.col-user,
 .user-row.active-user-row td.col-user {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 26 !important;
   background: #ecfdf5 !important;
   border-left: 3px solid #10b981 !important;
   border-top: 2px solid #10b981 !important;
   border-bottom: 2px solid #10b981 !important;
-  z-index: 26 !important;
 }
 
 .has-focused-user .user-row.active-user-row td.col-metric,
 .user-row.active-user-row td.col-metric {
+  position: sticky !important;
+  left: var(--user-col-width, 210px) !important;
+  z-index: 23 !important;
   border-top: 2px solid #10b981 !important;
   border-bottom: 2px solid #10b981 !important;
-  z-index: 23 !important;
 }
 
 .has-focused-user .user-row.active-user-row td:last-child,
@@ -1829,6 +1863,7 @@ td.col-slot.is-selected-cell .task-chip {
 
 [data-theme="dark"] .has-focused-user .user-row.active-user-row td.col-metric,
 [data-theme="dark"] .user-row.active-user-row td.col-metric {
+  background: #1e293b !important;
   border-top: 2px solid #10b981 !important;
   border-bottom: 2px solid #10b981 !important;
 }
@@ -4871,8 +4906,34 @@ body.mobile-readonly-grid .schedule-table td.col-user {
 }
 
 /* Deterministic Device Scope Rules */
-body.is-mobile-device .brand-info {
+body.is-mobile-device .brand-info,
+body.is-mobile-device .brand-info h2,
+body.is-mobile-device .brand-caption,
+body.is-mobile-device .brand-divider {
   display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.is-mobile-device .schedule-table td.group-header-label-cell {
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  padding: 4px 6px !important;
+}
+
+body.is-mobile-device .schedule-table td.group-header-metric-cell {
+  display: none !important;
+}
+
+body.is-mobile-device .schedule-table td.group-header-slot {
+  width: var(--day-col-width, 38px) !important;
+  min-width: var(--day-col-width, 38px) !important;
+  max-width: var(--day-col-width, 38px) !important;
 }
 
 body.is-mobile-device .status-beacon {
