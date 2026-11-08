@@ -8479,7 +8479,7 @@
       overlay.classList.remove('is-night');
     }
 
-    // Both Alstom logo and "from IXL Team" appear together from the start
+    // Both Alstom logo and "by IXL Team" appear together from the start
     overlay.classList.remove('hidden');
 
     let dismissed = false;
@@ -8498,7 +8498,8 @@
       }, 400);
     }
 
-    // Step 2: At 550ms, Alstom logo begins fading out very slowly from right to left (M -> O -> T -> S -> L -> A)
+    // Step 2: At 550ms, Alstom logo begins buttery-smooth continuous dissolve from right to left
+    // Note: The footer "by IXL Team" remains 100% solid and non-fading throughout this dissolve
     setTimeout(() => {
       if (dismissed) return;
       if (logoEl) {
@@ -8506,12 +8507,12 @@
       }
     }, 550);
 
-    // Step 3: At 2000ms, dissolve finishes; the app starts without waiting for any user tap
+    // Step 3: At 2050ms, dissolve completes; the app starts automatically without waiting for any user tap
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 2000);
+    }, 2050);
 
     // Tap anywhere to skip/enter immediately if user prefers
     if (enterBtn) {

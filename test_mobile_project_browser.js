@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=7.5 in index.html', () => {
-  assert(html.includes('styles.css?v=7.5'), 'styles.css v=7.5 not found');
-  assert(html.includes('app.js?v=7.5'), 'app.js v=7.5 not found');
+test('1.2 Cache buster is v=7.6 in index.html', () => {
+  assert(html.includes('styles.css?v=7.6'), 'styles.css v=7.6 not found');
+  assert(html.includes('app.js?v=7.6'), 'app.js v=7.6 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -181,16 +181,16 @@ test('1.24 Mobile-only sequential welcome splash screen contracts', () => {
   assert(html.includes('id="mobileWelcomeOverlay"'), 'Missing mobileWelcomeOverlay in index.html');
   assert(html.includes('id="mobileWelcomeLogo"'), 'Missing mobileWelcomeLogo in index.html');
   assert(html.includes('alstom-logo-light.png') && html.includes('alstom-logo-dark.png'), 'Missing Alstom logo images in index.html');
-  assert(html.includes('from') && html.includes('IXL Team'), 'Missing from IXL Team footer in index.html');
+  assert(html.includes('by IXL Team'), 'Missing by IXL Team footer in index.html');
   assert(html.includes('id="mobileWelcomeEnterBtn"'), 'Missing mobileWelcomeEnterBtn in index.html');
 
-  // CSS Desktop Isolation & Right-to-Left Dissolve
+  // CSS Desktop Isolation & Continuous Right-to-Left Dissolve
   assert(css.includes('.mobile-welcome-overlay'), 'Missing .mobile-welcome-overlay in styles.css');
   assert(css.includes('display: none !important;'), 'Missing display none !important in styles.css');
-  assert(css.includes('.dissolve-rtl') || css.includes('dissolveLogoRTL'), 'Missing dissolve-rtl in styles.css');
+  assert(css.includes('.dissolve-rtl'), 'Missing dissolve-rtl in styles.css');
   assert(css.includes('.mobile-launch-footer'), 'Missing .mobile-launch-footer in styles.css');
 
-  // JS Lifecycle and Timers (Logo dissolves RTL, app starts without waiting for tap)
+  // JS Lifecycle and Timers (Logo dissolves RTL while footer is non-fade-able, app starts without waiting for tap)
   assert(js.includes('function initMobileWelcomeScreen'), 'Missing initMobileWelcomeScreen function in app.js');
   assert(js.includes('if (!isMobileInterface()) return;'), 'Missing mobile interface guard in initMobileWelcomeScreen');
   assert(js.includes('dissolve-rtl'), 'Missing dissolve-rtl in app.js');
