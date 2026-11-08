@@ -6825,20 +6825,20 @@
   function populateAuditMonthSelect() {
     if (!el.auditMonthSelect) return;
     const months = [
-      { ym: '2026-11', label: '11/2026 - November 2026 (Start)' },
-      { ym: '2026-12', label: '12/2026 - December 2026' },
-      { ym: '2027-01', label: '01/2027 - January 2027' },
-      { ym: '2027-02', label: '02/2027 - February 2027' },
-      { ym: '2027-03', label: '03/2027 - March 2027' },
-      { ym: '2027-04', label: '04/2027 - April 2027' },
-      { ym: '2027-05', label: '05/2027 - May 2027' },
-      { ym: '2027-06', label: '06/2027 - June 2027' },
-      { ym: '2027-07', label: '07/2027 - July 2027' },
-      { ym: '2027-08', label: '08/2027 - August 2027' },
-      { ym: '2027-09', label: '09/2027 - September 2027' },
-      { ym: '2027-10', label: '10/2027 - October 2027' },
-      { ym: '2027-11', label: '11/2027 - November 2027' },
-      { ym: '2027-12', label: '12/2027 - December 2027' }
+      { ym: '2026-11', label: 'Nov/2026' },
+      { ym: '2026-12', label: 'Dec/2026' },
+      { ym: '2027-01', label: 'Jan/2027' },
+      { ym: '2027-02', label: 'Feb/2027' },
+      { ym: '2027-03', label: 'Mar/2027' },
+      { ym: '2027-04', label: 'Apr/2027' },
+      { ym: '2027-05', label: 'May/2027' },
+      { ym: '2027-06', label: 'Jun/2027' },
+      { ym: '2027-07', label: 'Jul/2027' },
+      { ym: '2027-08', label: 'Aug/2027' },
+      { ym: '2027-09', label: 'Sep/2027' },
+      { ym: '2027-10', label: 'Oct/2027' },
+      { ym: '2027-11', label: 'Nov/2027' },
+      { ym: '2027-12', label: 'Dec/2027' }
     ];
 
     el.auditMonthSelect.innerHTML = months.map(m =>

@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.8 in index.html', () => {
-  assert(html.includes('styles.css?v=6.8'), 'styles.css v=6.5 not found');
-  assert(html.includes('app.js?v=6.8'), 'app.js v=6.5 not found');
+test('1.2 Cache buster is v=6.9 in index.html', () => {
+  assert(html.includes('styles.css?v=6.9'), 'styles.css v=6.5 not found');
+  assert(html.includes('app.js?v=6.9'), 'app.js v=6.5 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -165,6 +165,13 @@ test('1.22 Settings drawer: Grid View description is Grid read-only view and Mob
   assert(!html.includes('Inspect all team member rows in spreadsheet mode'), 'Old description still present in index.html');
   assert(js.includes("el.toggleMobileDesktopGridSub.textContent = 'Grid read-only view'"), 'Missing Grid read-only view in app.js');
   assert(js.includes("el.toggleMobileDesktopGridSub.textContent = 'Mobile Editor mode'"), 'Missing Mobile Editor mode in app.js');
+});
+
+
+test('1.23 Audit month select options use 3-letter month and year format (ex: Nov/2026)', () => {
+  assert(js.includes("{ ym: '2026-11', label: 'Nov/2026' }"), 'Missing Nov/2026 label in app.js');
+  assert(js.includes("{ ym: '2026-12', label: 'Dec/2026' }"), 'Missing Dec/2026 label in app.js');
+  assert(!js.includes("'11/2026 - November 2026 (Start)'"), 'Old long label still present in app.js');
 });
 
 console.log(`\n==========================================================`);
