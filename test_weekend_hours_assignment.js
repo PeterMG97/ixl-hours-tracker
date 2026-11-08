@@ -50,9 +50,9 @@ test('1.3 styles.css contains zero unicode emojis', () => {
   assert(!emojiRegex.test(css), 'Found emoji in styles.css');
 });
 
-test('1.4 Cache buster bumped to v=7.2 in index.html', () => {
-  assert(html.includes('styles.css?v=7.2'), 'styles.css cache buster not bumped');
-  assert(html.includes('app.js?v=7.2'), 'app.js cache buster not bumped');
+test('1.4 Cache buster bumped to v=7.3 in index.html', () => {
+  assert(html.includes('styles.css?v=7.3'), 'styles.css cache buster not bumped');
+  assert(html.includes('app.js?v=7.3'), 'app.js cache buster not bumped');
 });
 
 test('1.5 app.js implements isPeriodWithWeekendForRange helper', () => {

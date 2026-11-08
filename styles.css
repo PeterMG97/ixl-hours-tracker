@@ -5577,7 +5577,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 
 
 /* =============================================================
-   MOBILE-ONLY WELCOME SPLASH SCREEN
+   MOBILE-ONLY WELCOME / LAUNCH SCREEN (Threads-Style Minimalist)
    ============================================================= */
 .mobile-welcome-overlay {
   position: fixed;
@@ -5589,13 +5589,21 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000 !important;
+  background: #ffffff; /* Pure white by default for day */
+  color: #0f172a;
   opacity: 1;
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   overflow: hidden;
+}
+
+/* Pure Black for Night / Dark Theme */
+.mobile-welcome-overlay.is-night,
+[data-theme="dark"] .mobile-welcome-overlay {
+  background: #000000 !important;
+  color: #ffffff !important;
 }
 
 .mobile-welcome-overlay.hidden {
@@ -5604,7 +5612,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 
 .mobile-welcome-overlay.fade-out {
   opacity: 0;
-  transform: scale(1.02);
+  transform: scale(1.03);
   pointer-events: none;
 }
 
@@ -5616,52 +5624,70 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   }
 }
 
-/* Layout Stage */
+/* Layout Stage - Full Screen with Safe Area Respect */
 .mobile-welcome-stage {
   position: relative;
-  z-index: 2;
   width: 100%;
   height: 100%;
-  max-width: 440px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  padding: calc(env(safe-area-inset-top, 20px) + 40px) 24px calc(env(safe-area-inset-bottom, 20px) + 36px);
+  justify-content: center;
+  padding: env(safe-area-inset-top, 20px) 24px env(safe-area-inset-bottom, 20px);
   box-sizing: border-box;
   text-align: center;
 }
 
-/* Brand Logo (White with signature Red O on pure black background) */
+/* Centered Branding and Typography */
+.mobile-launch-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: auto 0;
+  transform: translateY(-8px);
+}
+
 .mobile-welcome-brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding-top: 10px;
-}
-
-.mobile-welcome-overlay .brand-wordmark-light {
-  display: none !important;
-}
-
-.mobile-welcome-overlay .brand-wordmark-dark {
-  display: block !important;
+  margin-bottom: 16px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .welcome-wordmark {
-  height: 40px !important;
-  max-width: 200px !important;
+  height: 28px !important;
+  max-width: 144px !important;
   width: auto !important;
+  display: block;
+}
+
+/* Light Mode Wordmark */
+.mobile-welcome-overlay .brand-wordmark-light {
+  display: block !important;
+}
+.mobile-welcome-overlay .brand-wordmark-dark {
+  display: none !important;
+}
+
+/* Night / Dark Mode Wordmark */
+.mobile-welcome-overlay.is-night .brand-wordmark-light,
+[data-theme="dark"] .mobile-welcome-overlay .brand-wordmark-light {
+  display: none !important;
+}
+.mobile-welcome-overlay.is-night .brand-wordmark-dark,
+[data-theme="dark"] .mobile-welcome-overlay .brand-wordmark-dark {
+  display: block !important;
 }
 
 .welcome-brand-logo-text {
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1;
-  color: #ffffff;
+  color: #002040;
   user-select: none;
   display: inline-flex;
   align-items: center;
@@ -5669,124 +5695,93 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+.mobile-welcome-overlay.is-night .welcome-brand-logo-text,
+[data-theme="dark"] .mobile-welcome-overlay .welcome-brand-logo-text {
+  color: #ffffff;
+}
+
 .welcome-text-fallback {
   display: none;
 }
 
-/* Center Stage Content (All appear slowly together) */
-.mobile-welcome-center {
-  width: 100%;
+/* Subtle Minimalist Text Below Logo */
+.launch-text-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 12px;
-}
-
-.mobile-welcome-greeting {
-  font-size: 28px;
-  font-weight: 400;
-  color: #f1f5f9;
-  line-height: 1.25;
-  margin-bottom: 6px;
-  letter-spacing: -0.01em;
-}
-
-.welcome-greeting-name {
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.mobile-welcome-text-1 {
-  margin: 14px 0 18px;
+  gap: 6px;
+  max-width: 300px;
 }
 
 .mobile-welcome-text-1 h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
   line-height: 1.35;
   margin: 0;
   letter-spacing: -0.01em;
 }
 
-.mobile-welcome-text-2 {
-  margin-bottom: 8px;
+.mobile-welcome-overlay.is-night .mobile-welcome-text-1 h2,
+[data-theme="dark"] .mobile-welcome-overlay .mobile-welcome-text-1 h2 {
+  color: #f8fafc;
 }
 
 .mobile-welcome-text-2 p {
-  font-size: 14px;
-  font-weight: 500;
-  color: #cbd5e1;
-  line-height: 1.45;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.4;
   margin: 0;
-  padding: 8px 18px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 99px;
-  display: inline-block;
 }
 
-/* Bottom Actions (Tap anywhere to start appears slowly finally) */
-.mobile-welcome-bottom {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 8px;
-}
-
-.mobile-welcome-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.mobile-welcome-btn {
-  width: 100%;
-  max-width: 250px;
-  padding: 13px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 99px;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: transform 0.15s ease, background 0.2s ease, opacity 0.8s ease;
-  animation: tapPulse 2.4s ease-in-out infinite;
-}
-
-@keyframes tapPulse {
-  0%, 100% { opacity: 0.9; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); border-color: rgba(255, 255, 255, 0.5); }
-}
-
-.mobile-welcome-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.45);
-}
-
-.mobile-welcome-btn:active {
-  transform: scale(0.96);
-}
-
-.mobile-welcome-hint {
-  font-size: 12px;
+.mobile-welcome-overlay.is-night .mobile-welcome-text-2 p,
+[data-theme="dark"] .mobile-welcome-overlay .mobile-welcome-text-2 p {
   color: #94a3b8;
-  font-weight: 500;
+}
+
+/* Bottom Footer (like "from Meta") */
+.mobile-launch-footer {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 20px) + 24px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.launch-footer-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: #71717a;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.launch-footer-brand {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
   letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.mobile-welcome-overlay.is-night .launch-footer-brand,
+[data-theme="dark"] .mobile-welcome-overlay .launch-footer-brand {
+  color: #ffffff;
 }
 
 /* Sequential Transition Animations */
 .hidden-step {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(6px);
   pointer-events: none;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .visible-step {

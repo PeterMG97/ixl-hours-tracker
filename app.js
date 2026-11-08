@@ -8465,37 +8465,20 @@
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
     const logoEl = document.getElementById('mobileWelcomeLogo');
-    const centerEl = document.getElementById('mobileWelcomeCenter');
-    const greetingEl = document.getElementById('mobileWelcomeGreeting');
     const text1 = document.getElementById('mobileWelcomeText1');
     const text2 = document.getElementById('mobileWelcomeText2');
-    const actions = document.getElementById('mobileWelcomeActions');
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
 
-    // Dynamic greeting calculation
+    // Daytime / Night calculation for pure white vs pure black background
     const hr = new Date().getHours();
-    let timeGreeting = 'Good evening';
-    if (hr >= 5 && hr < 12) timeGreeting = 'Good morning';
-    else if (hr >= 12 && hr < 18) timeGreeting = 'Good afternoon';
+    const isNight = (hr < 6 || hr >= 18);
+    const currentTheme = document.documentElement.getAttribute('data-theme') || (state ? state.theme : 'auto');
+    const shouldUseDark = (currentTheme === 'dark') || (currentTheme === 'auto' && isNight);
 
-    // Check user profile for personalized first name
-    let firstName = '';
-    try {
-      let savedUserId = state.currentUserId || localStorage.getItem('ixl_user_id');
-      if (savedUserId && state.teamMembers) {
-        const member = state.teamMembers.find(m => m.id === savedUserId);
-        if (member && member.name) {
-          firstName = member.name.trim().split(' ')[0];
-        }
-      }
-    } catch (e) {}
-
-    if (greetingEl) {
-      if (firstName) {
-        greetingEl.innerHTML = timeGreeting + ', <span class="welcome-greeting-name">' + escapeHtml(firstName) + '</span>';
-      } else {
-        greetingEl.innerHTML = timeGreeting + ', <span class="welcome-greeting-name">Team</span>';
-      }
+    if (shouldUseDark) {
+      overlay.classList.add('is-night');
+    } else {
+      overlay.classList.remove('is-night');
     }
 
     overlay.classList.remove('hidden');
@@ -8513,10 +8496,10 @@
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
         }
-      }, 500);
+      }, 450);
     }
 
-    // Step 1: Alstom logo appears slowly (fade-in first)
+    // Step 1: Smooth logo entrance (already centered)
     setTimeout(() => {
       if (dismissed) return;
       if (logoEl) {
@@ -8525,13 +8508,9 @@
       }
     }, 80);
 
-    // Step 2: Then the other parts appear slowly together
+    // Step 2: Minimalist supplied texts appear smoothly at 1000ms
     setTimeout(() => {
       if (dismissed) return;
-      if (centerEl) {
-        centerEl.classList.remove('hidden-step');
-        centerEl.classList.add('visible-step');
-      }
       if (text1) {
         text1.classList.remove('hidden-step');
         text1.classList.add('visible-step');
@@ -8542,16 +8521,14 @@
       }
     }, 1000);
 
-    // Step 3: Finally the "Tap anywhere to start" appears slowly (User must tap screen to enter)
+    // Step 3: At 2000ms, launch screen completes and transitions into the app
     setTimeout(() => {
-      if (dismissed) return;
-      if (actions) {
-        actions.classList.remove('hidden-step');
-        actions.classList.add('visible-step');
+      if (!dismissed) {
+        dismissWelcome();
       }
     }, 2000);
 
-    // Strictly tap to enter - NO auto-dismiss
+    // Tap anywhere to skip/enter immediately
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
         e.stopPropagation();

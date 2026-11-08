@@ -28,7 +28,7 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=7.2">
+  <link rel="stylesheet" href="styles.css?v=7.3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -37,37 +37,36 @@
   <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
   <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden" aria-modal="true" role="dialog" aria-label="Welcome to IXL Project Allocation Tool">
     <div class="mobile-welcome-stage">
-      <!-- Top Brand Logo (fades in first) -->
-      <div class="mobile-welcome-brand hidden-step" id="mobileWelcomeLogo">
-        <div class="brand-logo-text welcome-brand-logo-text" title="ALSTOM" aria-label="ALSTOM">
-          <img src="alstom-logo-light.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-light welcome-wordmark" width="160" height="32" loading="eager" decoding="sync">
-          <img src="alstom-logo-dark.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-dark welcome-wordmark" width="160" height="32" loading="eager" decoding="sync">
-          <span class="welcome-text-fallback brand-logo-sr">ALST<span class="brand-logo-accent">O</span>M</span>
+      <!-- Centered Main Logo & Branding -->
+      <div class="mobile-launch-center">
+        <div class="mobile-welcome-brand" id="mobileWelcomeLogo">
+          <div class="brand-logo-text welcome-brand-logo-text" title="ALSTOM" aria-label="ALSTOM">
+            <img src="alstom-logo-light.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-light welcome-wordmark" width="144" height="28" loading="eager" decoding="sync">
+            <img src="alstom-logo-dark.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-dark welcome-wordmark" width="144" height="28" loading="eager" decoding="sync">
+            <span class="welcome-text-fallback brand-logo-sr">ALST<span class="brand-logo-accent">O</span>M</span>
+          </div>
+        </div>
+
+        <div class="launch-text-wrap" id="mobileWelcomeTextWrap">
+          <div class="mobile-welcome-text-1 hidden-step" id="mobileWelcomeText1">
+            <h2>Welcome to the IXL Project Allocation Tool!</h2>
+          </div>
+          <div class="mobile-welcome-text-2 hidden-step" id="mobileWelcomeText2">
+            <p>Please, use the Mobile Editor mode to fill your hours</p>
+          </div>
         </div>
       </div>
 
-      <!-- Center Parts (appear slowly together) -->
-      <div class="mobile-welcome-center hidden-step" id="mobileWelcomeCenter">
-        <div class="mobile-welcome-greeting" id="mobileWelcomeGreeting">
-          <span class="welcome-greeting-kicker">Welcome</span>
-        </div>
-        <div class="mobile-welcome-text-1 hidden-step" id="mobileWelcomeText1">
-          <h2>Welcome to the IXL Project Allocation Tool!</h2>
-        </div>
-        <div class="mobile-welcome-text-2 hidden-step" id="mobileWelcomeText2">
-          <p>Please, use the Mobile Editor mode to fill your hours</p>
-        </div>
+      <!-- Bottom Branding / Footer ("by IXL Team") -->
+      <div class="mobile-launch-footer" id="mobileLaunchFooter">
+        <span class="launch-footer-sub">by</span>
+        <span class="launch-footer-brand">IXL Team</span>
       </div>
 
-      <!-- Bottom Action (appears slowly finally, no auto-dismiss) -->
-      <div class="mobile-welcome-bottom">
-        <div class="mobile-welcome-actions hidden-step" id="mobileWelcomeActions">
-          <button type="button" class="mobile-welcome-btn" id="mobileWelcomeEnterBtn">
-            Tap anywhere to start
-          </button>
-          <span class="mobile-welcome-hint">Tap anywhere to start</span>
-        </div>
-      </div>
+      <!-- Accessible / Test Button -->
+      <button type="button" class="mobile-welcome-btn sr-only" id="mobileWelcomeEnterBtn" aria-label="Open Mobile Editor">
+        Open Mobile Editor
+      </button>
     </div>
   </div>
   <div id="app" class="app-layout">
@@ -1831,6 +1830,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=7.2"></script>
+  <script src="app.js?v=7.3"></script>
 </body>
 </html>
