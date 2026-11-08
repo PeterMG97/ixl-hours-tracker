@@ -8500,12 +8500,12 @@
       }, 350);
     }
 
-    // Logo remains solid without fading; screen holds for 1.6s then smoothly transitions into the app
+    // Logo remains solid without fading; screen holds for 5s then smoothly transitions into the app
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 1600);
+    }, 5000);
 
     // Tap anywhere to skip/enter immediately
     if (enterBtn) {
