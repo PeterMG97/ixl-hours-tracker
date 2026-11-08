@@ -2837,24 +2837,18 @@ body.view-only .task-chip {
   border-color: #93c5fd;
 }
 
-.settings-action-card.admin-card {
-  background: white;
+.settings-action-card.admin-card,
+.settings-action-card.admin-card.unlocked,
+.settings-action-card.unlocked {
+  background: var(--card-bg);
   border-color: var(--border-light);
 }
 
-.settings-action-card.admin-card:hover {
-  background: #f8fafc;
+.settings-action-card.admin-card:hover,
+.settings-action-card.admin-card.unlocked:hover,
+.settings-action-card.unlocked:hover {
+  background: var(--bg-hover);
   border-color: var(--border-medium);
-}
-
-.settings-action-card.admin-card.unlocked {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-}
-
-.settings-action-card.admin-card.unlocked:hover {
-  background: #dcfce7;
-  border-color: #86efac;
 }
 
 .action-card-icon {
@@ -2950,24 +2944,18 @@ body.view-only .task-chip {
   background: rgba(37, 99, 235, 0.25);
 }
 
-[data-theme="dark"] .settings-action-card.admin-card {
-  background: #1e293b;
+[data-theme="dark"] .settings-action-card.admin-card,
+[data-theme="dark"] .settings-action-card.admin-card.unlocked,
+[data-theme="dark"] .settings-action-card.unlocked {
+  background: #111827;
   border-color: var(--border-light);
 }
 
-[data-theme="dark"] .settings-action-card.admin-card:hover {
-  background: #334155;
+[data-theme="dark"] .settings-action-card.admin-card:hover,
+[data-theme="dark"] .settings-action-card.admin-card.unlocked:hover,
+[data-theme="dark"] .settings-action-card.unlocked:hover {
+  background: #1e293b;
   border-color: var(--border-medium);
-}
-
-[data-theme="dark"] .settings-action-card.admin-card.unlocked {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-[data-theme="dark"] .settings-action-card.admin-card.unlocked:hover {
-  background: rgba(16, 185, 129, 0.25);
-  border-color: rgba(16, 185, 129, 0.5);
 }
 
 [data-theme="dark"] .settings-drawer-footer {

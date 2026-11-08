@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.4 in index.html', () => {
-  assert(html.includes('styles.css?v=6.4'), 'styles.css v=6.4 not found');
-  assert(html.includes('app.js?v=6.4'), 'app.js v=6.4 not found');
+test('1.2 Cache buster is v=6.5 in index.html', () => {
+  assert(html.includes('styles.css?v=6.5'), 'styles.css v=6.5 not found');
+  assert(html.includes('app.js?v=6.5'), 'app.js v=6.5 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -132,6 +132,15 @@ test('1.18 Settings drawer: Bulk Fill renamed and unhighlighted', () => {
   assert(html.includes('<strong>Bulk Fill</strong>'), 'Missing Bulk Fill in topbarBulkFillBtn');
   assert(!html.includes('<strong>Bulk Fill Schedule</strong>'), 'Bulk Fill Schedule still present in settings drawer');
 });
+
+test('1.19 Settings drawer: Admin Mode option is unhighlighted across both interfaces in light and dark mode', () => {
+  assert(html.includes('id="adminToggleBtn"'), 'Missing adminToggleBtn in settings drawer');
+  assert(!css.includes('.settings-action-card.admin-card.unlocked {\r\n  background: #f0fdf4;') && !css.includes('.settings-action-card.admin-card.unlocked {\n  background: #f0fdf4;'), 'Light mode unlocked green background still present on admin-card');
+  assert(!css.includes('[data-theme="dark"] .settings-action-card.admin-card.unlocked {\r\n  background: rgba(16, 185, 129') && !css.includes('[data-theme="dark"] .settings-action-card.admin-card.unlocked {\n  background: rgba(16, 185, 129'), 'Dark mode unlocked green background still present on admin-card');
+  assert(css.includes('.settings-action-card.admin-card.unlocked'), 'Missing unhighlighted admin-card unlocked rule');
+  assert(css.includes('[data-theme="dark"] .settings-action-card.admin-card.unlocked'), 'Missing dark mode unhighlighted admin-card unlocked rule');
+});
+
 
 console.log(`\n==========================================================`);
 console.log(` MOBILE PROJECT BROWSER & HOURS STEPPING SUITE COMPLETE: ${passCount} PASSED, 0 FAILED`);
