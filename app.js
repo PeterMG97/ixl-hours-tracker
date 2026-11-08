@@ -8464,7 +8464,6 @@
     if (!isMobileInterface()) return;
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
-    const logoEl = document.getElementById('mobileWelcomeLogo');
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
 
     // Daytime / Night calculation for pure white vs pure black background
@@ -8495,26 +8494,17 @@
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
         }
-      }, 400);
+      }, 350);
     }
 
-    // Step 2: At 550ms, Alstom logo begins buttery-smooth continuous dissolve from right to left
-    // Note: The footer "by IXL Team" remains 100% solid and non-fading throughout this dissolve
-    setTimeout(() => {
-      if (dismissed) return;
-      if (logoEl) {
-        logoEl.classList.add('dissolve-rtl');
-      }
-    }, 550);
-
-    // Step 3: At 2050ms, dissolve completes; the app starts automatically without waiting for any user tap
+    // Logo remains solid without fading; screen holds for 1.6s then smoothly transitions into the app
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 2050);
+    }, 1600);
 
-    // Tap anywhere to skip/enter immediately if user prefers
+    // Tap anywhere to skip/enter immediately
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
         e.stopPropagation();

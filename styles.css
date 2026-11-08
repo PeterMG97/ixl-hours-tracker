@@ -5585,14 +5585,20 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  z-index: 99999;
+  z-index: 999999;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding-top: calc(env(safe-area-inset-top, 24px) + 24px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 32px);
+  padding-left: 24px;
+  padding-right: 24px;
   background: #ffffff !important; /* Pure white by default for day */
-  color: #000000;
+  color: #0f172a;
   opacity: 1;
-  transition: opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
@@ -5623,57 +5629,35 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   }
 }
 
-/* Layout Stage - Full Screen with Native Safe Area */
-.mobile-welcome-stage {
-  position: relative;
+/* Top Spacer for Optical Center Balance */
+.launch-top-spacer {
+  height: 20px;
   width: 100%;
-  height: 100%;
-  box-sizing: border-box;
 }
 
-/* Centered Logo (Positioned slightly above center: top 44%) */
+/* Centered Logo (Shifted slightly above geometric center) */
 .mobile-launch-center {
-  position: absolute;
-  top: 44%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   width: auto;
+  transform: translateY(-16px);
   pointer-events: none;
 }
 
-/* Logo container with buttery-smooth, feather-soft continuous dissolve */
+/* Solid, Non-Fading Alstom Logo */
 .mobile-welcome-brand {
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 1;
-  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 90%, rgba(0,0,0,0) 100%);
-  mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 90%, rgba(0,0,0,0) 100%);
-  -webkit-mask-size: 260% 100%;
-  mask-size: 260% 100%;
-  -webkit-mask-position: 0% 0;
-  mask-position: 0% 0;
-  transition: -webkit-mask-position 1.4s cubic-bezier(0.22, 1, 0.36, 1),
-              mask-position 1.4s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: -webkit-mask-position, mask-position, opacity;
-}
-
-/* Ultra-smooth right-to-left continuous dissolve (M dissolves first, A dissolves last) */
-.mobile-welcome-brand.dissolve-rtl {
-  -webkit-mask-position: 100% 0;
-  mask-position: 100% 0;
-  opacity: 0;
 }
 
 .welcome-wordmark {
-  width: 154px !important;
+  width: 185px !important;
   height: auto !important;
-  max-width: 44vw !important;
+  max-width: 52vw !important;
   display: block;
   object-fit: contain;
   user-select: none;
@@ -5698,33 +5682,30 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   display: block !important;
 }
 
-/* Bottom Footer: "by IXL Team" (small font, completely NON fade-able while logo dissolves) */
+/* Bottom Footer: "by IXL Team" (Clear, High-Contrast, Always Visible) */
 .mobile-launch-footer {
-  position: absolute;
-  bottom: calc(env(safe-area-inset-bottom, 20px) + 32px);
-  left: 0;
-  right: 0;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   pointer-events: none;
-  opacity: 1; /* Non-fadeable from the start */
+  opacity: 1;
 }
 
 .launch-footer-text {
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: #8e8e93;
-  line-height: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #475569;
+  line-height: 1.2;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   user-select: none;
 }
 
 .mobile-welcome-overlay.is-night .launch-footer-text,
 [data-theme="dark"] .mobile-welcome-overlay .launch-footer-text {
-  color: #94a3b8 !important;
+  color: #ffffff !important;
 }
 
 /* Contract Safety Classes */
