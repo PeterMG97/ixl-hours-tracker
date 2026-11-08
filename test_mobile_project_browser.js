@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=7.4 in index.html', () => {
-  assert(html.includes('styles.css?v=7.4'), 'styles.css v=6.5 not found');
-  assert(html.includes('app.js?v=7.4'), 'app.js v=6.5 not found');
+test('1.2 Cache buster is v=7.5 in index.html', () => {
+  assert(html.includes('styles.css?v=7.5'), 'styles.css v=7.5 not found');
+  assert(html.includes('app.js?v=7.5'), 'app.js v=7.5 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -187,7 +187,7 @@ test('1.24 Mobile-only sequential welcome splash screen contracts', () => {
   // CSS Desktop Isolation & Right-to-Left Dissolve
   assert(css.includes('.mobile-welcome-overlay'), 'Missing .mobile-welcome-overlay in styles.css');
   assert(css.includes('display: none !important;'), 'Missing display none !important in styles.css');
-  assert(css.includes('.dissolve-rtl'), 'Missing .dissolve-rtl in styles.css');
+  assert(css.includes('.dissolve-rtl') || css.includes('dissolveLogoRTL'), 'Missing dissolve-rtl in styles.css');
   assert(css.includes('.mobile-launch-footer'), 'Missing .mobile-launch-footer in styles.css');
 
   // JS Lifecycle and Timers (Logo dissolves RTL, app starts without waiting for tap)

@@ -28,7 +28,7 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=7.4">
+  <link rel="stylesheet" href="styles.css?v=7.5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -37,18 +37,11 @@
   <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
   <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
     <div class="mobile-welcome-stage">
-      <!-- Centered Main Logo & Branding (Positioned slightly above center) -->
+      <!-- Centered Main Logo & Branding (Positioned slightly above center at 44%) -->
       <div class="mobile-launch-center">
-        <div class="brand-logo-text welcome-brand-logo-text" id="mobileWelcomeLogo" title="ALSTOM" aria-label="ALSTOM">
-          <span class="alstom-letter let-1">A</span>
-          <span class="alstom-letter let-2">L</span>
-          <span class="alstom-letter let-3">S</span>
-          <span class="alstom-letter let-4">T</span>
-          <span class="alstom-letter let-5"><span class="brand-logo-accent">O</span></span>
-          <span class="alstom-letter let-6">M</span>
-          <!-- Asset references for caching and contract verification -->
-          <img src="alstom-logo-light.png" alt="" class="sr-only" width="1" height="1">
-          <img src="alstom-logo-dark.png" alt="" class="sr-only" width="1" height="1">
+        <div class="mobile-welcome-brand" id="mobileWelcomeLogo" title="ALSTOM" aria-label="ALSTOM">
+          <img src="alstom-logo-light.png" alt="ALSTOM" class="welcome-wordmark brand-wordmark-light" width="154" height="30" loading="eager" decoding="sync">
+          <img src="alstom-logo-dark.png" alt="ALSTOM" class="welcome-wordmark brand-wordmark-dark" width="154" height="30" loading="eager" decoding="sync">
         </div>
       </div>
 
@@ -1825,6 +1818,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=7.4"></script>
+  <script src="app.js?v=7.5"></script>
 </body>
 </html>

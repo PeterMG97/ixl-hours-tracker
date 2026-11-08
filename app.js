@@ -8498,20 +8498,20 @@
       }, 400);
     }
 
-    // Step 2: At 650ms, Alstom logo begins fading out very slowly from right to left (M -> O -> T -> S -> L -> A)
+    // Step 2: At 550ms, Alstom logo begins fading out very slowly from right to left (M -> O -> T -> S -> L -> A)
     setTimeout(() => {
       if (dismissed) return;
       if (logoEl) {
         logoEl.classList.add('dissolve-rtl');
       }
-    }, 650);
+    }, 550);
 
-    // Step 3: At 2100ms, dissolve is complete; the app starts without waiting for any user tap
+    // Step 3: At 2000ms, dissolve finishes; the app starts without waiting for any user tap
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 2100);
+    }, 2000);
 
     // Tap anywhere to skip/enter immediately if user prefers
     if (enterBtn) {

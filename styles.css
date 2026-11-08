@@ -5589,10 +5589,10 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff; /* Pure white by default for day */
-  color: #0f172a;
+  background: #ffffff !important; /* Pure white by default for day */
+  color: #000000;
   opacity: 1;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
@@ -5623,7 +5623,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   }
 }
 
-/* Layout Stage - Full Screen with Safe Area */
+/* Layout Stage - Full Screen with Native Safe Area */
 .mobile-welcome-stage {
   position: relative;
   width: 100%;
@@ -5641,78 +5641,99 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 100%;
+  width: auto;
+  pointer-events: none;
 }
 
-.welcome-brand-logo-text {
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  line-height: 1;
-  color: #002040;
-  user-select: none;
-  display: inline-flex;
+.mobile-welcome-brand {
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-.mobile-welcome-overlay.is-night .welcome-brand-logo-text,
-[data-theme="dark"] .mobile-welcome-overlay .welcome-brand-logo-text {
-  color: #ffffff;
-}
-
-/* Letter Spans & Slow Right-to-Left Dissolve */
-.alstom-letter {
-  display: inline-block;
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.45s ease, transform 0.45s ease;
+  will-change: mask-image, -webkit-mask-image, opacity;
 }
 
-/* Dissolve Right-to-Left: M -> O -> T -> S -> L -> A */
-.dissolve-rtl .let-6 {
-  opacity: 0 !important;
-  transform: translateX(4px) scale(0.96);
-  transition-delay: 0.00s;
+.welcome-wordmark {
+  width: 154px !important;
+  height: auto !important;
+  max-width: 44vw !important;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
 }
-.dissolve-rtl .let-5 {
-  opacity: 0 !important;
-  transform: translateX(4px) scale(0.96);
-  transition-delay: 0.18s;
+
+/* Daytime Light Mode Logo */
+.mobile-welcome-overlay .brand-wordmark-light {
+  display: block !important;
 }
-.dissolve-rtl .let-4 {
-  opacity: 0 !important;
-  transform: translateX(4px) scale(0.96);
-  transition-delay: 0.36s;
+.mobile-welcome-overlay .brand-wordmark-dark {
+  display: none !important;
 }
-.dissolve-rtl .let-3 {
-  opacity: 0 !important;
-  transform: translateX(4px) scale(0.96);
-  transition-delay: 0.54s;
+
+/* Nighttime Dark Mode Logo */
+.mobile-welcome-overlay.is-night .brand-wordmark-light,
+[data-theme="dark"] .mobile-welcome-overlay .brand-wordmark-light {
+  display: none !important;
 }
-.dissolve-rtl .let-2 {
-  opacity: 0 !important;
-  transform: translateX(4px) scale(0.96);
-  transition-delay: 0.72s;
+.mobile-welcome-overlay.is-night .brand-wordmark-dark,
+[data-theme="dark"] .mobile-welcome-overlay .brand-wordmark-dark {
+  display: block !important;
 }
-.dissolve-rtl .let-1 {
-  opacity: 0 !important;
-  transform: translateX(4px) scale(0.96);
-  transition-delay: 0.90s;
+
+/* Slow Right-to-Left Logo Dissolve (M -> O -> T -> S -> L -> A) */
+@keyframes dissolveLogoRTL {
+  0% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 100%);
+    opacity: 1;
+  }
+  15% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 15%, rgba(0,0,0,1) 32%, rgba(0,0,0,1) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 15%, rgba(0,0,0,1) 32%, rgba(0,0,0,1) 100%);
+    opacity: 0.96;
+  }
+  32% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 32%, rgba(0,0,0,1) 50%, rgba(0,0,0,1) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 32%, rgba(0,0,0,1) 50%, rgba(0,0,0,1) 100%);
+    opacity: 0.90;
+  }
+  50% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,1) 68%, rgba(0,0,0,1) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,1) 68%, rgba(0,0,0,1) 100%);
+    opacity: 0.80;
+  }
+  68% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 68%, rgba(0,0,0,1) 85%, rgba(0,0,0,1) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 68%, rgba(0,0,0,1) 85%, rgba(0,0,0,1) 100%);
+    opacity: 0.65;
+  }
+  85% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 85%, rgba(0,0,0,1) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 85%, rgba(0,0,0,1) 100%);
+    opacity: 0.40;
+  }
+  100% {
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 100%);
+    opacity: 0;
+  }
+}
+
+.mobile-welcome-brand.dissolve-rtl {
+  animation: dissolveLogoRTL 1.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 /* Bottom Footer: "from IXL Team" */
 .mobile-launch-footer {
   position: absolute;
-  bottom: calc(env(safe-area-inset-bottom, 20px) + 36px);
+  bottom: calc(env(safe-area-inset-bottom, 20px) + 32px);
   left: 0;
   right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
   text-align: center;
   pointer-events: none;
 }
@@ -5720,25 +5741,28 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 .launch-footer-sub {
   font-size: 12px;
   font-weight: 400;
-  color: #71717a;
-  letter-spacing: 0.03em;
+  color: #8e8e93;
+  letter-spacing: 0.02em;
   line-height: 1;
+  margin-bottom: 3px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .launch-footer-brand {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: #0f172a;
+  color: #000000;
   letter-spacing: -0.01em;
   line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .mobile-welcome-overlay.is-night .launch-footer-brand,
 [data-theme="dark"] .mobile-welcome-overlay .launch-footer-brand {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
-/* Fallback hidden/visible step classes for contract safety */
+/* Contract Safety Classes */
 .hidden-step {
   opacity: 0;
   pointer-events: none;
