@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.5 in index.html', () => {
-  assert(html.includes('styles.css?v=6.5'), 'styles.css v=6.5 not found');
-  assert(html.includes('app.js?v=6.5'), 'app.js v=6.5 not found');
+test('1.2 Cache buster is v=6.6 in index.html', () => {
+  assert(html.includes('styles.css?v=6.6'), 'styles.css v=6.5 not found');
+  assert(html.includes('app.js?v=6.6'), 'app.js v=6.5 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -141,6 +141,16 @@ test('1.19 Settings drawer: Admin Mode option is unhighlighted across both inter
   assert(css.includes('[data-theme="dark"] .settings-action-card.admin-card.unlocked'), 'Missing dark mode unhighlighted admin-card unlocked rule');
 });
 
+
+
+test('1.20 Dark mode: Project analytics period allocation calculator has dark card background and visible text', () => {
+  assert(css.includes('[data-theme="dark"] .project-range-card'), 'Missing dark theme rule for .project-range-card');
+  assert(css.includes('--bg-subtle: #161f30;'), 'Missing dark theme variable --bg-subtle: #161f30');
+  assert(css.includes('--text-main: #f8fafc;'), 'Missing dark theme variable --text-main: #f8fafc');
+  assert(css.includes('[data-theme="dark"] .project-range-card strong'), 'Missing dark theme rule for .project-range-card strong');
+  assert(css.includes('[data-theme="dark"] .project-range-card label'), 'Missing dark theme rule for .project-range-card label');
+  assert(css.includes('[data-theme="dark"] .project-range-card .text-muted'), 'Missing dark theme rule for .project-range-card .text-muted');
+});
 
 console.log(`\n==========================================================`);
 console.log(` MOBILE PROJECT BROWSER & HOURS STEPPING SUITE COMPLETE: ${passCount} PASSED, 0 FAILED`);

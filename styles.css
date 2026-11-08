@@ -16,6 +16,11 @@
   --border-medium: #cbd5e1;
   --border-dark: #94a3b8;
 
+  --bg-subtle: #f8fafc;
+  --bg-surface: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #0f172a;
+
   --success: #10b981;
   --success-soft: #ecfdf5;
   --success-text: #065f46;
@@ -741,6 +746,11 @@ body {
   --border-light: #2d3748;
   --border-medium: #475569;
   --border-dark: #64748b;
+
+  --bg-subtle: #161f30;
+  --bg-surface: #1e293b;
+  --border-color: #2d3748;
+  --text-main: #f8fafc;
 
   --badge-proj-bg: #172554;
   --badge-proj-text: #93c5fd;
@@ -3262,7 +3272,11 @@ body.view-only .task-chip {
 }
 
 /* Project Custom Date Range Period Query Styles */
-.project-range-card {
+.project-range-card,
+.contrib-range-card {
+  background: var(--bg-subtle, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -3275,9 +3289,33 @@ body.view-only .task-chip {
   transition: all 0.2s ease;
 }
 
+[data-theme="dark"] .project-range-card,
+[data-theme="dark"] .contrib-range-card,
+[data-theme="dark"] #contribPeriodResultsArea > div {
+  background: #161f30 !important;
+  border-color: var(--border-light) !important;
+}
+
+[data-theme="dark"] .project-range-card strong,
+[data-theme="dark"] .contrib-range-card strong,
+[data-theme="dark"] #contribPeriodResultsArea strong {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .project-range-card label,
+[data-theme="dark"] .contrib-range-card label {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .project-range-card .text-muted,
+[data-theme="dark"] .contrib-range-card .text-muted,
+[data-theme="dark"] #contribPeriodResultsArea .text-muted {
+  color: #94a3b8 !important;
+}
+
 [data-theme="dark"] .project-range-card.has-active-range {
   border-color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.1) !important;
+  background: rgba(59, 130, 246, 0.15) !important;
 }
 
 [data-theme="dark"] .project-range-summary-badge {
@@ -3286,8 +3324,14 @@ body.view-only .task-chip {
   color: #93c5fd !important;
 }
 
+[data-theme="dark"] #projectPeriodResultsArea,
+[data-theme="dark"] #contribPeriodResultsArea {
+  border-top-color: var(--border-light) !important;
+}
+
 [data-theme="dark"] #projectPeriodResultsArea > div > div,
-[data-theme="dark"] #contribPeriodResultsArea > div > div {
+[data-theme="dark"] #contribPeriodResultsArea > div > div,
+[data-theme="dark"] #contribPeriodResultsArea > div > div > div {
   background: #1e293b !important;
   border-color: #334155 !important;
 }
