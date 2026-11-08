@@ -852,14 +852,17 @@ body {
 [data-theme="dark"] .group-header-row td {
   background: #1e293b !important;
   color: #f8fafc;
-  border-top-color: var(--border-medium);
-  border-bottom-color: var(--border-medium);
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-medium);
+  border-left: none !important;
+  border-right: none !important;
 }
 [data-theme="dark"] .group-header-label-cell,
 [data-theme="dark"] .group-header-metric-cell,
 [data-theme="dark"] .group-header-slot {
   background: #1e293b !important;
-  border-right-color: var(--border-medium) !important;
+  border-left: none !important;
+  border-right: none !important;
   color: #f8fafc;
 }
 [data-theme="dark"] .group-header-row:hover td,
@@ -1475,6 +1478,8 @@ body.is-resizing-columns {
   color: #1e293b;
   border-top: 1px solid var(--border-medium);
   border-bottom: 1px solid var(--border-medium);
+  border-left: none !important;
+  border-right: none !important;
   font-size: 12px;
   letter-spacing: -0.01em;
   transition: background 0.15s ease;
@@ -1492,7 +1497,8 @@ body.is-resizing-columns {
   min-width: var(--user-col-width, 210px) !important;
   max-width: var(--user-col-width, 210px) !important;
   padding: 6px 10px !important;
-  border-right: 2px solid var(--border-medium) !important;
+  border-left: none !important;
+  border-right: none !important;
   white-space: nowrap !important;
   background: #e2e8f0 !important;
   box-sizing: border-box !important;
@@ -1508,7 +1514,8 @@ body.is-resizing-columns {
   max-width: 60px !important;
   text-align: center !important;
   padding: 4px 2px !important;
-  border-right: 2px solid var(--border-medium) !important;
+  border-left: none !important;
+  border-right: none !important;
   background: #e2e8f0 !important;
   box-sizing: border-box !important;
 }
@@ -1517,7 +1524,8 @@ body.is-resizing-columns {
   width: var(--day-col-width, 48px);
   min-width: var(--day-col-width, 48px);
   max-width: var(--day-col-width, 48px);
-  border-right: 1px solid var(--border-medium);
+  border-left: none !important;
+  border-right: none !important;
   padding: 0 !important;
   box-sizing: border-box;
   background: #e2e8f0 !important;
