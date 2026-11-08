@@ -8509,7 +8509,7 @@
       const subColor = shouldUseDark ? '#94a3b8' : '#64748b';
       const brandColor = shouldUseDark ? '#ffffff' : '#0f172a';
       footer.style.fontStyle = 'italic';
-      footer.innerHTML = '<div class="launch-footer-sub" style="display:block !important; width:100% !important; text-align:center !important; font-size:13px !important; font-weight:500 !important; line-height:1.2 !important; font-style:italic !important; color:' + subColor + ' !important;">by</div><div class="launch-footer-brand" style="display:block !important; width:100% !important; text-align:center !important; font-size:16px !important; font-weight:700 !important; line-height:1.25 !important; font-style:italic !important; color:' + brandColor + ' !important;">IXL Team</div>';
+      footer.innerHTML = '<div class="launch-footer-sub" style="display:block !important; width:100% !important; text-align:center !important; font-size:13px !important; font-weight:500 !important; line-height:1.2 !important; font-style:italic !important; color:' + subColor + ' !important;">by</div><div class="launch-footer-brand" style="display:block !important; width:100% !important; text-align:center !important; font-size:16px !important; font-weight:500 !important; line-height:1.25 !important; font-style:italic !important; color:' + brandColor + ' !important;">IXL Team</div>';
     }
 
     // Overlay is already visible from HTML & critical CSS without FOUC
