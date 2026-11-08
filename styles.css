@@ -5589,19 +5589,13 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: rgba(248, 250, 252, 0.98);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: radial-gradient(circle at 50% 16%, #152238 0%, #0a1120 48%, #050811 100%);
   opacity: 1;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-}
-
-[data-theme="dark"] .mobile-welcome-overlay {
-  background: rgba(11, 17, 32, 0.98);
+  overflow: hidden;
 }
 
 .mobile-welcome-overlay.hidden {
@@ -5610,6 +5604,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 
 .mobile-welcome-overlay.fade-out {
   opacity: 0;
+  transform: scale(1.02);
   pointer-events: none;
 }
 
@@ -5621,32 +5616,66 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   }
 }
 
-.mobile-welcome-card {
+/* Atmospheric Star Texture */
+.welcome-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 24px 32px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 96px 144px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 210px 72px, rgba(255,255,255,0.85), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 305px 210px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 64px 285px, rgba(255,255,255,0.65), rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 170px 335px, rgba(255,255,255,0.85), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 275px 415px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 38px 480px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 145px 550px, rgba(255,255,255,0.75), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 285px 610px, rgba(255,255,255,0.85), rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 340px 680px;
+  opacity: 0.65;
+  animation: welcomeStarsFloat 18s ease-in-out infinite alternate;
+}
+
+@keyframes welcomeStarsFloat {
+  0% { transform: translateY(0px) scale(1); }
+  100% { transform: translateY(-8px) scale(1.01); }
+}
+
+/* Layout Stage */
+.mobile-welcome-stage {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  max-width: 400px;
+  height: 100%;
+  max-width: 440px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  padding: calc(env(safe-area-inset-top, 20px) + 36px) 24px calc(env(safe-area-inset-bottom, 20px) + 28px);
+  box-sizing: border-box;
   text-align: center;
-  padding: 36px 24px 28px;
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 20px;
-  box-shadow: 0 20px 45px -10px rgba(0, 32, 64, 0.12), 0 8px 20px -6px rgba(0, 32, 64, 0.08);
 }
 
-[data-theme="dark"] .mobile-welcome-card {
-  background: #161f30;
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6), 0 8px 20px -6px rgba(0, 0, 0, 0.4);
-}
-
+/* Brand Logo (Always white letters with red O on dark atmospheric background) */
 .mobile-welcome-brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 50px;
-  margin-bottom: 24px;
+  min-height: 48px;
+  padding-top: 10px;
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.16));
+}
+
+.mobile-welcome-overlay .brand-wordmark-light {
+  display: none !important;
+}
+
+.mobile-welcome-overlay .brand-wordmark-dark {
+  display: block !important;
 }
 
 .welcome-wordmark {
@@ -5660,7 +5689,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1;
-  color: #002040;
+  color: #ffffff;
   user-select: none;
   display: inline-flex;
   align-items: center;
@@ -5668,88 +5697,148 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-[data-theme="dark"] .welcome-brand-logo-text {
-  color: #ffffff;
-}
-
 .welcome-text-fallback {
   display: none;
 }
 
+/* Center Stage Content */
+.mobile-welcome-center {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.mobile-welcome-greeting {
+  font-size: 27px;
+  font-weight: 400;
+  color: #e2e8f0;
+  line-height: 1.25;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.welcome-greeting-name {
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+}
+
 .mobile-welcome-text-1 {
-  margin-bottom: 14px;
+  margin: 12px 0 16px;
 }
 
 .mobile-welcome-text-1 h2 {
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: #f8fafc;
   line-height: 1.35;
   margin: 0;
   letter-spacing: -0.01em;
-}
-
-[data-theme="dark"] .mobile-welcome-text-1 h2 {
-  color: #f8fafc;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
 }
 
 .mobile-welcome-text-2 {
-  margin-bottom: 28px;
+  margin-bottom: 8px;
 }
 
 .mobile-welcome-text-2 p {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: #475569;
-  line-height: 1.5;
+  color: #cbd5e1;
+  line-height: 1.45;
   margin: 0;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 99px;
+  display: inline-block;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-[data-theme="dark"] .mobile-welcome-text-2 p {
+/* Bottom Progress & Tray */
+.mobile-welcome-bottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+
+.welcome-progress-track {
+  width: 220px;
+  max-width: 80%;
+  height: 3.5px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+
+.welcome-progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #e01a22 0%, #38bdf8 100%);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.85);
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.welcome-status-caption {
+  font-size: 13px;
   color: #94a3b8;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  min-height: 20px;
+  opacity: 1;
+  transition: opacity 0.35s ease;
 }
 
 .mobile-welcome-actions {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+  margin-top: 6px;
 }
 
 .mobile-welcome-btn {
   width: 100%;
-  max-width: 260px;
-  padding: 13px 24px;
-  font-size: 15px;
+  max-width: 240px;
+  padding: 12px 22px;
+  font-size: 14.5px;
   font-weight: 600;
   color: #ffffff;
-  background: #002040;
-  border: 1px solid rgba(0, 32, 64, 0.2);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 99px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 32, 64, 0.2);
-  transition: transform 0.15s ease, background-color 0.15s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.mobile-welcome-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .mobile-welcome-btn:active {
-  transform: scale(0.97);
-}
-
-[data-theme="dark"] .mobile-welcome-btn {
-  background: #2563eb;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  transform: scale(0.96);
 }
 
 .mobile-welcome-hint {
   font-size: 12px;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-[data-theme="dark"] .mobile-welcome-hint {
   color: #64748b;
+  font-weight: 500;
 }
 
 /* Sequential Transition Animations */
@@ -5757,7 +5846,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   opacity: 0;
   transform: translateY(14px);
   pointer-events: none;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .visible-step {

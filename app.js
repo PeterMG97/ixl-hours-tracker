@@ -8464,15 +8464,54 @@
     if (!isMobileInterface()) return;
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
+    const greetingEl = document.getElementById('mobileWelcomeGreeting');
     const text1 = document.getElementById('mobileWelcomeText1');
     const text2 = document.getElementById('mobileWelcomeText2');
     const actions = document.getElementById('mobileWelcomeActions');
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
+    const progressFill = document.getElementById('mobileWelcomeProgress');
+    const statusText = document.getElementById('mobileWelcomeStatus');
+
+    // Dynamic greeting calculation
+    const hr = new Date().getHours();
+    let timeGreeting = 'Good evening';
+    if (hr >= 5 && hr < 12) timeGreeting = 'Good morning';
+    else if (hr >= 12 && hr < 18) timeGreeting = 'Good afternoon';
+
+    // Check user profile for personalized first name
+    let firstName = '';
+    try {
+      let savedUserId = state.currentUserId || localStorage.getItem('ixl_user_id');
+      if (savedUserId && state.teamMembers) {
+        const member = state.teamMembers.find(m => m.id === savedUserId);
+        if (member && member.name) {
+          firstName = member.name.trim().split(' ')[0];
+        }
+      }
+    } catch (e) {}
+
+    if (greetingEl) {
+      if (firstName) {
+        greetingEl.innerHTML = timeGreeting + ', <span class="welcome-greeting-name">' + escapeHtml(firstName) + '</span>';
+      } else {
+        greetingEl.innerHTML = timeGreeting + ', <span class="welcome-greeting-name">Team</span>';
+      }
+    }
 
     overlay.classList.remove('hidden');
 
     let dismissed = false;
     let autoDismissTimer = null;
+
+    function setStatus(text) {
+      if (!statusText || dismissed) return;
+      statusText.style.opacity = '0';
+      setTimeout(() => {
+        if (dismissed) return;
+        statusText.textContent = text;
+        statusText.style.opacity = '1';
+      }, 250);
+    }
 
     function dismissWelcome() {
       if (dismissed) return;
@@ -8489,19 +8528,29 @@
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
         }
-      }, 400);
+      }, 500);
     }
 
-    // Step 2: After 1 second timer, Text 1 appears slowly
+    // Dynamic Progress & Sequential Fade Sequence
+    if (progressFill) progressFill.style.width = '20%';
+
+    setTimeout(() => {
+      if (dismissed) return;
+      if (progressFill) progressFill.style.width = '48%';
+    }, 600);
+
+    // Step 2: At 1000ms, Text 1 fades in smoothly
     setTimeout(() => {
       if (dismissed) return;
       if (text1) {
         text1.classList.remove('hidden-step');
         text1.classList.add('visible-step');
       }
+      if (progressFill) progressFill.style.width = '70%';
+      setStatus('Preparing Mobile Editor...');
     }, 1000);
 
-    // Step 3: After another 1 second timer (2s total), Text 2 & actions appear slowly
+    // Step 3: At 2000ms, Text 2 & actions fade in smoothly
     setTimeout(() => {
       if (dismissed) return;
       if (text2) {
@@ -8512,11 +8561,20 @@
         actions.classList.remove('hidden-step');
         actions.classList.add('visible-step');
       }
-      // Auto-dismiss after user has had 3.5 seconds to read
-      autoDismissTimer = setTimeout(() => {
-        dismissWelcome();
-      }, 3500);
+      if (progressFill) progressFill.style.width = '95%';
+      setStatus('Ready!');
     }, 2000);
+
+    // Full progress complete
+    setTimeout(() => {
+      if (dismissed) return;
+      if (progressFill) progressFill.style.width = '100%';
+    }, 2800);
+
+    // Auto-dismiss after user has had 3.6s to view
+    autoDismissTimer = setTimeout(() => {
+      dismissWelcome();
+    }, 4500);
 
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
