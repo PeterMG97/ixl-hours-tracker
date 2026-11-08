@@ -7542,7 +7542,7 @@
       if (gridCard) gridCard.classList.remove('hidden');
       if (notice) notice.classList.remove('hidden');
       document.body.classList.add('mobile-readonly-grid');
-      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Return to Mobile Card View';
+      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Mobile Editor';
       // Default to minimum cell width when opening grid view on mobile
       setDayColumnWidth(38, true);
     } else {
@@ -7551,7 +7551,7 @@
       if (gridCard) gridCard.classList.add('hidden');
       if (notice) notice.classList.add('hidden');
       document.body.classList.remove('mobile-readonly-grid');
-      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Grid Mode';
+      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Grid View';
       renderMobileView();
     }
   }
@@ -8426,9 +8426,9 @@
         toggleSettingsDrawer(false);
         updateDeviceViewMode();
         if (state.mobileViewMode === 'grid') {
-          showToast('Switched to Grid Mode (Read-Only for visualization).');
+          showToast('Switched to Grid View (Read-Only for visualization).');
         } else {
-          showToast('Returned to Mobile Schedule Logger.');
+          showToast('Switched to Mobile Editor.');
         }
       });
     }

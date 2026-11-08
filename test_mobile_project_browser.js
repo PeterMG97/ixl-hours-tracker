@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.3 in index.html', () => {
-  assert(html.includes('styles.css?v=6.3'), 'styles.css v=6.3 not found');
-  assert(html.includes('app.js?v=6.3'), 'app.js v=6.3 not found');
+test('1.2 Cache buster is v=6.4 in index.html', () => {
+  assert(html.includes('styles.css?v=6.4'), 'styles.css v=6.4 not found');
+  assert(html.includes('app.js?v=6.4'), 'app.js v=6.4 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -96,10 +96,12 @@ test('1.13 Settings drawer: Month-End Audit renamed to Monthly Audit', () => {
   assert(!html.includes('<strong>Month-End Audit</strong>'), 'Month-End Audit still present in index.html');
 });
 
-test('1.14 Settings drawer: Desktop grid toggle renamed to Grid Mode', () => {
-  assert(html.includes('<strong id="toggleMobileDesktopGridLabel">Grid Mode</strong>'), 'Missing Grid Mode in index.html');
-  assert(js.includes("el.toggleMobileDesktopGridLabel.textContent = 'Grid Mode'"), 'Missing Grid Mode in app.js');
+test('1.14 Settings drawer: Desktop grid toggle renamed to Grid View and Mobile Editor', () => {
+  assert(html.includes('<strong id="toggleMobileDesktopGridLabel">Grid View</strong>'), 'Missing Grid View in index.html');
+  assert(js.includes("el.toggleMobileDesktopGridLabel.textContent = 'Grid View'"), 'Missing Grid View in app.js');
+  assert(js.includes("el.toggleMobileDesktopGridLabel.textContent = 'Mobile Editor'"), 'Missing Mobile Editor in app.js');
   assert(!html.includes('View Full Desktop Grid (Read-Only)'), 'View Full Desktop Grid still present in index.html');
+  assert(!js.includes('Return to Mobile Card View'), 'Return to Mobile Card View still present in app.js');
 });
 
 test('1.15 Settings drawer: Projects & WBS renamed to Projects and Tenders', () => {
