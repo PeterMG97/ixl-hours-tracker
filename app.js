@@ -33,11 +33,14 @@
     try {
       localStorage.setItem(key, val);
     } catch (e) {}
-    try {
-      // 1-year persistent cookie, SameSite=Lax, path=/
-      const maxAge = 60 * 60 * 24 * 365;
-      document.cookie = `${key}=${encodeURIComponent(val)}; max-age=${maxAge}; path=/; SameSite=Lax`;
-    } catch (e) {}
+    // STRICT SAFEGUARD: Only store small identity flags in cookies (< 500 chars).
+    // Never store large database payloads or project states in cookies to prevent HTTP 431 / 400 on CDNs.
+    if (typeof val === 'string' && val.length < 500 && !key.includes('database') && !key.includes('starred') && !key.includes('state')) {
+      try {
+        const maxAge = 60 * 60 * 24 * 365;
+        document.cookie = `${key}=${encodeURIComponent(val)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+      } catch (e) {}
+    }
   }
 
   function removeStoredItem(key) {
@@ -7431,14 +7434,16 @@
       '2027-12': '12/2027 - December 2027'
     };
 
-    Array.from(el.monthSelect.options).forEach(opt => {
+    if (!el.monthSelect || !el.monthSelect.options) return;
+    for (let i = 0; i < el.monthSelect.options.length; i++) {
+      const opt = el.monthSelect.options[i];
       const val = opt.value;
       if (isMobile) {
         if (shortMonths[val]) opt.textContent = shortMonths[val];
       } else {
         if (fullMonths[val]) opt.textContent = fullMonths[val];
       }
-    });
+    }
   }
 
   function updateDeviceViewMode() {
@@ -8242,6 +8247,7 @@
     // Boot Application
   initTheme();
   initColumnWidths();
+  updateDeviceViewMode(); // Instant unhide and layout calculation for mobile before network
   initMobileEventListeners();
   initDmyDateInputs();
   initAuditEvents();

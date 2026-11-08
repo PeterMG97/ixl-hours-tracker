@@ -18,9 +18,17 @@
         }
         document.documentElement.setAttribute('data-theme', eff);
       } catch(e) {}
+      // Clear legacy oversized database cookies that cause HTTP 431 on mobile networks
+      try {
+        var badCookies = ['ixl_database_state_v1', 'ixl_user_starred_projects'];
+        for (var i = 0; i < badCookies.length; i++) {
+          document.cookie = badCookies[i] + '=; max-age=0; path=/; SameSite=Lax';
+          document.cookie = badCookies[i] + '=; max-age=0; path=/';
+        }
+      } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=5.0">
+  <link rel="stylesheet" href="styles.css?v=5.1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1810,6 +1818,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=5.0"></script>
+  <script src="app.js?v=5.1"></script>
 </body>
 </html>
