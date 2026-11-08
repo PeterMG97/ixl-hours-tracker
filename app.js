@@ -8456,7 +8456,81 @@
   }
 
 
-    // Boot Application
+    
+  // -------------------------------------------------------------
+  // Mobile Welcome Splash Screen (Mobile Interface Only)
+  // -------------------------------------------------------------
+  function initMobileWelcomeScreen() {
+    if (!isMobileInterface()) return;
+    const overlay = document.getElementById('mobileWelcomeOverlay');
+    if (!overlay) return;
+    const text1 = document.getElementById('mobileWelcomeText1');
+    const text2 = document.getElementById('mobileWelcomeText2');
+    const actions = document.getElementById('mobileWelcomeActions');
+    const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
+
+    overlay.classList.remove('hidden');
+
+    let dismissed = false;
+    let autoDismissTimer = null;
+
+    function dismissWelcome() {
+      if (dismissed) return;
+      dismissed = true;
+      if (autoDismissTimer) {
+        clearTimeout(autoDismissTimer);
+        autoDismissTimer = null;
+      }
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('fade-out');
+        if (state.mobileViewMode !== 'form') {
+          state.mobileViewMode = 'form';
+          updateDeviceViewMode();
+        }
+      }, 400);
+    }
+
+    // Step 2: After 1 second timer, Text 1 appears slowly
+    setTimeout(() => {
+      if (dismissed) return;
+      if (text1) {
+        text1.classList.remove('hidden-step');
+        text1.classList.add('visible-step');
+      }
+    }, 1000);
+
+    // Step 3: After another 1 second timer (2s total), Text 2 & actions appear slowly
+    setTimeout(() => {
+      if (dismissed) return;
+      if (text2) {
+        text2.classList.remove('hidden-step');
+        text2.classList.add('visible-step');
+      }
+      if (actions) {
+        actions.classList.remove('hidden-step');
+        actions.classList.add('visible-step');
+      }
+      // Auto-dismiss after user has had 3.5 seconds to read
+      autoDismissTimer = setTimeout(() => {
+        dismissWelcome();
+      }, 3500);
+    }, 2000);
+
+    if (enterBtn) {
+      enterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dismissWelcome();
+      });
+    }
+
+    overlay.addEventListener('click', () => {
+      dismissWelcome();
+    });
+  }
+
+  // Boot Application
   initTheme();
   initColumnWidths();
   updateDeviceViewMode(); // Instant unhide and layout calculation for mobile before network
@@ -8464,6 +8538,7 @@
   initDmyDateInputs();
   initAuditEvents();
   initAuditHistory();
+  initMobileWelcomeScreen();
   loadData();
 
 })();

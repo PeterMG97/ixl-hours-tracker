@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.9 in index.html', () => {
-  assert(html.includes('styles.css?v=6.9'), 'styles.css v=6.5 not found');
-  assert(html.includes('app.js?v=6.9'), 'app.js v=6.5 not found');
+test('1.2 Cache buster is v=7.0 in index.html', () => {
+  assert(html.includes('styles.css?v=7.0'), 'styles.css v=6.5 not found');
+  assert(html.includes('app.js?v=7.0'), 'app.js v=6.5 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -171,7 +171,33 @@ test('1.22 Settings drawer: Grid View description is Grid read-only view and Mob
 test('1.23 Audit month select options use 3-letter month and year format (ex: Nov/2026)', () => {
   assert(js.includes("{ ym: '2026-11', label: 'Nov/2026' }"), 'Missing Nov/2026 label in app.js');
   assert(js.includes("{ ym: '2026-12', label: 'Dec/2026' }"), 'Missing Dec/2026 label in app.js');
-  assert(!js.includes("'11/2026 - November 2026 (Start)'"), 'Old long label still present in app.js');
+  const auditPopulateIdx = js.indexOf('function populateAuditMonthSelect');
+  const auditFnCode = js.substring(auditPopulateIdx, auditPopulateIdx + 800);
+  assert(!auditFnCode.includes('11/2026 - November 2026 (Start)'), 'Old long label still present in populateAuditMonthSelect');
+});
+
+test('1.24 Mobile-only sequential welcome splash screen contracts', () => {
+  // HTML Structure
+  assert(html.includes('id="mobileWelcomeOverlay"'), 'Missing mobileWelcomeOverlay in index.html');
+  assert(html.includes('id="mobileWelcomeLogo"'), 'Missing mobileWelcomeLogo in index.html');
+  assert(html.includes('alstom-logo-light.png') && html.includes('alstom-logo-dark.png'), 'Missing Alstom logo images in index.html');
+  assert(html.includes('Welcome to the IXL Project Allocation Tool!'), 'Missing Text 1 in index.html');
+  assert(html.includes('Please, use the Mobile Editor mode to fill your hours'), 'Missing Text 2 in index.html');
+  assert(html.includes('id="mobileWelcomeEnterBtn"'), 'Missing mobileWelcomeEnterBtn in index.html');
+
+  // CSS Desktop Isolation & Animations
+  assert(css.includes('.mobile-welcome-overlay'), 'Missing .mobile-welcome-overlay in styles.css');
+  assert(css.includes('display: none !important;'), 'Missing display none !important in styles.css');
+  assert(css.includes('.hidden-step'), 'Missing .hidden-step in styles.css');
+  assert(css.includes('.visible-step'), 'Missing .visible-step in styles.css');
+
+  // JS Lifecycle and Timers
+  assert(js.includes('function initMobileWelcomeScreen'), 'Missing initMobileWelcomeScreen function in app.js');
+  assert(js.includes('if (!isMobileInterface()) return;'), 'Missing mobile interface guard in initMobileWelcomeScreen');
+  assert(js.includes('1000'), 'Missing 1000ms timer for step 2 in app.js');
+  assert(js.includes('2000'), 'Missing 2000ms timer for step 3 in app.js');
+  assert(js.includes('dismissWelcome'), 'Missing dismissWelcome logic in app.js');
+  assert(js.includes('initMobileWelcomeScreen();'), 'Missing initMobileWelcomeScreen boot call in app.js');
 });
 
 console.log(`\n==========================================================`);
