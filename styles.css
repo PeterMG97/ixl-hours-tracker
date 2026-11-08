@@ -850,19 +850,23 @@ body {
   color: #f8fafc;
 }
 [data-theme="dark"] .group-header-row td {
-  background: #1e293b;
+  background: #1e293b !important;
   color: #f8fafc;
   border-top-color: var(--border-medium);
-  border-bottom-color: var(--border-light);
+  border-bottom-color: var(--border-medium);
 }
 [data-theme="dark"] .group-header-label-cell,
-[data-theme="dark"] .group-header-metric-cell {
+[data-theme="dark"] .group-header-metric-cell,
+[data-theme="dark"] .group-header-slot {
   background: #1e293b !important;
   border-right-color: var(--border-medium) !important;
   color: #f8fafc;
 }
-[data-theme="dark"] .group-header-row:hover td {
-  background: #334155;
+[data-theme="dark"] .group-header-row:hover td,
+[data-theme="dark"] .group-header-row:hover .group-header-label-cell,
+[data-theme="dark"] .group-header-row:hover .group-header-metric-cell,
+[data-theme="dark"] .group-header-row:hover .group-header-slot {
+  background: #334155 !important;
 }
 [data-theme="dark"] .group-toggle-icon {
   background: rgba(255, 255, 255, 0.1);
@@ -1466,11 +1470,11 @@ body.is-resizing-columns {
 }
 
 .group-header-row td {
-  background: #f1f5f9;
+  background: #e2e8f0 !important;
   font-weight: 700;
   color: #1e293b;
   border-top: 1px solid var(--border-medium);
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-medium);
   font-size: 12px;
   letter-spacing: -0.01em;
   transition: background 0.15s ease;
@@ -1488,9 +1492,9 @@ body.is-resizing-columns {
   min-width: var(--user-col-width, 210px) !important;
   max-width: var(--user-col-width, 210px) !important;
   padding: 6px 10px !important;
-  border-right: 2px solid var(--border-light) !important;
+  border-right: 2px solid var(--border-medium) !important;
   white-space: nowrap !important;
-  background: #f1f5f9 !important;
+  background: #e2e8f0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
 }
@@ -1504,8 +1508,8 @@ body.is-resizing-columns {
   max-width: 60px !important;
   text-align: center !important;
   padding: 4px 2px !important;
-  border-right: 2px solid var(--border-light) !important;
-  background: #f1f5f9 !important;
+  border-right: 2px solid var(--border-medium) !important;
+  background: #e2e8f0 !important;
   box-sizing: border-box !important;
 }
 
@@ -1513,17 +1517,17 @@ body.is-resizing-columns {
   width: var(--day-col-width, 48px);
   min-width: var(--day-col-width, 48px);
   max-width: var(--day-col-width, 48px);
-  border-right: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-medium);
   padding: 0 !important;
   box-sizing: border-box;
+  background: #e2e8f0 !important;
 }
 
-.group-header-slot.is-weekend {
-  background-color: var(--weekend-bg);
-}
-
-.group-header-row:hover td {
-  background: #e2e8f0;
+.group-header-row:hover td,
+.group-header-row:hover .group-header-label-cell,
+.group-header-row:hover .group-header-metric-cell,
+.group-header-row:hover .group-header-slot {
+  background: #cbd5e1 !important;
 }
 
 .group-header-content {
@@ -1573,8 +1577,8 @@ body.is-resizing-columns {
   padding: 2px 7px;
   border-radius: 12px;
   line-height: 1.2;
-  background: #e2e8f0;
-  color: #475569;
+  background: #cbd5e1;
+  color: #1e293b;
 }
 
 /* User Row Collapsed State */

@@ -1368,10 +1368,7 @@
             <span class="group-badge">${secEmployees.length}</span>
           </td>
           ${days.map(d => {
-            const isHoli = isWeekendForLocation(d.dow, sec.location);
-            const todayCls = d.isToday ? 'is-today' : '';
-            const holiCls = isHoli ? 'is-weekend' : '';
-            return `<td class="group-header-cell group-header-slot ${todayCls} ${holiCls}"></td>`;
+            return `<td class="group-header-cell group-header-slot"></td>`;
           }).join('')}
         </tr>
       ` + secRowsHtml;
