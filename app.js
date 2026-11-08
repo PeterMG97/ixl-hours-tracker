@@ -7732,8 +7732,43 @@
     if (!el.mobileProjectPillList) return;
     const isAdminUser = state.isAdmin && isCurrentUserPeter();
     const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
-    const q = (query || '').toLowerCase();
+    const q = (query || '').toLowerCase().trim();
     const cat = state.mobileCategory || 'all';
+    const curVal = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
+
+    const specialItems = [];
+    if (cat === 'all' || cat === 'Special') {
+      if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
+        specialItems.push({
+          name: 'Day OFF',
+          val: 'Day OFF',
+          tag: 'OFF',
+          tagClass: 'tag-dayoff',
+          sub: 'No hours / Holiday / Leave',
+          isClear: false
+        });
+      }
+      if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
+        specialItems.push({
+          name: 'NO PROJECT',
+          val: 'NO PROJECT',
+          tag: 'NO PROJ',
+          tagClass: 'tag-noproj',
+          sub: 'Unassigned / Waiting for Project',
+          isClear: false
+        });
+      }
+      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || '[clear / delete hours]'.includes(q)) {
+        specialItems.push({
+          name: '[CLEAR / DELETE HOURS]',
+          val: '__CLEAR__',
+          tag: 'CLEAR',
+          tagClass: 'tag-clear',
+          sub: 'Remove allocated hours for selected date(s)',
+          isClear: true
+        });
+      }
+    }
 
     const filtered = state.projects.filter(p => {
       if (p.active === false) return false;
@@ -7746,7 +7781,7 @@
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    if (filtered.length === 0) {
+    if (specialItems.length === 0 && filtered.length === 0) {
       el.mobileProjectPillList.innerHTML = `
         <div class="empty-starred-hint">
           ${cat === 'starred' ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it.' : 'No matching projects found.'}
@@ -7755,20 +7790,46 @@
       return;
     }
 
-    el.mobileProjectPillList.innerHTML = filtered.map(p => {
+    let itemsHtml = '';
+
+    // 1. Render Special Actions (Day OFF, NO PROJECT, [CLEAR / DELETE HOURS])
+    if (specialItems.length > 0) {
+      itemsHtml += specialItems.map(item => {
+        const isSelected = (curVal === item.val);
+        return `
+          <div class="proj-item is-special-action ${item.isClear ? 'is-special-clear' : ''} ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
+            <div class="proj-item-main" style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="special-action-tag ${item.tagClass}">${item.tag}</span>
+                <strong ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.name)}</strong>
+              </div>
+              <span class="item-wbs" ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.sub)}</span>
+            </div>
+            ${isSelected ? `<span class="proj-selected-badge ${item.isClear ? 'is-badge-danger' : ''}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Render Projects
+    itemsHtml += filtered.map(p => {
       const starred = isProjectStarred(p.name, empId);
+      const isSelected = (curVal === p.name);
       return `
-        <div class="proj-item ${starred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
+        <div class="proj-item ${starred ? 'is-starred-item' : ''} ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(p.name)}">
           <div class="proj-item-main" style="flex:1; min-width:0;">
             <strong>${escapeHtml(p.name)}</strong>
             ${p.wbs ? `<span class="item-wbs">WBS: ${escapeHtml(p.wbs)}</span>` : ''}
           </div>
+          ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
           <button type="button" class="btn-star-toggle ${starred ? 'is-starred' : ''}" data-project="${encodeURIComponent(p.name)}" title="${starred ? 'Remove from Starred' : 'Add to Starred'}" aria-label="Toggle Star">
             ${renderStarSvgHtml(starred, 15)}
           </button>
         </div>
       `;
     }).join('');
+
+    el.mobileProjectPillList.innerHTML = itemsHtml;
 
     el.mobileProjectPillList.querySelectorAll('.proj-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -7779,6 +7840,25 @@
           updateMobileStarBtnState();
           renderMobileStarredChips();
         }
+        // In-place UI selection update
+        el.mobileProjectPillList.querySelectorAll('.proj-item').forEach(pi => {
+          const isMatch = pi.getAttribute('data-val') === pName;
+          pi.classList.toggle('is-selected-proj', isMatch);
+          const existingBadge = pi.querySelector('.proj-selected-badge');
+          if (isMatch && !existingBadge) {
+            const badge = document.createElement('span');
+            badge.className = pName === '__CLEAR__' ? 'proj-selected-badge is-badge-danger' : 'proj-selected-badge';
+            badge.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected';
+            const starBtn = pi.querySelector('.btn-star-toggle');
+            if (starBtn) {
+              pi.insertBefore(badge, starBtn);
+            } else {
+              pi.appendChild(badge);
+            }
+          } else if (!isMatch && existingBadge) {
+            existingBadge.remove();
+          }
+        });
       });
       const starBtn = item.querySelector('.btn-star-toggle');
       if (starBtn) {
@@ -7996,7 +8076,12 @@
           if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(dStr);
           if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(dStr);
           updateMobileHolidayTreatmentVisibility();
-          if (el.mobileProjectSelect && pName) el.mobileProjectSelect.value = pName;
+          if (el.mobileProjectSelect && pName) {
+            el.mobileProjectSelect.value = pName;
+            if (el.mobileProjectPillList) {
+              renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
+            }
+          }
           if (el.mobileHoursInput && hVal && Number(hVal) > 0) el.mobileHoursInput.value = hVal;
 
           if (el.mobileLoggerCard) {

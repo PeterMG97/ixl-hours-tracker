@@ -5407,3 +5407,103 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   line-height: 1.5;
 }
 
+
+
+/* Mobile Logger: Rely entirely on Browse & Star Projects List */
+.mobile-logger-card .mobile-legacy-proj-label,
+.mobile-logger-card .starred-quick-container,
+.mobile-logger-card .project-select-with-star,
+#mobileToggleBrowserBtn {
+  display: none !important;
+}
+
+#mobileBrowserContent {
+  display: block !important;
+}
+
+.mobile-project-browser {
+  margin-top: 4px;
+}
+
+.mobile-project-list {
+  max-height: 240px;
+}
+
+.proj-item.is-selected-proj {
+  background: #eff6ff !important;
+  border-left: 4px solid var(--primary) !important;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="dark"] .proj-item.is-selected-proj {
+  background: rgba(37, 99, 235, 0.18) !important;
+  border-left: 4px solid #3b82f6 !important;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+.proj-selected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.proj-selected-badge.is-badge-danger {
+  background: #ef4444;
+}
+
+[data-theme="dark"] .proj-selected-badge {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .proj-selected-badge.is-badge-danger {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.special-action-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.special-action-tag.tag-dayoff {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.special-action-tag.tag-noproj {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.special-action-tag.tag-clear {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+[data-theme="dark"] .special-action-tag.tag-dayoff {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .special-action-tag.tag-noproj {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+
+[data-theme="dark"] .special-action-tag.tag-clear {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
