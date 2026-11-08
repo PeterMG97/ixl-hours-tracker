@@ -2940,22 +2940,26 @@
 
   if (el.popoverHoursInput) {
     el.popoverHoursInput.addEventListener('change', () => {
-      let val = parseFloat(el.popoverHoursInput.value);
+      let val = Math.round(parseFloat(el.popoverHoursInput.value));
       if (isNaN(val) || val < 1) {
         el.popoverHoursInput.value = 1;
       } else if (val > 12) {
         el.popoverHoursInput.value = 12;
+      } else {
+        el.popoverHoursInput.value = val;
       }
     });
   }
 
   if (el.bulkHoursInput) {
     el.bulkHoursInput.addEventListener('change', () => {
-      let val = parseFloat(el.bulkHoursInput.value);
+      let val = Math.round(parseFloat(el.bulkHoursInput.value));
       if (isNaN(val) || val < 1) {
         el.bulkHoursInput.value = 1;
       } else if (val > 12) {
         el.bulkHoursInput.value = 12;
+      } else {
+        el.bulkHoursInput.value = val;
       }
     });
   }
@@ -3920,7 +3924,7 @@
           <td>${dayNames[item.dow]}</td>
           <td>${scheduleTag}</td>
           <td>
-            <input type="number" class="form-control form-control-sm text-center row-hours-input" min="1" max="12" step="0.5" value="${Math.min(12, Math.max(1, Number(item.allocHours) || 8))}">
+            <input type="number" class="form-control form-control-sm text-center row-hours-input" min="1" max="12" step="1" value="${Math.min(12, Math.max(1, Number(item.allocHours) || 8))}">
           </td>
           <td>
             <select class="form-control form-control-sm row-project-select">
@@ -8123,7 +8127,8 @@
     const toStr = parseDateInputToISO(rawTo);
     const proj = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
     const rawHours = el.mobileHoursInput ? el.mobileHoursInput.value : '8';
-    const hours = sanitizeDayHours(proj, rawHours, emp ? emp.defaultHoursPerDay : 8);
+    const roundedHours = Math.round(parseFloat(rawHours) || (emp ? emp.defaultHoursPerDay : 8));
+    const hours = sanitizeDayHours(proj, roundedHours, emp ? emp.defaultHoursPerDay : 8);
 
     const holidayOptionEl = document.querySelector('input[name="mobileHolidayOption"]:checked');
     const holidayOption = holidayOptionEl ? holidayOptionEl.value : 'dayoff';
@@ -8380,7 +8385,21 @@
       el.mobileToDate.addEventListener('change', updateMobileHolidayTreatmentVisibility);
     }
 
-    // Quick hour pills
+    // Mobile hours input integer stepping & clamping
+    if (el.mobileHoursInput) {
+      el.mobileHoursInput.addEventListener('change', () => {
+        let val = Math.round(parseFloat(el.mobileHoursInput.value));
+        if (isNaN(val) || val < 1) {
+          el.mobileHoursInput.value = 1;
+        } else if (val > 12) {
+          el.mobileHoursInput.value = 12;
+        } else {
+          el.mobileHoursInput.value = val;
+        }
+      });
+    }
+
+    // Quick hour pills (if present)
     document.querySelectorAll('.btn-hour-pill').forEach(btn => {
       btn.addEventListener('click', () => {
         const hrs = btn.getAttribute('data-hours');

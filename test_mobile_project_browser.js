@@ -2,7 +2,7 @@ const fs = require('fs');
 const assert = require('assert');
 
 console.log('==========================================================');
-console.log(' RUNNING MOBILE PROJECT BROWSER STANDALONE SELECTOR SUITE');
+console.log(' RUNNING MOBILE PROJECT BROWSER & HOURS STEPPING SUITE');
 console.log('==========================================================\n');
 
 let passCount = 0;
@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=5.9 in index.html', () => {
-  assert(html.includes('styles.css?v=5.9'), 'styles.css v=5.9 not found');
-  assert(html.includes('app.js?v=5.9'), 'app.js v=5.9 not found');
+test('1.2 Cache buster is v=6.0 in index.html', () => {
+  assert(html.includes('styles.css?v=6.0'), 'styles.css v=6.0 not found');
+  assert(html.includes('app.js?v=6.0'), 'app.js v=6.0 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -69,6 +69,28 @@ test('1.8 Tapping agenda row updates selected project and re-renders mobile proj
   assert(js.includes('renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : \'\')'), 'agenda row re-render call missing');
 });
 
+test('1.9 Mobile hour chips (8h, 4h, 1h, 12h) removed from index.html', () => {
+  assert(!html.includes('class="mobile-hours-chips"'), 'mobile-hours-chips still present in index.html');
+  assert(!html.includes('btn-hour-pill'), 'btn-hour-pill buttons still present in index.html');
+});
+
+test('1.10 mobileHoursInput configured with min="1" max="12" step="1" (no half hour stepping)', () => {
+  assert(/id="mobileHoursInput"[^>]*step="1"/.test(html), 'mobileHoursInput step="1" missing in index.html');
+  assert(/id="mobileHoursInput"[^>]*min="1"/.test(html), 'mobileHoursInput min="1" missing in index.html');
+  assert(/id="mobileHoursInput"[^>]*max="12"/.test(html), 'mobileHoursInput max="12" missing in index.html');
+  assert(!/id="mobileHoursInput"[^>]*step="0\.5"/.test(html), 'mobileHoursInput still has step="0.5" in index.html');
+});
+
+test('1.11 popoverHoursInput and bulkHoursInput configured with step="1"', () => {
+  assert(/id="popoverHoursInput"[^>]*step="1"/.test(html), 'popoverHoursInput step="1" missing in index.html');
+  assert(/id="bulkHoursInput"[^>]*step="1"/.test(html), 'bulkHoursInput step="1" missing in index.html');
+});
+
+test('1.12 app.js enforces integer rounding on mobileHoursInput and handleMobileApply', () => {
+  assert(js.includes('Math.round(parseFloat(el.mobileHoursInput.value))'), 'mobileHoursInput change rounding missing');
+  assert(js.includes('Math.round(parseFloat(rawHours)'), 'handleMobileApply rounding missing');
+});
+
 console.log(`\n==========================================================`);
-console.log(` MOBILE PROJECT BROWSER SUITE COMPLETE: ${passCount} PASSED, 0 FAILED`);
+console.log(` MOBILE PROJECT BROWSER & HOURS STEPPING SUITE COMPLETE: ${passCount} PASSED, 0 FAILED`);
 console.log(`==========================================================\n`);

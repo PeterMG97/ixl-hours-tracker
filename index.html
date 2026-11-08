@@ -28,7 +28,7 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=5.9">
+  <link rel="stylesheet" href="styles.css?v=6.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -276,16 +276,8 @@
 
           <!-- Daily Hours -->
           <div class="form-group">
-            <div class="mobile-hours-header">
-              <label class="form-label">Hours per Workday (1 - 12h):</label>
-              <div class="mobile-hours-chips">
-                <button type="button" class="btn-hour-pill" data-hours="8">8h</button>
-                <button type="button" class="btn-hour-pill" data-hours="4">4h</button>
-                <button type="button" class="btn-hour-pill" data-hours="1">1h</button>
-                <button type="button" class="btn-hour-pill" data-hours="12">12h</button>
-              </div>
-            </div>
-            <input type="number" id="mobileHoursInput" class="form-control" value="8" min="1" max="12" step="0.5">
+            <label class="form-label" for="mobileHoursInput">Hours per Workday (1 - 12h):</label>
+            <input type="number" id="mobileHoursInput" class="form-control" value="8" min="1" max="12" step="1">
           </div>
 
           <!-- Weekend & Holiday Treatment -->
@@ -404,7 +396,7 @@
       <div class="popover-row">
         <div class="hours-input-wrapper">
           <label>Hours:</label>
-          <input type="number" id="popoverHoursInput" class="form-control form-control-sm text-center" min="1" max="12" step="0.5" value="8" title="Allowed hours per day: 1 to 12">
+          <input type="number" id="popoverHoursInput" class="form-control form-control-sm text-center" min="1" max="12" step="1" value="8" title="Allowed hours per day: 1 to 12">
         </div>
         <button class="btn btn-primary btn-sm" id="applyCellBtn">Save Day</button>
       </div>
@@ -519,7 +511,7 @@
         <!-- Daily Hours -->
         <div class="form-group">
           <label class="form-label">Hours per Workday (1 - 12h):</label>
-          <input type="number" id="bulkHoursInput" class="form-control" value="8" min="1" max="12" step="0.5">
+          <input type="number" id="bulkHoursInput" class="form-control" value="8" min="1" max="12" step="1">
         </div>
 
         <!-- Holidays Handling: Consider as DAY OFF -->
@@ -1818,6 +1810,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=5.9"></script>
+  <script src="app.js?v=6.0"></script>
 </body>
 </html>
