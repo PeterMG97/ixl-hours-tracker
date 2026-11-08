@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.1 in index.html', () => {
-  assert(html.includes('styles.css?v=6.1'), 'styles.css v=6.1 not found');
-  assert(html.includes('app.js?v=6.1'), 'app.js v=6.1 not found');
+test('1.2 Cache buster is v=6.2 in index.html', () => {
+  assert(html.includes('styles.css?v=6.2'), 'styles.css v=6.2 not found');
+  assert(html.includes('app.js?v=6.2'), 'app.js v=6.2 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -111,6 +111,18 @@ test('1.16 Settings drawer: Edit History renamed to History with clock SVG remov
   assert(html.includes('<strong>History</strong>'), 'Missing History in index.html');
   assert(html.includes('<span class="action-card-icon" id="auditHistoryIcon"></span>'), 'Clock icon still present in auditHistoryIcon');
   assert(!html.includes('<strong>Edit History &amp; Device Audit</strong>'), 'Edit History &amp; Device Audit still present in index.html');
+});
+
+test('1.17 Dark mode: all employee names visible in white, and chosen profile in bold white in both interfaces', () => {
+  // All employee names in white
+  assert(css.includes('[data-theme="dark"] .schedule-table td.col-user .user-name-text'), 'Missing dark theme rule for schedule table employee names');
+  assert(css.includes('[data-theme="dark"] body.is-mobile-device .schedule-table td.col-user .user-name-text'), 'Missing dark theme rule for mobile grid employee names');
+  assert(css.includes('[data-theme="dark"] body.mobile-readonly-grid .schedule-table td.col-user .user-name-text'), 'Missing dark theme rule for mobile readonly grid employee names');
+  // Chosen profile in bold white
+  assert(css.includes('[data-theme="dark"] .user-row.active-user-row td.col-user .user-name-text'), 'Missing dark theme active-user-row rule');
+  assert(css.includes('[data-theme="dark"] #currentUserNameDisplay'), 'Missing dark theme currentUserNameDisplay');
+  assert(css.includes('[data-theme="dark"] #mobileUserNameDisplay'), 'Missing dark theme mobileUserNameDisplay');
+  assert(css.includes('font-weight: 800 !important;'), 'Missing font-weight: 800 for bold chosen profile');
 });
 
 console.log(`\n==========================================================`);

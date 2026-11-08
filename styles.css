@@ -5507,3 +5507,32 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
 }
+
+
+/* Dark Mode: All employee names visible in white across PC & Mobile interfaces */
+[data-theme="dark"] .schedule-table td.col-user .user-name-text,
+[data-theme="dark"] .schedule-table .user-row td.col-user .user-name-text,
+[data-theme="dark"] body.is-mobile-device .schedule-table td.col-user .user-name-text,
+[data-theme="dark"] body.mobile-readonly-grid .schedule-table td.col-user .user-name-text,
+[data-theme="dark"] .table-scroll-area.zoom-micro td.col-user .user-name-text,
+[data-theme="dark"] .user-select-card .card-info strong,
+[data-theme="dark"] .team-table-row .team-emp-name {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+/* Dark Mode: Chosen profile in BOLD WHITE across PC & Mobile interfaces */
+[data-theme="dark"] .user-row.active-user-row td.col-user .user-name-text,
+[data-theme="dark"] .schedule-table .user-row.active-user-row td.col-user .user-name-text,
+[data-theme="dark"] body.is-mobile-device .schedule-table .user-row.active-user-row td.col-user .user-name-text,
+[data-theme="dark"] body.mobile-readonly-grid .schedule-table .user-row.active-user-row td.col-user .user-name-text,
+[data-theme="dark"] .table-scroll-area.zoom-micro .user-row.active-user-row td.col-user .user-name-text,
+[data-theme="dark"] #currentUserNameDisplay,
+[data-theme="dark"] .user-picker-btn strong,
+[data-theme="dark"] #mobileUserNameDisplay,
+[data-theme="dark"] .mobile-profile-info strong,
+[data-theme="dark"] .user-select-card.active-selected .card-info strong,
+[data-theme="dark"] .team-table-row.is-current-user-row .team-emp-name {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
