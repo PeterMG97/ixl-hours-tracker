@@ -8465,8 +8465,6 @@
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
     const logoEl = document.getElementById('mobileWelcomeLogo');
-    const text1 = document.getElementById('mobileWelcomeText1');
-    const text2 = document.getElementById('mobileWelcomeText2');
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
 
     // Daytime / Night calculation for pure white vs pure black background
@@ -8481,6 +8479,7 @@
       overlay.classList.remove('is-night');
     }
 
+    // Both Alstom logo and "from IXL Team" appear together from the start
     overlay.classList.remove('hidden');
 
     let dismissed = false;
@@ -8496,39 +8495,25 @@
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
         }
-      }, 450);
+      }, 400);
     }
 
-    // Step 1: Smooth logo entrance (already centered)
+    // Step 2: At 650ms, Alstom logo begins fading out very slowly from right to left (M -> O -> T -> S -> L -> A)
     setTimeout(() => {
       if (dismissed) return;
       if (logoEl) {
-        logoEl.classList.remove('hidden-step');
-        logoEl.classList.add('visible-step');
+        logoEl.classList.add('dissolve-rtl');
       }
-    }, 80);
+    }, 650);
 
-    // Step 2: Minimalist supplied texts appear smoothly at 1000ms
-    setTimeout(() => {
-      if (dismissed) return;
-      if (text1) {
-        text1.classList.remove('hidden-step');
-        text1.classList.add('visible-step');
-      }
-      if (text2) {
-        text2.classList.remove('hidden-step');
-        text2.classList.add('visible-step');
-      }
-    }, 1000);
-
-    // Step 3: At 2000ms, launch screen completes and transitions into the app
+    // Step 3: At 2100ms, dissolve is complete; the app starts without waiting for any user tap
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 2000);
+    }, 2100);
 
-    // Tap anywhere to skip/enter immediately
+    // Tap anywhere to skip/enter immediately if user prefers
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
         e.stopPropagation();

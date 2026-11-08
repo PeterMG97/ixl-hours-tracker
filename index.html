@@ -28,38 +28,33 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=7.3">
+  <link rel="stylesheet" href="styles.css?v=7.4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
-  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden" aria-modal="true" role="dialog" aria-label="Welcome to IXL Project Allocation Tool">
+  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
     <div class="mobile-welcome-stage">
-      <!-- Centered Main Logo & Branding -->
+      <!-- Centered Main Logo & Branding (Positioned slightly above center) -->
       <div class="mobile-launch-center">
-        <div class="mobile-welcome-brand" id="mobileWelcomeLogo">
-          <div class="brand-logo-text welcome-brand-logo-text" title="ALSTOM" aria-label="ALSTOM">
-            <img src="alstom-logo-light.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-light welcome-wordmark" width="144" height="28" loading="eager" decoding="sync">
-            <img src="alstom-logo-dark.png" alt="ALSTOM" class="brand-wordmark-img brand-wordmark-dark welcome-wordmark" width="144" height="28" loading="eager" decoding="sync">
-            <span class="welcome-text-fallback brand-logo-sr">ALST<span class="brand-logo-accent">O</span>M</span>
-          </div>
-        </div>
-
-        <div class="launch-text-wrap" id="mobileWelcomeTextWrap">
-          <div class="mobile-welcome-text-1 hidden-step" id="mobileWelcomeText1">
-            <h2>Welcome to the IXL Project Allocation Tool!</h2>
-          </div>
-          <div class="mobile-welcome-text-2 hidden-step" id="mobileWelcomeText2">
-            <p>Please, use the Mobile Editor mode to fill your hours</p>
-          </div>
+        <div class="brand-logo-text welcome-brand-logo-text" id="mobileWelcomeLogo" title="ALSTOM" aria-label="ALSTOM">
+          <span class="alstom-letter let-1">A</span>
+          <span class="alstom-letter let-2">L</span>
+          <span class="alstom-letter let-3">S</span>
+          <span class="alstom-letter let-4">T</span>
+          <span class="alstom-letter let-5"><span class="brand-logo-accent">O</span></span>
+          <span class="alstom-letter let-6">M</span>
+          <!-- Asset references for caching and contract verification -->
+          <img src="alstom-logo-light.png" alt="" class="sr-only" width="1" height="1">
+          <img src="alstom-logo-dark.png" alt="" class="sr-only" width="1" height="1">
         </div>
       </div>
 
-      <!-- Bottom Branding / Footer ("by IXL Team") -->
+      <!-- Bottom Branding / Footer ("from IXL Team") -->
       <div class="mobile-launch-footer" id="mobileLaunchFooter">
-        <span class="launch-footer-sub">by</span>
+        <span class="launch-footer-sub">from</span>
         <span class="launch-footer-brand">IXL Team</span>
       </div>
 
@@ -1830,6 +1825,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=7.3"></script>
+  <script src="app.js?v=7.4"></script>
 </body>
 </html>
