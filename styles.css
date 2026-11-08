@@ -1579,6 +1579,17 @@ body.is-resizing-columns {
   color: var(--text-main);
 }
 
+.group-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .group-count {
+  color: #94a3b8;
+}
+
 .group-badge {
   font-size: 10px;
   font-weight: 600;

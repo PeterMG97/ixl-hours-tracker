@@ -1358,15 +1358,13 @@
         <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''}" 
             data-section-id="${sec.id}" 
             title="Click to ${isCollapsed ? 'expand' : 'shrink'} ${sec.name}">
-          <td class="col-user group-header-cell group-header-label-cell" title="${sec.name}">
+          <td class="col-user group-header-cell group-header-label-cell" title="${sec.name} (${secEmployees.length} active members)">
             <div class="group-header-content">
               <span class="group-toggle-icon">${isCollapsed ? '▶' : '▼'}</span>
-              <strong class="group-title">${sec.name}</strong>
+              <strong class="group-title">${sec.name} <span class="group-count">(${secEmployees.length})</span></strong>
             </div>
           </td>
-          <td class="col-metric group-header-cell group-header-metric-cell" title="${secEmployees.length} active members in ${sec.name}">
-            <span class="group-badge">${secEmployees.length}</span>
-          </td>
+          <td class="col-metric group-header-cell group-header-metric-cell"></td>
           ${days.map(d => {
             return `<td class="group-header-cell group-header-slot"></td>`;
           }).join('')}
