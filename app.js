@@ -1323,10 +1323,8 @@
           }
         }
 
-        const isNextEmpSelf = (empIdx < secEmployees.length - 1) && !state.isViewOnly && (secEmployees[empIdx + 1].id === state.currentUserId);
-
         secRowsHtml += `
-          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${isNextEmpSelf ? 'precedes-active-user' : ''} ${isUnfocused ? 'unfocused-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
+          <tr class="user-row ${isCollapsed ? 'is-collapsed-row' : ''} ${isSelf ? 'active-user-row' : ''} ${isUnfocused ? 'unfocused-row' : ''} ${!canEditThisRow ? 'locked-row' : ''}" 
               data-emp-id="${emp.id}" 
               data-section-id="${sec.id}">
             <td class="col-user" data-emp-id="${emp.id}" title="Double-click to view monthly contributions for ${emp.name}">
@@ -1356,10 +1354,8 @@
         `;
       });
 
-      const isFirstEmpSelf = secEmployees.length > 0 && !state.isViewOnly && (secEmployees[0].id === state.currentUserId);
-
       bodyHtml += `
-        <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''} ${isFirstEmpSelf ? 'precedes-active-user' : ''}" 
+        <tr class="group-header-row ${isCollapsed ? 'is-collapsed' : ''}" 
             data-section-id="${sec.id}" 
             title="Click to ${isCollapsed ? 'expand' : 'shrink'} ${sec.name}">
           <td class="col-user group-header-cell group-header-label-cell" title="${sec.name}">

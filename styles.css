@@ -864,9 +864,6 @@ body {
 [data-theme="dark"] .group-header-row:hover td {
   background: #334155;
 }
-[data-theme="dark"] .group-header-row:hover .group-header-slot.is-today {
-  background-color: var(--today-col) !important;
-}
 [data-theme="dark"] .group-toggle-icon {
   background: rgba(255, 255, 255, 0.1);
   color: #e2e8f0;
@@ -902,16 +899,9 @@ body {
   background: #2d3748;
   color: #cbd5e1;
 }
-[data-theme="dark"] .user-row.active-user-row td.col-user {
-  background: #064e3b;
-  border-left: 3px solid #10b981;
-}
 [data-theme="dark"] .user-row.active-user-row td.col-user .user-name-text {
-  color: #ffffff;
-  font-weight: 700;
-}
-[data-theme="dark"] .user-row.active-user-row:hover td.col-user {
-  background-color: #065f46;
+  color: #f8fafc !important;
+  font-weight: 800 !important;
 }
 [data-theme="dark"] .user-row:hover td {
   background-color: #161e2e;
@@ -1419,40 +1409,53 @@ body.is-resizing-columns {
 
 .schedule-table th.col-slot .slot-num {
   font-size: 12px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 .schedule-table th.col-slot .slot-name {
   font-size: 9px;
   text-transform: uppercase;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 500;
+}
+
+/* Current Day: bold date text (no frame or highlight background) */
+.schedule-table th.col-slot.is-today .slot-num {
+  font-weight: 800 !important;
+  color: var(--primary) !important;
+}
+.schedule-table th.col-slot.is-today .slot-name {
+  font-weight: 800 !important;
+  color: var(--primary) !important;
+}
+
+[data-theme="dark"] .schedule-table th.col-slot .slot-num {
+  color: #94a3b8;
+}
+[data-theme="dark"] .schedule-table th.col-slot .slot-name {
+  color: #64748b;
+}
+[data-theme="dark"] .schedule-table th.col-slot.is-today .slot-num {
+  color: #60a5fa !important;
+  font-weight: 800 !important;
+}
+[data-theme="dark"] .schedule-table th.col-slot.is-today .slot-name {
+  color: #60a5fa !important;
+  font-weight: 800 !important;
+}
+
+/* Mobile Agenda: bold current day text */
+.mobile-agenda-row.is-today .mobile-agenda-date span:first-child {
+  font-weight: 800 !important;
+  color: var(--primary) !important;
+}
+[data-theme="dark"] .mobile-agenda-row.is-today .mobile-agenda-date span:first-child {
+  color: #60a5fa !important;
+  font-weight: 800 !important;
 }
 
 .col-slot.is-weekend {
   background-color: var(--weekend-bg);
-}
-
-/* Continuous Current Day Frame across Header, Rows, and Section Groups */
-.schedule-table th.col-slot.is-today {
-  background-color: var(--today-col) !important;
-  border-top: 2px solid var(--primary) !important;
-  border-left: 2px solid var(--primary) !important;
-  border-right: 2px solid var(--primary) !important;
-  position: relative;
-  z-index: 21;
-}
-
-.col-slot.is-today,
-.group-header-slot.is-today {
-  background-color: var(--today-col) !important;
-  border-left: 2px solid var(--primary) !important;
-  border-right: 2px solid var(--primary) !important;
-}
-
-.schedule-table tbody tr:last-child .col-slot.is-today,
-.schedule-table tbody tr:last-child .group-header-slot.is-today {
-  border-bottom: 2px solid var(--primary) !important;
 }
 
 /* Group Headers (Expand / Shrinkable & Continuous Column Slots) */
@@ -1521,10 +1524,6 @@ body.is-resizing-columns {
 
 .group-header-row:hover td {
   background: #e2e8f0;
-}
-
-.group-header-row:hover .group-header-slot.is-today {
-  background-color: var(--today-col) !important;
 }
 
 .group-header-content {
@@ -1782,21 +1781,20 @@ td.col-slot.is-selected-cell .task-chip {
   justify-content: center;
 }
 
+.schedule-table td.col-user .user-name-text {
+  font-weight: 500;
+  color: var(--text-main, #1e293b);
+}
+
 .user-row.active-user-row td.col-user .user-mini-avatar {
   background: var(--primary);
   color: white;
 }
 
-.user-row.active-user-row td.col-user {
-  background: #ecfdf5;
-  border-left: 3px solid #059669;
-}
+/* Chosen Profile: bold text only (no frame or green background) */
 .user-row.active-user-row td.col-user .user-name-text {
-  color: #064e3b;
-  font-weight: 700;
-}
-.user-row.active-user-row:hover td.col-user {
-  background-color: #d1fae5;
+  font-weight: 800 !important;
+  color: var(--text-main, #0f172a) !important;
 }
 
 .user-row:hover td {
@@ -1814,70 +1812,6 @@ td.col-slot.is-selected-cell .task-chip {
 .user-row.locked-row td.col-slot .task-chip.empty:hover {
   background: transparent;
   border-color: transparent;
-}
-
-/* Focused User Spotlight & Continuous Name Highlight Frame */
-.has-focused-user .user-row.active-user-row,
-.user-row.active-user-row {
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2) !important;
-}
-
-.has-focused-user .user-row.active-user-row td,
-.user-row.active-user-row td {
-  border-top: 2px solid #10b981 !important;
-  border-bottom: 2px solid #10b981 !important;
-}
-
-.has-focused-user .user-row.active-user-row td.col-user,
-.user-row.active-user-row td.col-user {
-  position: sticky !important;
-  left: 0 !important;
-  z-index: 26 !important;
-  background: #ecfdf5 !important;
-  border-left: 3px solid #10b981 !important;
-  border-top: 2px solid #10b981 !important;
-  border-bottom: 2px solid #10b981 !important;
-}
-
-.has-focused-user .user-row.active-user-row td.col-metric,
-.user-row.active-user-row td.col-metric {
-  position: sticky !important;
-  left: var(--user-col-width, 210px) !important;
-  z-index: 23 !important;
-  border-top: 2px solid #10b981 !important;
-  border-bottom: 2px solid #10b981 !important;
-}
-
-.has-focused-user .user-row.active-user-row td:last-child,
-.user-row.active-user-row td:last-child {
-  border-right: 2px solid #10b981 !important;
-}
-
-[data-theme="dark"] .has-focused-user .user-row.active-user-row td.col-user,
-[data-theme="dark"] .user-row.active-user-row td.col-user {
-  background: #064e3b !important;
-  border-left: 3px solid #10b981 !important;
-  border-top: 2px solid #10b981 !important;
-  border-bottom: 2px solid #10b981 !important;
-}
-
-[data-theme="dark"] .has-focused-user .user-row.active-user-row td.col-metric,
-[data-theme="dark"] .user-row.active-user-row td.col-metric {
-  background: #1e293b !important;
-  border-top: 2px solid #10b981 !important;
-  border-bottom: 2px solid #10b981 !important;
-}
-
-/* Seamless boundary isolation when active user is first or last in team */
-.group-header-row.precedes-active-user td,
-.group-header-row:has(+ .user-row.active-user-row) td,
-.user-row.precedes-active-user td,
-.user-row:has(+ .user-row.active-user-row) td {
-  border-bottom-color: transparent !important;
-}
-
-.user-row.active-user-row + .group-header-row td {
-  border-top-color: transparent !important;
 }
 
 /* Other employees' cells: preserved full visibility per user preference */
@@ -4626,8 +4560,10 @@ body.view-only .task-chip {
   gap: 10px;
 }
 
+#mobileUserNameDisplay,
 .mobile-profile-info strong {
   font-size: 13px;
+  font-weight: 800 !important;
   color: var(--text-primary);
   display: block;
 }
