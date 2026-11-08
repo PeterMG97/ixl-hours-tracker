@@ -5618,13 +5618,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   pointer-events: none;
 }
 
-/* Strict Desktop Isolation */
-@media (min-width: 769px) {
-  #mobileWelcomeOverlay,
-  .mobile-welcome-overlay {
-    display: none !important;
-  }
-}
+/* Universal Welcome Screen (PC and Mobile) */
 
 /* Centered Logo (Positioned at 47% top, shifted down to optical center) */
 .mobile-launch-center {

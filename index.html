@@ -32,22 +32,14 @@
     })();
   </script>
   <style id="mobileLaunchCritical">
-    @media (max-width: 768px) {
-      #mobileWelcomeOverlay:not(.hidden-permanently) {
-        display: flex !important;
-        position: fixed !important;
-        inset: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        height: 100dvh !important;
-        z-index: 999999 !important;
-      }
-    }
-    @media (min-width: 769px) {
-      #mobileWelcomeOverlay,
-      .mobile-welcome-overlay {
-        display: none !important;
-      }
+    #mobileWelcomeOverlay:not(.hidden-permanently) {
+      display: flex !important;
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      z-index: 999999 !important;
     }
     html[data-theme="dark"] #mobileWelcomeOverlay {
       background: #000000 !important;
@@ -120,7 +112,7 @@
       color: #0f172a !important;
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=8.0">
+  <link rel="stylesheet" href="styles.css?v=8.1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1908,6 +1900,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=8.0"></script>
+  <script src="app.js?v=8.1"></script>
 </body>
 </html>

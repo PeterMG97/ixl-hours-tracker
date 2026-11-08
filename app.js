@@ -8461,7 +8461,6 @@
   // Mobile Welcome Splash Screen (Mobile Interface Only)
   // -------------------------------------------------------------
   function initMobileWelcomeScreen() {
-    if (!isMobileInterface()) return;
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
@@ -8483,7 +8482,7 @@
       enterBtn.style.display = 'none';
     }
 
-    // Ensure logo center is higher at 42%
+    // Ensure logo center is positioned at 42%
     const logoCenter = overlay.querySelector('.mobile-launch-center');
     if (logoCenter) {
       logoCenter.style.position = 'absolute';
@@ -8527,9 +8526,11 @@
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
         overlay.classList.remove('fade-out');
-        if (state && state.mobileViewMode !== 'form') {
-          state.mobileViewMode = 'form';
-          updateDeviceViewMode();
+        if (isMobileInterface()) {
+          if (state && state.mobileViewMode !== 'form') {
+            state.mobileViewMode = 'form';
+            updateDeviceViewMode();
+          }
         }
       }, 350);
     }
@@ -8541,7 +8542,7 @@
       }
     }, 5000);
 
-    // Tap anywhere to skip/enter immediately
+    // Tap or click anywhere to skip/enter immediately
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -8555,6 +8556,15 @@
     overlay.addEventListener('touchstart', () => {
       dismissWelcome();
     }, { passive: true });
+
+    // PC: Pressing any key dismisses immediately
+    function handleKeyDismiss(e) {
+      if (!dismissed) {
+        dismissWelcome();
+        window.removeEventListener('keydown', handleKeyDismiss);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDismiss);
   }
 
   // Boot Application

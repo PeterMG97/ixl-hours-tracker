@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=8.0 in index.html', () => {
-  assert(html.includes('styles.css?v=8.0'), 'styles.css v=8.0 not found');
-  assert(html.includes('app.js?v=8.0'), 'app.js v=8.0 not found');
+test('1.2 Cache buster is v=8.1 in index.html', () => {
+  assert(html.includes('styles.css?v=8.1'), 'styles.css v=8.1 not found');
+  assert(html.includes('app.js?v=8.1'), 'app.js v=8.1 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -176,7 +176,7 @@ test('1.23 Audit month select options use 3-letter month and year format (ex: No
   assert(!auditFnCode.includes('11/2026 - November 2026 (Start)'), 'Old long label still present in populateAuditMonthSelect');
 });
 
-test('1.24 Mobile-only sequential welcome splash screen contracts', () => {
+test('1.24 Universal PC and Mobile welcome splash screen contracts', () => {
   // HTML Structure: Threads-style clean layout
   assert(html.includes('id="mobileWelcomeOverlay"'), 'Missing mobileWelcomeOverlay in index.html');
   assert(html.includes('id="mobileWelcomeLogo"'), 'Missing mobileWelcomeLogo in index.html');
@@ -191,7 +191,7 @@ test('1.24 Mobile-only sequential welcome splash screen contracts', () => {
 
   // JS Lifecycle and Timers (App transitions smoothly into editor without logo erase)
   assert(js.includes('function initMobileWelcomeScreen'), 'Missing initMobileWelcomeScreen function in app.js');
-  assert(js.includes('if (!isMobileInterface()) return;'), 'Missing mobile interface guard in initMobileWelcomeScreen');
+  // Universal screen on both PC & Mobile
   assert(js.includes('dismissWelcome'), 'Missing dismissWelcome logic in app.js');
   assert(js.includes('initMobileWelcomeScreen();'), 'Missing initMobileWelcomeScreen boot call in app.js');
 });
