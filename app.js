@@ -7551,7 +7551,7 @@
       if (gridCard) gridCard.classList.add('hidden');
       if (notice) notice.classList.add('hidden');
       document.body.classList.remove('mobile-readonly-grid');
-      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'View Full Desktop Grid (Read-Only)';
+      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Grid Mode';
       renderMobileView();
     }
   }
@@ -8426,7 +8426,7 @@
         toggleSettingsDrawer(false);
         updateDeviceViewMode();
         if (state.mobileViewMode === 'grid') {
-          showToast('Switched to Full Desktop Grid (Read-Only for visualization).');
+          showToast('Switched to Grid Mode (Read-Only for visualization).');
         } else {
           showToast('Returned to Mobile Schedule Logger.');
         }

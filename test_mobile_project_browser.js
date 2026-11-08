@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=6.0 in index.html', () => {
-  assert(html.includes('styles.css?v=6.0'), 'styles.css v=6.0 not found');
-  assert(html.includes('app.js?v=6.0'), 'app.js v=6.0 not found');
+test('1.2 Cache buster is v=6.1 in index.html', () => {
+  assert(html.includes('styles.css?v=6.1'), 'styles.css v=6.1 not found');
+  assert(html.includes('app.js?v=6.1'), 'app.js v=6.1 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -89,6 +89,28 @@ test('1.11 popoverHoursInput and bulkHoursInput configured with step="1"', () =>
 test('1.12 app.js enforces integer rounding on mobileHoursInput and handleMobileApply', () => {
   assert(js.includes('Math.round(parseFloat(el.mobileHoursInput.value))'), 'mobileHoursInput change rounding missing');
   assert(js.includes('Math.round(parseFloat(rawHours)'), 'handleMobileApply rounding missing');
+});
+
+test('1.13 Settings drawer: Month-End Audit renamed to Monthly Audit', () => {
+  assert(html.includes('<strong>Monthly Audit</strong>'), 'Missing Monthly Audit in index.html');
+  assert(!html.includes('<strong>Month-End Audit</strong>'), 'Month-End Audit still present in index.html');
+});
+
+test('1.14 Settings drawer: Desktop grid toggle renamed to Grid Mode', () => {
+  assert(html.includes('<strong id="toggleMobileDesktopGridLabel">Grid Mode</strong>'), 'Missing Grid Mode in index.html');
+  assert(js.includes("el.toggleMobileDesktopGridLabel.textContent = 'Grid Mode'"), 'Missing Grid Mode in app.js');
+  assert(!html.includes('View Full Desktop Grid (Read-Only)'), 'View Full Desktop Grid still present in index.html');
+});
+
+test('1.15 Settings drawer: Projects & WBS renamed to Projects and Tenders', () => {
+  assert(html.includes('<strong>Projects and Tenders</strong>'), 'Missing Projects and Tenders in index.html');
+  assert(!html.includes('<strong>Projects &amp; WBS</strong>'), 'Projects &amp; WBS still present in index.html');
+});
+
+test('1.16 Settings drawer: Edit History renamed to History with clock SVG removed', () => {
+  assert(html.includes('<strong>History</strong>'), 'Missing History in index.html');
+  assert(html.includes('<span class="action-card-icon" id="auditHistoryIcon"></span>'), 'Clock icon still present in auditHistoryIcon');
+  assert(!html.includes('<strong>Edit History &amp; Device Audit</strong>'), 'Edit History &amp; Device Audit still present in index.html');
 });
 
 console.log(`\n==========================================================`);
