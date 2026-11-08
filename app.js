@@ -211,6 +211,7 @@
     mobileApplyBtn: document.getElementById('mobileApplyBtn'),
     toggleMobileDesktopGridViewBtn: document.getElementById('toggleMobileDesktopGridViewBtn'),
     toggleMobileDesktopGridLabel: document.getElementById('toggleMobileDesktopGridLabel'),
+    toggleMobileDesktopGridSub: document.getElementById('toggleMobileDesktopGridSub'),
     scheduleHead: document.getElementById('scheduleHead'),
     scheduleBody: document.getElementById('scheduleBody'),
     statActiveEmployees: document.getElementById('statActiveEmployees'),
@@ -7543,6 +7544,7 @@
       if (notice) notice.classList.remove('hidden');
       document.body.classList.add('mobile-readonly-grid');
       if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Mobile Editor';
+      if (el.toggleMobileDesktopGridSub) el.toggleMobileDesktopGridSub.textContent = 'Mobile Editor mode';
       // Default to minimum cell width when opening grid view on mobile
       setDayColumnWidth(38, true);
     } else {
@@ -7552,6 +7554,7 @@
       if (notice) notice.classList.add('hidden');
       document.body.classList.remove('mobile-readonly-grid');
       if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Grid View';
+      if (el.toggleMobileDesktopGridSub) el.toggleMobileDesktopGridSub.textContent = 'Grid read-only view';
       renderMobileView();
     }
   }
