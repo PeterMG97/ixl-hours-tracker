@@ -1426,14 +1426,14 @@ body.is-resizing-columns {
   font-weight: 500;
 }
 
-/* Current Day: bold date text (no frame or highlight background) */
+/* Current Day: bold date text in black (no frame or highlight background) */
 .schedule-table th.col-slot.is-today .slot-num {
   font-weight: 800 !important;
-  color: var(--primary) !important;
+  color: #000000 !important;
 }
 .schedule-table th.col-slot.is-today .slot-name {
   font-weight: 800 !important;
-  color: var(--primary) !important;
+  color: #000000 !important;
 }
 
 [data-theme="dark"] .schedule-table th.col-slot .slot-num {
@@ -1443,21 +1443,21 @@ body.is-resizing-columns {
   color: #64748b;
 }
 [data-theme="dark"] .schedule-table th.col-slot.is-today .slot-num {
-  color: #60a5fa !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
 }
 [data-theme="dark"] .schedule-table th.col-slot.is-today .slot-name {
-  color: #60a5fa !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
 }
 
-/* Mobile Agenda: bold current day text */
+/* Mobile Agenda: bold current day text in black */
 .mobile-agenda-row.is-today .mobile-agenda-date span:first-child {
   font-weight: 800 !important;
-  color: var(--primary) !important;
+  color: #000000 !important;
 }
 [data-theme="dark"] .mobile-agenda-row.is-today .mobile-agenda-date span:first-child {
-  color: #60a5fa !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
 }
 
