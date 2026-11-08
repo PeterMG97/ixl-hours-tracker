@@ -91,6 +91,7 @@
       text-align: center !important;
       font-size: 13px !important;
       font-weight: 500 !important;
+      font-style: italic !important;
     }
     .launch-footer-brand {
       display: block !important;
@@ -98,6 +99,7 @@
       text-align: center !important;
       font-size: 16px !important;
       font-weight: 700 !important;
+      font-style: italic !important;
     }
     html[data-theme="dark"] .launch-footer-sub {
       color: #94a3b8 !important;
@@ -112,7 +114,7 @@
       color: #0f172a !important;
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=8.1">
+  <link rel="stylesheet" href="styles.css?v=8.2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -129,9 +131,9 @@
     </div>
 
     <!-- Bottom Branding / Footer ("by IXL Team" in 2 lines at green line reference) -->
-    <div class="mobile-launch-footer" id="mobileLaunchFooter" aria-label="by IXL Team" style="position: absolute; bottom: calc(env(safe-area-inset-bottom, 20px) + 38px); left: 0; right: 0; width: 100%; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 2px !important; text-align: center !important; margin: 0 auto !important; pointer-events: none;">
-      <div class="launch-footer-sub" style="display: block !important; width: 100% !important; text-align: center !important; font-size: 13px !important; font-weight: 500 !important; line-height: 1.2 !important;">by</div>
-      <div class="launch-footer-brand" style="display: block !important; width: 100% !important; text-align: center !important; font-size: 16px !important; font-weight: 700 !important; line-height: 1.25 !important;">IXL Team</div>
+    <div class="mobile-launch-footer" id="mobileLaunchFooter" aria-label="by IXL Team" style="position: absolute; bottom: calc(env(safe-area-inset-bottom, 20px) + 38px); left: 0; right: 0; width: 100%; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 2px !important; text-align: center !important; margin: 0 auto !important; pointer-events: none; font-style: italic !important;">
+      <div class="launch-footer-sub" style="display: block !important; width: 100% !important; text-align: center !important; font-size: 13px !important; font-weight: 500 !important; line-height: 1.2 !important; font-style: italic !important;">by</div>
+      <div class="launch-footer-brand" style="display: block !important; width: 100% !important; text-align: center !important; font-size: 16px !important; font-weight: 700 !important; line-height: 1.25 !important; font-style: italic !important;">IXL Team</div>
     </div>
 
     <!-- Hidden Accessible / Test Button -->
@@ -1900,6 +1902,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=8.1"></script>
+  <script src="app.js?v=8.2"></script>
 </body>
 </html>
