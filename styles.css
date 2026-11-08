@@ -5590,7 +5590,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: radial-gradient(ellipse at 50% 25%, #052137 0%, #031422 45%, #01060c 80%, #010106 100%) !important;
+  background: linear-gradient(180deg, #041d31 0%, #031726 25%, #020e19 50%, #01050a 75%, #010106 100%) !important;
   color: #ffffff;
   opacity: 1;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -5598,6 +5598,9 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   overflow: hidden;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .welcome-splash-stage {
@@ -5609,30 +5612,75 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   justify-content: center;
   overflow: hidden;
   position: relative;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.welcome-artwork-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-width: 100vw;
+  aspect-ratio: 577 / 1024;
+  margin: 0 auto;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
 }
 
 .welcome-splash-artwork {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  max-width: 100vw;
-  max-height: 100vh;
-  max-height: 100dvh;
   display: block;
   user-select: none;
   -webkit-user-drag: none;
-  filter: drop-shadow(0 0 30px rgba(5, 33, 55, 0.6));
+  -webkit-mask-image: radial-gradient(ellipse 92% 92% at 50% 50%, black 65%, rgba(0, 0, 0, 0.4) 85%, transparent 100%);
+  mask-image: radial-gradient(ellipse 92% 92% at 50% 50%, black 65%, rgba(0, 0, 0, 0.4) 85%, transparent 100%);
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
 }
 
-@media (min-width: 769px) {
-  .welcome-splash-artwork {
-    height: 92vh !important;
-    max-height: 920px !important;
-    width: auto !important;
-    max-width: 90vw !important;
-    border-radius: 14px;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.8), 0 0 90px rgba(3, 28, 48, 0.5);
-  }
+/* Dynamic Rotating Loading Circle in Both Interfaces */
+.splash-spinner-wrap {
+  position: absolute;
+  top: 85.25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% * 38 / 577);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.splash-spinner-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #010408;
+  border: 2.5px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #38bdf8;
+  border-right-color: rgba(56, 189, 248, 0.5);
+  box-sizing: border-box;
+  animation: splashSpin 0.9s linear infinite;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+}
+
+@keyframes splashSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .mobile-welcome-overlay.hidden,
