@@ -5590,7 +5590,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: radial-gradient(circle at 50% 50%, #013a68 0%, #01152a 45%, #000615 75%, #00040e 100%) !important;
+  background: #030a1c !important;
   color: #ffffff;
   opacity: 1;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -5612,7 +5612,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   justify-content: center;
   overflow: hidden;
   position: relative;
-  background: transparent !important;
+  background: #030a1c !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
@@ -5633,7 +5633,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   border: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
-  background: transparent !important;
+  background: #030a1c !important;
   overflow: hidden;
 }
 
@@ -5657,14 +5657,14 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   outline: none !important;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: auto;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0.5) 8%, black 15%, black 85%, rgba(0, 0, 0, 0.5) 92%, rgba(0, 0, 0, 0.05) 97%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 2%, rgba(0, 0, 0, 0.7) 6%, black 10%, black 95%, rgba(0, 0, 0, 0.7) 97%, rgba(0, 0, 0, 0.1) 99%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0.5) 8%, black 15%, black 85%, rgba(0, 0, 0, 0.5) 92%, rgba(0, 0, 0, 0.05) 97%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 2%, rgba(0, 0, 0, 0.7) 6%, black 10%, black 95%, rgba(0, 0, 0, 0.7) 97%, rgba(0, 0, 0, 0.1) 99%, transparent 100%);
 }
 
 /* Unified Dynamic Loading Spinner (Both PC and Mobile) */
 .splash-spinner-wrap {
   position: absolute;
-  top: 85.2%;
+  top: 85.5%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: calc(100% * 76 / 3840);

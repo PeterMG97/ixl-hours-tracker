@@ -40,7 +40,7 @@
       height: 100vh !important;
       height: 100dvh !important;
       z-index: 999999 !important;
-      background: radial-gradient(circle at 50% 50%, #013a68 0%, #01152a 45%, #000615 75%, #00040e 100%) !important;
+      background: #030a1c !important;
       align-items: center !important;
       justify-content: center !important;
       overflow: hidden !important;
@@ -60,7 +60,7 @@
       margin: 0 !important;
       padding: 0 !important;
       border: none !important;
-      background: transparent !important;
+      background: #030a1c !important;
     }
     .welcome-artwork-wrapper {
       position: relative;
@@ -77,7 +77,7 @@
       border: none !important;
       box-shadow: none !important;
       border-radius: 0 !important;
-      background: transparent !important;
+      background: #030a1c !important;
       overflow: hidden;
     }
     .welcome-splash-picture {
@@ -99,13 +99,13 @@
       outline: none !important;
       image-rendering: -webkit-optimize-contrast;
       image-rendering: auto;
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%);
-      mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0.5) 8%, black 15%, black 85%, rgba(0, 0, 0, 0.5) 92%, rgba(0, 0, 0, 0.05) 97%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 2%, rgba(0, 0, 0, 0.7) 6%, black 10%, black 95%, rgba(0, 0, 0, 0.7) 97%, rgba(0, 0, 0, 0.1) 99%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0.5) 8%, black 15%, black 85%, rgba(0, 0, 0, 0.5) 92%, rgba(0, 0, 0, 0.05) 97%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 2%, rgba(0, 0, 0, 0.7) 6%, black 10%, black 95%, rgba(0, 0, 0, 0.7) 97%, rgba(0, 0, 0, 0.1) 99%, transparent 100%);
     }
     /* Mobile Default Spinner */
     .splash-spinner-wrap {
       position: absolute;
-      top: 85.2%;
+      top: 85.5%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: calc(100% * 76 / 3840);
@@ -143,7 +143,7 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=9.2">
+  <link rel="stylesheet" href="styles.css?v=9.3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -155,8 +155,8 @@
     <div class="welcome-splash-stage">
       <div class="welcome-artwork-wrapper">
         <picture class="welcome-splash-picture">
-          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=9.2">
-          <img src="alstom-welcome-splash.jpg?v=9.2" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
+          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=9.3">
+          <img src="alstom-welcome-splash.jpg?v=9.3" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
         </picture>
         <!-- Dynamic Rotating Loading Circle in Both Interfaces -->
         <div class="splash-spinner-wrap" aria-hidden="true">
@@ -1942,6 +1942,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=9.2"></script>
+  <script src="app.js?v=9.3"></script>
 </body>
 </html>
