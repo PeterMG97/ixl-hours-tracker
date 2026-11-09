@@ -5653,6 +5653,8 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   box-shadow: none !important;
   border-radius: 0 !important;
   outline: none !important;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
 }
 
 /* Mobile Default Spinner */
@@ -5678,7 +5680,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 /* PC Interface (Desktop) */
 @media (min-width: 769px) {
   .welcome-artwork-wrapper {
-    aspect-ratio: 1024 / 571;
+    aspect-ratio: 3840 / 2142;
     width: auto;
     height: 100vh;
     max-width: 100vw;
@@ -5688,13 +5690,15 @@ body.mobile-readonly-grid .emp-no-proj-badge,
     width: 100%;
     height: 100%;
     object-fit: contain;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
   }
   .splash-spinner-wrap {
     top: 86.95%;
     left: 50.59%;
-    width: calc(100% * 23 / 1024);
+    width: calc(100% * 86 / 3840);
     height: auto;
     aspect-ratio: 1 / 1;
     min-width: 20px;
@@ -5706,10 +5710,10 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #010408;
-  border: 2.5px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border: 2.5px solid rgba(255, 255, 255, 0.15);
   border-top-color: #38bdf8;
-  border-right-color: rgba(56, 189, 248, 0.5);
+  border-right-color: rgba(56, 189, 248, 0.55);
   box-sizing: border-box;
   animation: splashSpin 0.9s linear infinite;
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);

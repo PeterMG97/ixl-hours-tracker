@@ -95,6 +95,8 @@
       box-shadow: none !important;
       border-radius: 0 !important;
       outline: none !important;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: auto;
     }
     /* Mobile Default Spinner */
     .splash-spinner-wrap {
@@ -118,7 +120,7 @@
     /* PC Interface (Desktop) */
     @media (min-width: 769px) {
       .welcome-artwork-wrapper {
-        aspect-ratio: 1024 / 571;
+        aspect-ratio: 3840 / 2142;
         width: auto;
         height: 100vh;
         max-width: 100vw;
@@ -128,13 +130,15 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
-        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
-        mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: auto;
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
       }
       .splash-spinner-wrap {
         top: 86.95%;
         left: 50.59%;
-        width: calc(100% * 23 / 1024);
+        width: calc(100% * 86 / 3840);
         height: auto;
         aspect-ratio: 1 / 1;
         min-width: 20px;
@@ -145,10 +149,10 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background: #010408;
-      border: 2.5px solid rgba(255, 255, 255, 0.12);
+      background: transparent;
+      border: 2.5px solid rgba(255, 255, 255, 0.15);
       border-top-color: #38bdf8;
-      border-right-color: rgba(56, 189, 248, 0.5);
+      border-right-color: rgba(56, 189, 248, 0.55);
       box-sizing: border-box;
       animation: splashSpin 0.9s linear infinite;
       box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
@@ -158,7 +162,7 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=8.7">
+  <link rel="stylesheet" href="styles.css?v=8.8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -170,8 +174,8 @@
     <div class="welcome-splash-stage">
       <div class="welcome-artwork-wrapper">
         <picture class="welcome-splash-picture">
-          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=8.7">
-          <img src="alstom-welcome-splash.jpg?v=8.7" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="1024" height="571" loading="eager" decoding="sync">
+          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=8.8">
+          <img src="alstom-welcome-splash.jpg?v=8.8" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
         </picture>
         <!-- Dynamic Rotating Loading Circle in Both Interfaces -->
         <div class="splash-spinner-wrap" aria-hidden="true">
@@ -1957,6 +1961,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=8.7"></script>
+  <script src="app.js?v=8.8"></script>
 </body>
 </html>
