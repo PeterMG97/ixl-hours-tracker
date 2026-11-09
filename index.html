@@ -40,7 +40,7 @@
       height: 100vh !important;
       height: 100dvh !important;
       z-index: 999999 !important;
-      background: #010106 !important;
+      background: linear-gradient(180deg, #07253d 0%, #051a2c 30%, #030f1a 60%, #010106 100%) !important;
       align-items: center !important;
       justify-content: center !important;
       overflow: hidden !important;
@@ -60,7 +60,7 @@
       margin: 0 !important;
       padding: 0 !important;
       border: none !important;
-      background: #010106 !important;
+      background: transparent !important;
     }
     .welcome-artwork-wrapper {
       position: relative;
@@ -77,6 +77,11 @@
       background: transparent !important;
       overflow: hidden;
     }
+    .welcome-splash-picture {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
     .welcome-splash-artwork {
       width: 100vw;
       height: 100vh;
@@ -91,6 +96,7 @@
       border-radius: 0 !important;
       outline: none !important;
     }
+    /* Mobile Default Spinner */
     .splash-spinner-wrap {
       position: absolute;
       top: 78.47%;
@@ -109,6 +115,32 @@
       pointer-events: none;
       z-index: 10;
     }
+    /* PC Interface (Desktop) */
+    @media (min-width: 769px) {
+      .welcome-artwork-wrapper {
+        aspect-ratio: 1024 / 571;
+        width: auto;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+      }
+      .welcome-splash-artwork {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+      }
+      .splash-spinner-wrap {
+        top: 86.95%;
+        left: 50.59%;
+        width: calc(100% * 23 / 1024);
+        height: auto;
+        aspect-ratio: 1 / 1;
+        min-width: 20px;
+        min-height: 20px;
+      }
+    }
     .splash-spinner-circle {
       width: 100%;
       height: 100%;
@@ -126,7 +158,7 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=8.6">
+  <link rel="stylesheet" href="styles.css?v=8.7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -137,7 +169,10 @@
     <!-- Visual Centered Artwork with Unified Seamless Background and Dynamic Rotating Circle -->
     <div class="welcome-splash-stage">
       <div class="welcome-artwork-wrapper">
-        <img src="alstom-welcome-splash.jpg?v=8.6" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="2880" height="1240" loading="eager" decoding="sync">
+        <picture class="welcome-splash-picture">
+          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=8.7">
+          <img src="alstom-welcome-splash.jpg?v=8.7" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="1024" height="571" loading="eager" decoding="sync">
+        </picture>
         <!-- Dynamic Rotating Loading Circle in Both Interfaces -->
         <div class="splash-spinner-wrap" aria-hidden="true">
           <div class="splash-spinner-circle"></div>
@@ -1922,6 +1957,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=8.6"></script>
+  <script src="app.js?v=8.7"></script>
 </body>
 </html>
