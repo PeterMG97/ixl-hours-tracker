@@ -5590,7 +5590,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #041d31 0%, #031726 25%, #020e19 50%, #01050a 75%, #010106 100%) !important;
+  background: #010106 !important;
   color: #ffffff;
   opacity: 1;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -5612,7 +5612,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   justify-content: center;
   overflow: hidden;
   position: relative;
-  background: transparent !important;
+  background: #010106 !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
@@ -5623,27 +5623,26 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vw;
   height: 100vh;
   height: 100dvh;
-  max-height: 100vh;
-  max-width: 100vw;
-  aspect-ratio: 577 / 1024;
   margin: 0 auto;
   border: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
   background: transparent !important;
+  overflow: hidden;
 }
 
 .welcome-splash-artwork {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  object-fit: cover;
+  object-position: center center;
   display: block;
   user-select: none;
   -webkit-user-drag: none;
-  -webkit-mask-image: radial-gradient(ellipse 92% 92% at 50% 50%, black 65%, rgba(0, 0, 0, 0.4) 85%, transparent 100%);
-  mask-image: radial-gradient(ellipse 92% 92% at 50% 50%, black 65%, rgba(0, 0, 0, 0.4) 85%, transparent 100%);
   border: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
@@ -5653,10 +5652,15 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 /* Dynamic Rotating Loading Circle in Both Interfaces */
 .splash-spinner-wrap {
   position: absolute;
-  top: 85.25%;
+  top: 78.47%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: calc(100% * 38 / 577);
+  width: calc(100vh * (38 / 1240));
+  height: calc(100vh * (38 / 1240));
+  width: calc(100dvh * (38 / 1240));
+  height: calc(100dvh * (38 / 1240));
+  min-width: 24px;
+  min-height: 24px;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
