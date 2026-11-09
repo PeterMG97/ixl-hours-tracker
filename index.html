@@ -119,6 +119,9 @@
     }
     /* PC Interface (Desktop) */
     @media (min-width: 769px) {
+      .mobile-welcome-overlay {
+        background: radial-gradient(circle at 50% 0%, #013a68 0%, #01152a 45%, #000614 75%, #00030a 100%) !important;
+      }
       .welcome-artwork-wrapper {
         aspect-ratio: 3840 / 2142;
         width: auto;
@@ -136,13 +139,13 @@
         mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
       }
       .splash-spinner-wrap {
-        top: 86.95%;
-        left: 50.59%;
-        width: calc(100% * 86 / 3840);
+        top: 86.7%;
+        left: 50%;
+        width: calc(100% * 76 / 3840);
         height: auto;
         aspect-ratio: 1 / 1;
-        min-width: 20px;
-        min-height: 20px;
+        min-width: 22px;
+        min-height: 22px;
       }
     }
     .splash-spinner-circle {
@@ -162,7 +165,7 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=8.8">
+  <link rel="stylesheet" href="styles.css?v=8.9">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -174,8 +177,8 @@
     <div class="welcome-splash-stage">
       <div class="welcome-artwork-wrapper">
         <picture class="welcome-splash-picture">
-          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=8.8">
-          <img src="alstom-welcome-splash.jpg?v=8.8" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
+          <source media="(min-width: 769px)" srcset="alstom-welcome-splash-pc.jpg?v=8.9">
+          <img src="alstom-welcome-splash.jpg?v=8.9" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
         </picture>
         <!-- Dynamic Rotating Loading Circle in Both Interfaces -->
         <div class="splash-spinner-wrap" aria-hidden="true">
@@ -1961,6 +1964,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=8.8"></script>
+  <script src="app.js?v=8.9"></script>
 </body>
 </html>

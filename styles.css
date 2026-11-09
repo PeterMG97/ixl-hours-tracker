@@ -5679,6 +5679,9 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 
 /* PC Interface (Desktop) */
 @media (min-width: 769px) {
+  .mobile-welcome-overlay {
+    background: radial-gradient(circle at 50% 0%, #013a68 0%, #01152a 45%, #000614 75%, #00030a 100%) !important;
+  }
   .welcome-artwork-wrapper {
     aspect-ratio: 3840 / 2142;
     width: auto;
@@ -5696,13 +5699,13 @@ body.mobile-readonly-grid .emp-no-proj-badge,
     mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
   }
   .splash-spinner-wrap {
-    top: 86.95%;
-    left: 50.59%;
-    width: calc(100% * 86 / 3840);
+    top: 86.7%;
+    left: 50%;
+    width: calc(100% * 76 / 3840);
     height: auto;
     aspect-ratio: 1 / 1;
-    min-width: 20px;
-    min-height: 20px;
+    min-width: 22px;
+    min-height: 22px;
   }
 }
 
