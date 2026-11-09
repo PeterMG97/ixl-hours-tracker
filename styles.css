@@ -5680,7 +5680,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 /* PC Interface (Desktop) */
 @media (min-width: 769px) {
   .mobile-welcome-overlay {
-    background: radial-gradient(circle at 50% 0%, #013a68 0%, #01152a 45%, #000614 75%, #00030a 100%) !important;
+    background: radial-gradient(circle at 50% 0%, #013a68 0%, #01152a 45%, #000615 75%, #00040e 100%) !important;
   }
   .welcome-artwork-wrapper {
     aspect-ratio: 3840 / 2142;
@@ -5695,11 +5695,11 @@ body.mobile-readonly-grid .emp-no-proj-badge,
     object-fit: contain;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: auto;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 2%, rgba(0, 0, 0, 0.8) 5%, black 8%, black 92%, rgba(0, 0, 0, 0.8) 95%, rgba(0, 0, 0, 0.2) 98%, transparent 100%);
   }
   .splash-spinner-wrap {
-    top: 86.7%;
+    top: 85.2%;
     left: 50%;
     width: calc(100% * 76 / 3840);
     height: auto;
