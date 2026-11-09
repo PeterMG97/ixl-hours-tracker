@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=8.9 in index.html', () => {
-  assert(html.includes('styles.css?v=8.9'), 'styles.css v=8.9 not found');
-  assert(html.includes('app.js?v=8.9'), 'app.js v=8.9 not found');
+test('1.2 Cache buster is v=9.0 in index.html', () => {
+  assert(html.includes('styles.css?v=9.0'), 'styles.css v=9.0 not found');
+  assert(html.includes('app.js?v=9.0'), 'app.js v=9.0 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
