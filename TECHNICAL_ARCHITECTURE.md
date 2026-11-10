@@ -369,6 +369,37 @@ flowchart LR
    - **Contributions & Project Modals (`#contribMonthSelect`, `#projectMonthSelect`)**: `initContribMonthSelect()` and `initProjectMonthSelect()` extract all future months directly from `el.monthSelect.options`.
    - **Analytics Month Filter (`#analyticsMonthFilterSelect`)**: Ingests all available months dynamically from `el.monthSelect.options` with `formatYearMonth(ym, false)`.
 
+### 6.6 Special Action Separation & Exclusive Top Placement
+To maintain clean project selection semantics and eliminate duplicate entries from the searchable catalog, special allocation actions (`DAY OFF`, `NO PROJECT`, `CLEAR/DELETE`) are architecturally isolated from the standard project catalog across Desktop and Mobile interfaces:
+
+```mermaid
+flowchart TD
+    User[Project Chooser Interface] --> TopRow["Top Action Row (.quick-pill-row)"]
+    User --> SearchBox["Search & Category Filter Engine"]
+    SearchBox --> ProjList["Alphabetical Projects List (.project-pill-list)"]
+    TopRow --> Act1["DAY OFF (Day OFF, 0h)"]
+    TopRow --> Act2["NO PROJECT (Unallocated tracking)"]
+    TopRow --> Act3["CLEAR/DELETE (__CLEAR__, purge)"]
+    ProjList --> CleanList["Real Projects, Tenders, and Special Accounts ONLY"]
+```
+
+#### Architectural Guarantees:
+1. **Exclusive Top Row Placement (`.quick-pill-row`)**:
+   - The three special actions (`DAY OFF`, `NO PROJECT`, `CLEAR/DELETE`) are displayed as prominent, capital-letter, unhighlighted buttons in a two-column grid at the very top of each project selector surface:
+     - **Cell Popover (`#cellPopover`)**: Active during grid cell editing on PC and Mobile Grid View.
+     - **PC Bulk Fill Modal (`#bulkBrowseSection` / `.bulk-quick-pill-row`)**: Directly above the category filter pills.
+     - **Mobile Projects Browser (`#mobileBrowserContent` / `.mobile-quick-pill-row`)**: Positioned at the top of the mobile logger project browser.
+2. **Exclusion from Scrollable Project Catalog (`.project-pill-list`)**:
+   - `renderPopoverProjectList()`, `renderBulkProjectList()`, and `renderMobileProjectPillList()` no longer inject `specialItems` into the scrollable list container.
+   - The list container is strictly reserved for genuine project, tender, and special training/support accounting entries sorted alphabetically (A-Z).
+3. **Active State Synchronization (`.btn-quick-pill.is-selected-proj`)**:
+   - Whenever a cell or form currently holds `Day OFF`, `NO PROJECT`, or `__CLEAR__`, the corresponding top button automatically receives the `.is-selected-proj` visual highlight class.
+   - When a standard project is selected, top quick buttons immediately clear their active state.
+4. **Search Resilience**:
+   - Project filtering and search queries typed into the search inputs filter only the project entries in the list below, keeping the top special actions permanently accessible without jumping or disappearing.
+
+---
+
 ## 7. Mobile Interface Deep Architecture & Touch Physics
 
 ### 7.1 Dual Mobile Modes: Editor vs. Grid View

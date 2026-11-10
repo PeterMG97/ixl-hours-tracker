@@ -420,6 +420,14 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Subsystem Synchronization:</strong> <code>#auditMonthSelect</code>, <code>#contribMonthSelect</code>, <code>#projectMonthSelect</code>, and <code>#analyticsMonthFilterSelect</code> dynamically inherit all future months from <code>#monthSelect</code>.</li>
   </ul>
 
+  <h3>5.3 Special Action Separation & Exclusive Top Placement</h3>
+  <p>To preserve clean project accounting semantics and eliminate duplicate action items from the searchable catalog, special allocation actions (<code>DAY OFF</code>, <code>NO PROJECT</code>, <code>CLEAR/DELETE</code>) are isolated from the standard project catalog:</p>
+  <ul>
+    <li><strong>Exclusive Top Row Placement (<code>.quick-pill-row</code>):</strong> Positioned as prominent, capital-letter, unhighlighted buttons at the top of each project selector surface (Cell Popover <code>#cellPopover</code>, PC Bulk Fill <code>#bulkBrowseSection</code>, and Mobile Logger <code>#mobileBrowserContent</code>).</li>
+    <li><strong>Exclusion from Scrollable List (<code>.project-pill-list</code>):</strong> Special action items are completely removed from the scrollable list container across all interfaces, reserving the catalog strictly for genuine projects, tenders, and training/support accounting entries.</li>
+    <li><strong>Active State Feedback:</strong> When an active cell or allocation holds <code>Day OFF</code>, <code>NO PROJECT</code>, or <code>__CLEAR__</code>, the corresponding top button dynamically displays <code>.is-selected-proj</code> selection styling.</li>
+  </ul>
+
   <h2>6. Mobile Interface Architecture & Touch Physics</h2>
   <ul>
     <li><strong>Dual Modes:</strong> Mobile Editor mode (cards, agenda, 1-tap starred chips) vs. Read-Only Grid mode (horizontal table view).</li>

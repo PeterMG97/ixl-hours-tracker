@@ -233,3 +233,4 @@ runTest('1.8 updateDeviceViewMode invokes updateMonthSelectLabels', () => {
 console.log(`\n==========================================================`);
 console.log(` DYNAMIC MULTI-YEAR MONTH SELECTION SUITE COMPLETE: ${passedTests} PASSED, 0 FAILED`);
 console.log(`==========================================================\n`);
+

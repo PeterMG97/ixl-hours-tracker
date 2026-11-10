@@ -2894,41 +2894,10 @@
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
 
+    // Special actions (DAY OFF, NO PROJECT, CLEAR/DELETE) are placed exclusively in top quick-pill-row
     const specialItems = [];
-    if (cat === 'all' || cat === 'Special') {
-      if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
-        specialItems.push({
-          name: 'DAY OFF',
-          val: 'Day OFF',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-      if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
-        specialItems.push({
-          name: 'NO PROJECT',
-          val: 'NO PROJECT',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q)) {
-        specialItems.push({
-          name: 'CLEAR/DELETE',
-          val: '__CLEAR__',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-    }
 
-    if (specialItems.length === 0 && filtered.length === 0) {
+    if (filtered.length === 0) {
       el.popoverProjectList.innerHTML = `
         <div class="empty-starred-hint">
           ${cat === 'starred' 
@@ -2946,20 +2915,16 @@
       if (alloc) curVal = alloc.project;
     }
 
-    let itemsHtml = '';
-    if (specialItems.length > 0) {
-      itemsHtml += specialItems.map(item => {
-        const isSelected = (curVal === item.val || (item.val === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (item.val === '__CLEAR__' && (!curVal || curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
-        return `
-          <div class="proj-item is-special-action ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
-            <div class="proj-item-main" style="flex:1; min-width:0;">
-              <strong>${escapeHtml(item.name)}</strong>
-            </div>
-            ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
-          </div>
-        `;
-      }).join('');
+    // Sync selected highlight on top quick-pill-row buttons
+    if (el.cellPopover) {
+      el.cellPopover.querySelectorAll('.btn-quick-pill').forEach(b => {
+        const bVal = b.getAttribute('data-val');
+        const isMatch = (curVal === bVal || (bVal === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (bVal === '__CLEAR__' && (!curVal || curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
+        b.classList.toggle('is-selected-proj', isMatch);
+      });
     }
+
+    let itemsHtml = '';
 
     itemsHtml += filtered.map(p => {
       const isStarred = isProjectStarred(p.name, targetEmpId);
@@ -3667,39 +3632,15 @@
     const cat = state.bulkCategory || 'all';
     const curVal = el.bulkProjectSelect ? el.bulkProjectSelect.value : 'Day OFF';
 
+    // Special items (Day OFF, NO PROJECT, Clear/Delete) are placed exclusively in top quick-pill-row
     const specialItems = [];
-    if (cat === 'all' || cat === 'Special') {
-      if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
-        specialItems.push({
-          name: 'DAY OFF',
-          val: 'Day OFF',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-      if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
-        specialItems.push({
-          name: 'NO PROJECT',
-          val: 'NO PROJECT',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q)) {
-        specialItems.push({
-          name: 'CLEAR/DELETE',
-          val: '__CLEAR__',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-    }
+
+    // Sync selected highlight on bulk top quick-pill-row buttons
+    document.querySelectorAll('.bulk-quick-pill-row .btn-quick-pill').forEach(b => {
+      const bVal = b.getAttribute('data-val');
+      const isMatch = (curVal === bVal || (bVal === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (bVal === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
+      b.classList.toggle('is-selected-proj', isMatch);
+    });
 
     const filtered = state.projects.filter(p => {
       if (p.active === false) return false;
@@ -3712,7 +3653,7 @@
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    if (specialItems.length === 0 && filtered.length === 0) {
+    if (filtered.length === 0) {
       el.bulkProjectList.innerHTML = `
         <div class="empty-starred-hint">
           ${cat === 'starred' ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it.' : 'No matching projects found.'}
@@ -3722,31 +3663,6 @@
     }
 
     let itemsHtml = '';
-
-    // 1. Render Special Actions
-    if (specialItems.length > 0) {
-      itemsHtml += specialItems.map(item => {
-        const isSelected = (curVal === item.val || (item.val === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (item.val === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
-        const hasTag = Boolean(item.tag);
-        const hasSub = Boolean(item.sub);
-        return `
-          <div class="proj-item is-special-action ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
-            <div class="proj-item-main" style="flex:1; min-width:0;">
-              ${hasTag ? `
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span class="special-action-tag ${item.tagClass}">${item.tag}</span>
-                  <strong>${escapeHtml(item.name)}</strong>
-                </div>
-              ` : `
-                <strong>${escapeHtml(item.name)}</strong>
-              `}
-              ${hasSub ? `<span class="item-wbs">${escapeHtml(item.sub)}</span>` : ''}
-            </div>
-            ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
-          </div>
-        `;
-      }).join('');
-    }
 
     // 2. Render Projects
     itemsHtml += filtered.map(p => {
@@ -3866,6 +3782,32 @@
       renderBulkProjectList(e.target.value);
     });
   }
+
+  // Quick action buttons for bulk fill modal
+  document.querySelectorAll('.bulk-quick-pill-row .btn-quick-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pName = btn.getAttribute('data-val');
+      if (el.bulkProjectSelect) {
+        el.bulkProjectSelect.value = pName;
+        updateBulkStarBtnState();
+        renderBulkStarredChips();
+        renderBulkProjectList(el.bulkProjectSearchInput ? el.bulkProjectSearchInput.value : '');
+      }
+    });
+  });
+
+  // Quick action buttons for mobile logger
+  document.querySelectorAll('.mobile-quick-pill-row .btn-quick-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pName = btn.getAttribute('data-val');
+      if (el.mobileProjectSelect) {
+        el.mobileProjectSelect.value = pName;
+        updateMobileStarBtnState();
+        renderMobileStarredChips();
+        renderMobileProjectPillList(el.mobileProjectSearchInput ? el.mobileProjectSearchInput.value : '');
+      }
+    });
+  });
 
   // Radio button choice styling in bulk fill
   document.querySelectorAll('input[name="bulkHolidayOption"]').forEach(r => {
@@ -8122,39 +8064,18 @@
     const cat = state.mobileCategory || 'all';
     const curVal = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
 
+    // Special action items kept exclusively in top quick-pill-row:
+    // name: 'DAY OFF', val: 'Day OFF', tag: '', sub: ''
+    // name: 'NO PROJECT', val: 'NO PROJECT', tag: '', sub: ''
+    // name: 'CLEAR/DELETE', val: '__CLEAR__', isClear: false, tag: '', sub: ''
     const specialItems = [];
-    if (cat === 'all' || cat === 'Special') {
-      if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
-        specialItems.push({
-          name: 'DAY OFF',
-          val: 'Day OFF',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-      if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
-        specialItems.push({
-          name: 'NO PROJECT',
-          val: 'NO PROJECT',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q) || '[clear / delete hours]'.includes(q)) {
-        specialItems.push({
-          name: 'CLEAR/DELETE',
-          val: '__CLEAR__',
-          tag: '',
-          tagClass: '',
-          sub: '',
-          isClear: false
-        });
-      }
-    }
+
+    // Sync selected highlight on mobile top quick-pill-row buttons
+    document.querySelectorAll('.mobile-quick-pill-row .btn-quick-pill').forEach(b => {
+      const bVal = b.getAttribute('data-val');
+      const isMatch = (curVal === bVal || (bVal === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (bVal === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
+      b.classList.toggle('is-selected-proj', isMatch);
+    });
 
     const filtered = state.projects.filter(p => {
       if (p.active === false) return false;
@@ -8167,7 +8088,7 @@
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    if (specialItems.length === 0 && filtered.length === 0) {
+    if (filtered.length === 0) {
       el.mobileProjectPillList.innerHTML = `
         <div class="empty-starred-hint">
           ${cat === 'starred' ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it.' : 'No matching projects found.'}
@@ -8177,31 +8098,6 @@
     }
 
     let itemsHtml = '';
-
-    // 1. Render Special Actions (Day OFF, NO PROJECT, Clear/Delete)
-    if (specialItems.length > 0) {
-      itemsHtml += specialItems.map(item => {
-        const isSelected = (curVal === item.val || (item.val === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (item.val === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
-        const hasTag = Boolean(item.tag);
-        const hasSub = Boolean(item.sub);
-        return `
-          <div class="proj-item is-special-action ${item.isClear ? 'is-special-clear' : ''} ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
-            <div class="proj-item-main" style="flex:1; min-width:0;">
-              ${hasTag ? `
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span class="special-action-tag ${item.tagClass}">${item.tag}</span>
-                  <strong ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.name)}</strong>
-                </div>
-              ` : `
-                <strong ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.name)}</strong>
-              `}
-              ${hasSub ? `<span class="item-wbs" ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.sub)}</span>` : ''}
-            </div>
-            ${isSelected ? `<span class="proj-selected-badge ${item.isClear ? 'is-badge-danger' : ''}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
-          </div>
-        `;
-      }).join('');
-    }
 
     // 2. Render Projects
     itemsHtml += filtered.map(p => {
