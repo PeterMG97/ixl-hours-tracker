@@ -8605,30 +8605,54 @@
   // -------------------------------------------------------------
   function initMobileWelcomeScreen() {
     const overlay = document.getElementById('mobileWelcomeOverlay');
-    if (overlay) {
-      overlay.style.display = 'none';
+    if (!overlay) return;
+
+    if (isMobileInterface()) {
       overlay.classList.add('hidden', 'hidden-permanently');
-    }
-    const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
-    if (enterBtn) {
-      enterBtn.style.display = 'none';
-    }
-
-    let dismissed = true;
-
-    function dismissWelcome() {
-      if (overlay) {
-        overlay.classList.add('hidden-permanently');
-        overlay.classList.add('hidden');
-        overlay.style.display = 'none';
-      }
+      overlay.style.display = 'none';
       if (isMobileInterface() && !state.isViewOnly) {
         if (state && state.mobileViewMode !== 'form') {
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
         }
       }
+      return;
     }
+
+    // PC Interface Only: show welcome/loading screen and smoothly dismiss
+    overlay.classList.remove('hidden', 'hidden-permanently');
+    overlay.style.display = 'flex';
+
+    let dismissed = false;
+
+    function dismissWelcome() {
+      if (dismissed) return;
+      dismissed = true;
+      if (overlay) {
+        overlay.classList.add('fade-out');
+        setTimeout(() => {
+          overlay.classList.add('hidden-permanently', 'hidden');
+          overlay.style.display = 'none';
+          overlay.classList.remove('fade-out');
+        }, 400);
+      }
+    }
+
+    // Automatically dismiss after loading screen holds for 4s
+    setTimeout(() => {
+      if (!dismissed) {
+        dismissWelcome();
+      }
+    }, 4000);
+
+    // Click or keypress skips immediately
+    overlay.addEventListener('click', dismissWelcome);
+    window.addEventListener('keydown', function handleKey() {
+      if (!dismissed) {
+        dismissWelcome();
+        window.removeEventListener('keydown', handleKey);
+      }
+    });
 
     if (isMobileInterface() && !state.isViewOnly) {
       if (state && state.mobileViewMode !== 'form') {

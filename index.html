@@ -32,113 +32,100 @@
     })();
   </script>
   <style id="mobileLaunchCritical">
-    #mobileWelcomeOverlay {
-      display: none !important;
-      position: fixed !important;
-      inset: 0 !important;
-      width: 0 !important;
-      height: 0 !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      visibility: hidden !important;
-      overflow: hidden !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      border: none !important;
-    }
-    .welcome-splash-stage {
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-      margin: 0 !important;
-      padding: 0 !important;
-      border: none !important;
-      background: #030a1c !important;
-    }
-    .welcome-artwork-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      aspect-ratio: 3840 / 2142;
-      width: 100%;
-      max-width: 100vw;
-      height: auto;
-      max-height: 100vh;
-      max-height: 100dvh;
-      margin: 0 auto;
-      border: none !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      background: #030a1c !important;
-      overflow: hidden;
-    }
-    .welcome-splash-picture {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    .welcome-splash-artwork {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center center;
-      display: block;
-      user-select: none;
-      -webkit-user-drag: none;
-      border: none !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      outline: none !important;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: auto;
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0.5) 8%, black 15%, black 85%, rgba(0, 0, 0, 0.5) 92%, rgba(0, 0, 0, 0.05) 97%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 2%, rgba(0, 0, 0, 0.7) 6%, black 10%, black 95%, rgba(0, 0, 0, 0.7) 97%, rgba(0, 0, 0, 0.1) 99%, transparent 100%);
-      mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0.5) 8%, black 15%, black 85%, rgba(0, 0, 0, 0.5) 92%, rgba(0, 0, 0, 0.05) 97%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 2%, rgba(0, 0, 0, 0.7) 6%, black 10%, black 95%, rgba(0, 0, 0, 0.7) 97%, rgba(0, 0, 0, 0.1) 99%, transparent 100%);
-    }
-    /* Mobile Default Spinner */
-    .splash-spinner-wrap {
-      position: absolute;
-      top: 85.5%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: calc(100% * 76 / 3840);
-      height: auto;
-      min-width: 22px;
-      min-height: 22px;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 10;
-    }
-    /* PC Interface (Desktop) - Landscape Adaptation */
-    @media (min-width: 769px) {
-      .welcome-artwork-wrapper {
-        width: auto;
-        height: 100vh;
+    @media (max-width: 768px) {
+      #mobileWelcomeOverlay {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
       }
     }
-    .splash-spinner-circle {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: transparent;
-      border: 2.5px solid rgba(255, 255, 255, 0.15);
-      border-top-color: #38bdf8;
-      border-right-color: rgba(56, 189, 248, 0.55);
-      box-sizing: border-box;
-      animation: splashSpin 0.9s linear infinite;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
-    }
-    @keyframes splashSpin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    @media (min-width: 769px) {
+      #mobileWelcomeOverlay:not(.hidden-permanently) {
+        display: flex !important;
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 999999 !important;
+        background: #010612 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .welcome-splash-stage {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        background: #010612 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .welcome-artwork-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 2752 / 1536;
+        width: 100%;
+        max-width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        margin: 0 auto;
+        background: #010612 !important;
+        overflow: hidden;
+      }
+      .welcome-splash-picture {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .welcome-splash-artwork {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center center;
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: high-quality;
+      }
+      .splash-spinner-wrap {
+        position: absolute;
+        top: 85.5%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .splash-spinner-circle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: transparent;
+        border: 2.5px solid rgba(255, 255, 255, 0.15);
+        border-top-color: #38bdf8;
+        border-right-color: rgba(56, 189, 248, 0.55);
+        box-sizing: border-box;
+        animation: splashSpin 0.9s linear infinite;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+      }
+      @keyframes splashSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     }
   </style>
   <link rel="stylesheet" href="styles.css?v=10.0">
@@ -147,220 +134,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
-  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden hidden-permanently" style="display: none !important;" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen" aria-hidden="true">
-    <!-- 1. MOBILE INTERFACE WELCOME (Screen width <= 768px: Preserved Exactly As Is) -->
-    <div class="welcome-mobile-stage">
-      <div class="welcome-splash-stage">
-        <div class="welcome-artwork-wrapper">
-          <picture class="welcome-splash-picture">
-            <img src="alstom-welcome-splash-pc.jpg?v=10.0" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
-          </picture>
-          <!-- Dynamic Rotating Loading Circle for Mobile -->
-          <div class="splash-spinner-wrap" aria-hidden="true">
-            <div class="splash-spinner-circle"></div>
-          </div>
+  <!-- Welcome Splash Screen (PC Interface Only) -->
+  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
+    <div class="welcome-splash-stage">
+      <div class="welcome-artwork-wrapper">
+        <picture class="welcome-splash-picture">
+          <img src="alstom-welcome-pc.jpg?v=10.0" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="2752" height="1536" loading="eager" decoding="sync">
+        </picture>
+        <!-- Dynamic Rotating Loading Circle slightly above 'by' text -->
+        <div class="splash-spinner-wrap" aria-hidden="true">
+          <div class="splash-spinner-circle"></div>
         </div>
       </div>
-    </div>
-
-    <!-- 2. PC INTERFACE WELCOME (Screen width >= 769px: 100% Code-Generated Vector Masterpiece) -->
-    <div class="welcome-pc-stage" aria-hidden="false">
-      <!-- Ambient particle dust overlay -->
-      <div class="pc-dust-field"></div>
-
-      <!-- Top Branding: ALSTOM Wordmark + Signature Red Orbital Swirl + Tagline -->
-      <header class="pc-brand-header">
-        <div class="pc-alstom-wordmark">
-          <span class="pc-alstom-letter">A</span>
-          <span class="pc-alstom-letter">L</span>
-          <span class="pc-alstom-letter">S</span>
-          <span class="pc-alstom-letter">T</span>
-          <div class="pc-alstom-orb-wrap" aria-label="O">
-            <svg class="pc-alstom-orb-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <radialGradient id="pcOrbGrad" cx="45%" cy="40%" r="55%">
-                  <stop offset="0%" stop-color="#ff6b6b" />
-                  <stop offset="35%" stop-color="#ef2320" />
-                  <stop offset="70%" stop-color="#b91310" />
-                  <stop offset="100%" stop-color="#6b0806" />
-                </radialGradient>
-                <linearGradient id="pcOrbArc1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
-                  <stop offset="40%" stop-color="#ff8585" />
-                  <stop offset="100%" stop-color="#e52421" />
-                </linearGradient>
-              </defs>
-              <!-- Core Swirl -->
-              <circle cx="50" cy="50" r="42" fill="url(#pcOrbGrad)" />
-              <circle cx="50" cy="50" r="22" fill="#03162c" />
-              <!-- Outer Swirling Ribbon Arc -->
-              <path d="M50 8 A42 42 0 1 1 14 68 C18 60 26 54 36 50 C44 46 54 44 64 48 C72 52 74 62 70 70 A30 30 0 0 0 50 20 A30 30 0 0 0 24 64 C20 60 16 48 20 38 A42 42 0 0 1 50 8 Z" fill="url(#pcOrbArc1)" opacity="0.9" />
-              <!-- Inner High-Speed Accent Arc -->
-              <path d="M50 14 A36 36 0 0 1 84 58 C80 62 72 64 66 58 C60 52 56 46 48 44 C40 42 32 46 28 52 A36 36 0 0 1 50 14 Z" fill="#ffffff" opacity="0.8" />
-              <circle cx="48" cy="24" r="5" fill="#ffffff" filter="blur(2px)" />
-            </svg>
-          </div>
-          <span class="pc-alstom-letter">M</span>
-        </div>
-        <div class="pc-tagline">mobility by nature</div>
-      </header>
-
-      <!-- Center Vector Artwork: High-Speed Bullet Train & Glowing Neon Rails -->
-      <main class="pc-train-artwork-container">
-        <svg class="pc-train-svg" viewBox="0 0 1200 480" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="trainCyanGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#0284c7" stop-opacity="0.1" />
-              <stop offset="30%" stop-color="#00d2ff" stop-opacity="0.85" />
-              <stop offset="65%" stop-color="#38bdf8" />
-              <stop offset="100%" stop-color="#ffffff" />
-            </linearGradient>
-
-            <linearGradient id="railLeftGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.95" />
-              <stop offset="45%" stop-color="#0284c7" stop-opacity="0.85" />
-              <stop offset="85%" stop-color="#0369a1" stop-opacity="0.4" />
-              <stop offset="100%" stop-color="#0284c7" stop-opacity="0.05" />
-            </linearGradient>
-
-            <linearGradient id="railRightGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95" />
-              <stop offset="50%" stop-color="#00d2ff" stop-opacity="0.8" />
-              <stop offset="85%" stop-color="#0369a1" stop-opacity="0.35" />
-              <stop offset="100%" stop-color="#0284c7" stop-opacity="0.05" />
-            </linearGradient>
-
-            <linearGradient id="headlightRedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#ff6b6b" />
-              <stop offset="40%" stop-color="#ef4444" />
-              <stop offset="100%" stop-color="#991b1b" />
-            </linearGradient>
-
-            <radialGradient id="redFlare" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ff3333" stop-opacity="0.95" />
-              <stop offset="35%" stop-color="#ef4444" stop-opacity="0.6" />
-              <stop offset="70%" stop-color="#b91c1c" stop-opacity="0.2" />
-              <stop offset="100%" stop-color="#7f1d1d" stop-opacity="0" />
-            </radialGradient>
-
-            <linearGradient id="trainBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#031528" stop-opacity="0.8" />
-              <stop offset="35%" stop-color="#082846" stop-opacity="0.9" />
-              <stop offset="65%" stop-color="#0d385e" stop-opacity="0.95" />
-              <stop offset="100%" stop-color="#04182e" stop-opacity="0.9" />
-            </linearGradient>
-
-            <linearGradient id="trainWindshield" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#001a33" />
-              <stop offset="50%" stop-color="#002b4d" />
-              <stop offset="100%" stop-color="#001426" />
-            </linearGradient>
-
-            <filter id="cyanGlowEffect" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-
-            <filter id="intenseRedGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="7" result="blur1" />
-              <feGaussianBlur stdDeviation="15" result="blur2" />
-              <feMerge>
-                <feMergeNode in="blur2" />
-                <feMergeNode in="blur1" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-
-            <filter id="softTrackReflection" x="-10%" y="-10%" width="120%" height="120%">
-              <feGaussianBlur stdDeviation="8" />
-            </filter>
-          </defs>
-
-          <!-- A. Track Bed Ground Reflections -->
-          <g opacity="0.4" filter="url(#softTrackReflection)">
-            <path d="M 60 480 Q 320 450, 520 380 Q 720 310, 920 280" stroke="#00e5ff" stroke-width="18" fill="none" />
-            <path d="M 160 480 Q 400 455, 610 395 Q 800 330, 980 290" stroke="#00aaff" stroke-width="14" fill="none" />
-            <ellipse cx="760" cy="405" rx="120" ry="24" fill="url(#redFlare)" opacity="0.65" />
-          </g>
-
-          <!-- B. Perspective Sleepers / Ties -->
-          <g stroke="rgba(56, 189, 248, 0.4)" stroke-width="2.5" stroke-linecap="round">
-            <line x1="85" y1="472" x2="185" y2="476" stroke-width="3.5" stroke="rgba(56, 189, 248, 0.55)" />
-            <line x1="125" y1="462" x2="225" y2="466" stroke-width="3.5" stroke="rgba(56, 189, 248, 0.55)" />
-            <line x1="170" y1="452" x2="268" y2="456" stroke-width="3" />
-            <line x1="220" y1="442" x2="315" y2="446" stroke-width="3" />
-            <line x1="272" y1="432" x2="362" y2="436" stroke-width="2.5" />
-            <line x1="326" y1="422" x2="412" y2="426" stroke-width="2.5" />
-            <line x1="382" y1="412" x2="464" y2="416" stroke-width="2.2" />
-            <line x1="440" y1="402" x2="518" y2="406" stroke-width="2.0" />
-            <line x1="500" y1="392" x2="572" y2="396" stroke-width="1.8" />
-            <line x1="560" y1="382" x2="628" y2="386" stroke-width="1.6" />
-            <line x1="622" y1="372" x2="684" y2="376" stroke-width="1.4" />
-            <line x1="685" y1="362" x2="742" y2="366" stroke-width="1.2" />
-            <line x1="748" y1="352" x2="800" y2="356" stroke-width="1.0" />
-            <line x1="810" y1="342" x2="858" y2="346" stroke-width="0.8" />
-          </g>
-
-          <!-- C. Curved Glowing Electric Rails -->
-          <path d="M 50 478 Q 310 448, 515 378 Q 720 308, 930 278" stroke="url(#railLeftGrad)" stroke-width="4.5" fill="none" filter="url(#cyanGlowEffect)" />
-          <path d="M 50 478 Q 310 448, 515 378 Q 720 308, 930 278" stroke="#ffffff" stroke-width="1.8" fill="none" opacity="0.9" />
-
-          <path d="M 150 482 Q 395 456, 612 396 Q 810 332, 990 292" stroke="url(#railRightGrad)" stroke-width="4.5" fill="none" filter="url(#cyanGlowEffect)" />
-          <path d="M 150 482 Q 395 456, 612 396 Q 810 332, 990 292" stroke="#ffffff" stroke-width="1.8" fill="none" opacity="0.9" />
-
-          <!-- D. Futuristic High-Speed Train Body -->
-          <path d="M 420 310 C 490 270, 600 240, 710 248 C 745 250, 780 270, 792 305 C 800 328, 785 352, 750 365 C 715 375, 640 376, 560 370 C 475 364, 420 345, 420 310 Z" fill="url(#trainBodyGrad)" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.5" />
-
-          <!-- Cockpit Windshield -->
-          <path d="M 640 262 C 680 256, 730 264, 762 284 C 774 292, 776 304, 764 314 C 740 324, 690 316, 650 300 C 636 294, 632 272, 640 262 Z" fill="url(#trainWindshield)" stroke="rgba(0, 210, 255, 0.6)" stroke-width="1.2" />
-
-          <!-- Aerodynamic Roof Neon Line -->
-          <path d="M 410 308 C 500 262, 620 236, 725 246 C 758 249, 788 270, 798 304" stroke="url(#trainCyanGlow)" stroke-width="3" fill="none" filter="url(#cyanGlowEffect)" />
-
-          <!-- Lower Side Skirt Neon Ribbons -->
-          <path d="M 445 338 C 530 352, 625 360, 710 354 C 748 350, 775 338, 788 322" stroke="#00d2ff" stroke-width="2.5" fill="none" filter="url(#cyanGlowEffect)" />
-          <path d="M 470 350 C 545 362, 630 368, 700 364 C 730 360, 755 350, 770 338" stroke="rgba(56, 189, 248, 0.7)" stroke-width="1.8" fill="none" />
-
-          <!-- Front Nose Wedge Contour -->
-          <path d="M 770 295 C 795 315, 792 338, 764 354" stroke="#ffffff" stroke-width="2.5" fill="none" filter="url(#cyanGlowEffect)" />
-
-          <!-- E. Intense Red Headlight Blades -->
-          <ellipse cx="745" cy="342" rx="45" ry="18" fill="url(#redFlare)" opacity="0.85" filter="url(#intenseRedGlow)" />
-
-          <path d="M 680 332 C 710 334, 742 336, 762 344 C 755 348, 725 346, 695 342 Z" fill="url(#headlightRedGrad)" filter="url(#intenseRedGlow)" />
-          <path d="M 685 333 C 712 335, 742 337, 760 344" stroke="#ffffff" stroke-width="1.2" opacity="0.9" />
-
-          <path d="M 705 345 C 728 348, 750 352, 768 360 C 758 364, 735 360, 715 354 Z" fill="url(#headlightRedGrad)" filter="url(#intenseRedGlow)" />
-          <path d="M 710 346 C 730 349, 750 353, 766 360" stroke="#ffffff" stroke-width="1.2" opacity="0.9" />
-
-          <circle cx="762" cy="348" r="3.5" fill="#ffffff" filter="drop-shadow(0 0 6px #ff4444)" />
-
-          <!-- F. High-Speed Motion Vectors -->
-          <line x1="320" y1="300" x2="430" y2="300" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.2" stroke-dasharray="12 8" />
-          <line x1="360" y1="320" x2="450" y2="320" stroke="rgba(56, 189, 248, 0.55)" stroke-width="1.5" stroke-dasharray="20 10" />
-          <line x1="300" y1="340" x2="420" y2="340" stroke="rgba(56, 189, 248, 0.35)" stroke-width="1.0" stroke-dasharray="15 12" />
-          <line x1="790" y1="365" x2="900" y2="375" stroke="rgba(0, 210, 255, 0.45)" stroke-width="1.4" stroke-dasharray="24 12" />
-          <line x1="820" y1="345" x2="940" y2="352" stroke="rgba(56, 189, 248, 0.3)" stroke-width="1.2" stroke-dasharray="16 10" />
-        </svg>
-      </main>
-
-      <!-- 3. Bottom Footer Attribution & Spinner -->
-      <footer class="pc-welcome-footer">
-        <!-- Dynamic Rotating Loading Circle -->
-        <div class="pc-spinner-outer" aria-hidden="true">
-          <div class="pc-spinner-ring"></div>
-        </div>
-        <!-- Attribution -->
-        <div class="pc-footer-attribution">
-          <div class="pc-footer-by">by</div>
-          <div class="pc-footer-team">IXL Team</div>
-        </div>
-      </footer>
     </div>
 
     <!-- Hidden Accessible Elements to Preserve Brand & Test Contracts -->
@@ -379,6 +164,7 @@
       Open Mobile Editor
     </button>
   </div>
+
   <div id="app" class="app-layout">
     
     <!-- Top Navigation Bar -->
