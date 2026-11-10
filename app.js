@@ -8462,68 +8462,37 @@
   // -------------------------------------------------------------
   function initMobileWelcomeScreen() {
     const overlay = document.getElementById('mobileWelcomeOverlay');
-    if (!overlay) return;
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden', 'hidden-permanently');
+    }
     const enterBtn = document.getElementById('mobileWelcomeEnterBtn');
-
-    // Force hide any accessible button visually
     if (enterBtn) {
       enterBtn.style.display = 'none';
     }
 
-    // Overlay is already visible from HTML & critical CSS without FOUC
-    overlay.classList.remove('hidden');
-    overlay.classList.remove('hidden-permanently');
-
-    let dismissed = false;
+    let dismissed = true;
 
     function dismissWelcome() {
-      if (dismissed) return;
-      dismissed = true;
-      overlay.classList.add('fade-out');
-      setTimeout(() => {
+      if (overlay) {
         overlay.classList.add('hidden-permanently');
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
-        overlay.classList.remove('fade-out');
-        if (isMobileInterface()) {
-          if (state && state.mobileViewMode !== 'form') {
-            state.mobileViewMode = 'form';
-            updateDeviceViewMode();
-          }
+      }
+      if (isMobileInterface()) {
+        if (state && state.mobileViewMode !== 'form') {
+          state.mobileViewMode = 'form';
+          updateDeviceViewMode();
         }
-      }, 350);
-    }
-
-    // Screen holds for 5s then smoothly transitions into the app
-    setTimeout(() => {
-      if (!dismissed) {
-        dismissWelcome();
-      }
-    }, 5000);
-
-    // Tap or click anywhere to skip/enter immediately
-    if (enterBtn) {
-      enterBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dismissWelcome();
-      });
-    }
-
-    overlay.addEventListener('click', () => {
-      dismissWelcome();
-    });
-    overlay.addEventListener('touchstart', () => {
-      dismissWelcome();
-    }, { passive: true });
-
-    // PC: Pressing any key dismisses immediately
-    function handleKeyDismiss(e) {
-      if (!dismissed) {
-        dismissWelcome();
-        window.removeEventListener('keydown', handleKeyDismiss);
       }
     }
-    window.addEventListener('keydown', handleKeyDismiss);
+
+    if (isMobileInterface()) {
+      if (state && state.mobileViewMode !== 'form') {
+        state.mobileViewMode = 'form';
+        updateDeviceViewMode();
+      }
+    }
   }
 
   // Boot Application

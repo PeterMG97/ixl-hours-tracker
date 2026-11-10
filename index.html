@@ -32,17 +32,15 @@
     })();
   </script>
   <style id="mobileLaunchCritical">
-    #mobileWelcomeOverlay:not(.hidden-permanently) {
-      display: flex !important;
+    #mobileWelcomeOverlay {
+      display: none !important;
       position: fixed !important;
       inset: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-      z-index: 999999 !important;
-      background: #030a1c !important;
-      align-items: center !important;
-      justify-content: center !important;
+      width: 0 !important;
+      height: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
       overflow: hidden !important;
       margin: 0 !important;
       padding: 0 !important;
@@ -143,20 +141,20 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <link rel="stylesheet" href="styles.css?v=9.5">
+  <link rel="stylesheet" href="styles.css?v=9.6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Mobile Welcome Splash Screen (Mobile Interface Only) -->
-  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
+  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay hidden hidden-permanently" style="display: none !important;" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen" aria-hidden="true">
     <!-- 1. MOBILE INTERFACE WELCOME (Screen width <= 768px: Preserved Exactly As Is) -->
     <div class="welcome-mobile-stage">
       <div class="welcome-splash-stage">
         <div class="welcome-artwork-wrapper">
           <picture class="welcome-splash-picture">
-            <img src="alstom-welcome-splash-pc.jpg?v=9.5" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
+            <img src="alstom-welcome-splash-pc.jpg?v=9.6" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="3840" height="2142" loading="eager" decoding="sync">
           </picture>
           <!-- Dynamic Rotating Loading Circle for Mobile -->
           <div class="splash-spinner-wrap" aria-hidden="true">
@@ -2142,6 +2140,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <script src="app.js?v=9.5"></script>
+  <script src="app.js?v=9.6"></script>
 </body>
 </html>
