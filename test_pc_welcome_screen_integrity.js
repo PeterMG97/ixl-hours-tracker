@@ -124,11 +124,12 @@ test('3.1 initMobileWelcomeScreen unhides overlay on boot for both mobile and PC
   assert(fnBlock.includes('touchstart'), 'Missing touchstart listener for mobile tap dismiss');
 });
 
-test('3.2 initMobileWelcomeScreen supports auto-dismissal, click/tap skip, and view-only guard', () => {
+test('3.2 initMobileWelcomeScreen supports 10-second auto-dismissal, click/tap skip, and view-only guard', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
   const fnBlock = js.substring(fnIdx, fnIdx + 1600);
   assert(fnBlock.includes('dismissWelcome'), 'Missing dismissWelcome function');
   assert(fnBlock.includes('setTimeout'), 'Missing auto-dismiss timer');
+  assert(fnBlock.includes('10000'), 'Auto-dismiss timer must be set to 10 seconds (10000ms)');
   assert(fnBlock.includes('click'), 'Missing click dismiss listener');
   assert(fnBlock.includes('keydown'), 'Missing keyboard dismiss listener');
   assert(fnBlock.includes('if (isMobileInterface() && !state.isViewOnly)'), 'Missing view-only check in initMobileWelcomeScreen');

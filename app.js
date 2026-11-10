@@ -8607,6 +8607,13 @@
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
 
+    if (isMobileInterface() && !state.isViewOnly) {
+      if (state && state.mobileViewMode !== 'form') {
+        state.mobileViewMode = 'form';
+        updateDeviceViewMode();
+      }
+    }
+
     overlay.classList.remove('hidden', 'hidden-permanently');
     overlay.style.display = 'flex';
 
@@ -8625,12 +8632,12 @@
       }
     }
 
-    // Automatically dismiss after loading screen holds for 4s
+    // Automatically dismiss after loading screen holds for 10s
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 4000);
+    }, 10000);
 
     // Tap, click, or keypress skips immediately
     overlay.addEventListener('click', dismissWelcome);
@@ -8641,13 +8648,6 @@
         window.removeEventListener('keydown', handleKey);
       }
     });
-
-    if (isMobileInterface() && !state.isViewOnly) {
-      if (state && state.mobileViewMode !== 'form') {
-        state.mobileViewMode = 'form';
-        updateDeviceViewMode();
-      }
-    }
   }
 
   // Boot Application

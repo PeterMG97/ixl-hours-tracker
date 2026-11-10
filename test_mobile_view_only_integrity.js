@@ -153,7 +153,7 @@ test('4.3 mobileReturnToLoggerBtn click event is guarded against view-only mode'
 
 test('4.4 initMobileWelcomeScreen does not switch view mode to form when state.isViewOnly is true', () => {
   const welcomeIdx = js.indexOf('function initMobileWelcomeScreen()');
-  const welcomeBlock = js.substring(welcomeIdx, welcomeIdx + 900);
+  const welcomeBlock = js.substring(welcomeIdx, welcomeIdx + 1500);
   assert(welcomeBlock.includes('if (isMobileInterface() && !state.isViewOnly)'), 'Missing !state.isViewOnly guard in initMobileWelcomeScreen');
 });
 
