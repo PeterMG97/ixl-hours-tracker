@@ -64,15 +64,13 @@ test('1.3 alstom-welcome-pc.jpg is byte-for-byte identical to welcome_pic/1.jpg 
   assert.strictEqual(pcHash, origHash, 'PC welcome image SHA256 must match welcome_pic/1.jpg byte-for-byte');
 });
 
-test('1.4 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic/1.jpg', () => {
-  if (fs.existsSync('alstom-welcome-mobile.jpg')) {
-    const origBuf = fs.readFileSync('welcome_pic/1.jpg');
-    const mobBuf = fs.readFileSync('alstom-welcome-mobile.jpg');
-    assert.strictEqual(mobBuf.length, 268506, 'Mobile welcome image must be exactly 268,506 bytes');
-    const origHash = crypto.createHash('sha256').update(origBuf).digest('hex');
-    const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');
-    assert.strictEqual(mobHash, origHash, 'Mobile welcome image SHA256 must match welcome_pic/1.jpg');
-  }
+test('1.4 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic_mob/2026-11-10 17.06.jpg', () => {
+  const origMobBuf = fs.readFileSync('welcome_pic_mob/2026-11-10 17.06.jpg');
+  const mobBuf = fs.readFileSync('alstom-welcome-mobile.jpg');
+  assert.strictEqual(mobBuf.length, 320123, 'Mobile welcome image must be exactly 320,123 bytes');
+  const origHash = crypto.createHash('sha256').update(origMobBuf).digest('hex');
+  const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');
+  assert.strictEqual(mobHash, origHash, 'Mobile welcome image SHA256 must match welcome_pic_mob exactly');
 });
 
 // ========================================================
@@ -80,10 +78,13 @@ test('1.4 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic/1.
 // ========================================================
 console.log('\n>>> MODULE 2: Welcome Screen Layout & Responsive Placement');
 
-test('2.1 index.html references full-resolution artwork with natural dimensions (2752x1536)', () => {
-  assert(html.includes('alstom-welcome-pc.jpg?v=10.0'), 'Missing welcome image reference in index.html');
-  assert(html.includes('width="2752"'), 'Missing width="2752" in index.html');
-  assert(html.includes('height="1536"'), 'Missing height="1536" in index.html');
+test('2.1 index.html references responsive mobile and PC artwork with natural dimensions', () => {
+  assert(html.includes('alstom-welcome-mobile.jpg?v=10.0'), 'Missing mobile welcome image reference in index.html');
+  assert(html.includes('width="1408"'), 'Missing mobile width="1408" in index.html');
+  assert(html.includes('height="3040"'), 'Missing mobile height="3040" in index.html');
+  assert(html.includes('alstom-welcome-pc.jpg?v=10.0'), 'Missing PC welcome image reference in index.html');
+  assert(html.includes('width="2752"'), 'Missing PC width="2752" in index.html');
+  assert(html.includes('height="1536"'), 'Missing PC height="1536" in index.html');
 });
 
 test('2.2 Rotating loading circle (splash-spinner) is present on welcome screen', () => {
@@ -97,11 +98,15 @@ test('2.2a Loading circle is horizontally centered between "b" and "y" in "by" (
 });
 
 test('2.3 Mobile-responsive positioning places circle above "by" without touching or interfering', () => {
-  // Mobile media queries configure safe clearance
+  // Mobile media queries configure safe clearance and portrait aspect ratio
   assert(html.includes('@media (max-width: 768px)'), 'Mobile media query missing in critical CSS');
-  assert(html.includes('top: 83.8%;'), 'Mobile top: 83.8% clearance missing in critical CSS');
+  assert(html.includes('aspect-ratio: 1408 / 3040;'), 'Mobile aspect-ratio 1408 / 3040 missing in critical CSS');
+  assert(html.includes('top: 90.0%;'), 'Mobile top: 90.0% clearance missing in critical CSS');
+  assert(html.includes('left: 50.0%;'), 'Mobile left: 50.0% centering missing in critical CSS');
   assert(css.includes('@media (max-width: 768px)'), 'Mobile media query missing in styles.css');
-  assert(css.includes('top: 83.8%;'), 'Mobile top: 83.8% clearance missing in styles.css');
+  assert(css.includes('aspect-ratio: 1408 / 3040;'), 'Mobile aspect-ratio 1408 / 3040 missing in styles.css');
+  assert(css.includes('top: 90.0%;'), 'Mobile top: 90.0% clearance missing in styles.css');
+  assert(css.includes('left: 50.0%;'), 'Mobile left: 50.0% centering missing in styles.css');
   assert(css.includes('clamp('), 'Mobile responsive clamp sizing missing in styles.css');
 });
 

@@ -123,11 +123,14 @@
       100% { transform: rotate(360deg); }
     }
     @media (max-width: 768px) {
+      .welcome-artwork-wrapper {
+        aspect-ratio: 1408 / 3040;
+      }
       .splash-spinner-wrap {
-        top: 83.8%;
-        left: 50.4%;
-        width: clamp(13px, 3.8vw, 18px);
-        height: clamp(13px, 3.8vw, 18px);
+        top: 90.0%;
+        left: 50.0%;
+        width: clamp(18px, 4.5vw, 24px);
+        height: clamp(18px, 4.5vw, 24px);
       }
       .splash-spinner-circle {
         border-width: 2px;
@@ -145,6 +148,8 @@
     <div class="welcome-splash-stage">
       <div class="welcome-artwork-wrapper">
         <picture class="welcome-splash-picture">
+          <source media="(max-width: 768px)" srcset="alstom-welcome-mobile.jpg?v=10.0" width="1408" height="3040">
+          <source media="(min-width: 769px)" srcset="alstom-welcome-pc.jpg?v=10.0" width="2752" height="1536">
           <img src="alstom-welcome-pc.jpg?v=10.0" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="2752" height="1536" loading="eager" decoding="sync">
         </picture>
         <!-- Dynamic Rotating Loading Circle slightly above 'by' text -->
