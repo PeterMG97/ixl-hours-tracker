@@ -97,16 +97,18 @@ test('2.2a Loading circle is horizontally centered between "b" and "y" in "by" (
   assert(css.includes('left: 50.4%;'), 'styles.css missing left: 50.4% for splash-spinner-wrap');
 });
 
-test('2.3 Mobile-responsive positioning places circle above "by" without touching or interfering, and raises picture 4mm', () => {
-  // Mobile media queries configure safe clearance, portrait aspect ratio, and 4mm upward picture raise
+test('2.3 Mobile-responsive positioning places circle above "by" and ensures fit-to-screen across all mobile screens', () => {
+  // Mobile media queries configure safe clearance, portrait aspect ratio, and fit-to-screen dimensions
   assert(html.includes('@media (max-width: 768px)'), 'Mobile media query missing in critical CSS');
   assert(html.includes('aspect-ratio: 1408 / 3040;'), 'Mobile aspect-ratio 1408 / 3040 missing in critical CSS');
-  assert(html.includes('translateY(-4mm)'), 'Mobile picture translateY(-4mm) missing in critical CSS');
+  assert(html.includes('0.463158'), 'Mobile aspect-ratio scale missing in critical CSS');
+  assert(html.includes('2.159091'), 'Mobile height aspect-ratio scale missing in critical CSS');
   assert(html.includes('top: 90.0%;'), 'Mobile top: 90.0% clearance missing in critical CSS');
   assert(html.includes('left: 50.0%;'), 'Mobile left: 50.0% centering missing in critical CSS');
   assert(css.includes('@media (max-width: 768px)'), 'Mobile media query missing in styles.css');
   assert(css.includes('aspect-ratio: 1408 / 3040;'), 'Mobile aspect-ratio 1408 / 3040 missing in styles.css');
-  assert(css.includes('translateY(-4mm)'), 'Mobile picture translateY(-4mm) missing in styles.css');
+  assert(css.includes('0.463158'), 'Mobile aspect-ratio scale missing in styles.css');
+  assert(css.includes('2.159091'), 'Mobile height aspect-ratio scale missing in styles.css');
   assert(css.includes('top: 90.0%;'), 'Mobile top: 90.0% clearance missing in styles.css');
   assert(css.includes('left: 50.0%;'), 'Mobile left: 50.0% centering missing in styles.css');
   assert(css.includes('clamp('), 'Mobile responsive clamp sizing missing in styles.css');

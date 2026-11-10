@@ -5714,12 +5714,36 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 }
 
 @media (max-width: 768px) {
+  .welcome-splash-stage {
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    box-sizing: border-box;
+  }
   .welcome-artwork-wrapper {
     aspect-ratio: 1408 / 3040;
-    overflow: visible;
+    width: min(100vw, calc(100vh * 0.463158));
+    width: min(100vw, calc(100dvh * 0.463158));
+    width: min(calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.463158));
+    height: min(100vh, calc(100vw * 2.159091));
+    height: min(100dvh, calc(100vw * 2.159091));
+    height: min(calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), calc((100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) * 2.159091));
+    max-width: 100vw;
+    max-height: 100dvh;
+    max-height: 100vh;
+    margin: 0 auto;
+    overflow: hidden;
   }
   .welcome-splash-picture {
-    transform: translateY(-4mm);
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform: none;
+  }
+  .welcome-splash-artwork {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    display: block;
   }
   .splash-spinner-wrap {
     top: 90.0%;
