@@ -5576,52 +5576,49 @@
         `;
       } else {
         el.contribDaysTableBody.innerHTML = filteredEntries.map(e => {
-          let badgeHtml = '';
-          let hoursHtml = '-';
+          let projectText = '—';
+          let hoursHtml = '—';
           let rowClass = '';
 
           if (e.isRecordedWork) {
-            const badgeClass = getProjectBadgeClass(e.projectName);
-            badgeHtml = `<span class="pill ${badgeClass}">${e.projectName}</span>`;
-            hoursHtml = `<strong style="color:var(--primary); font-size:12px;">${e.hours}h</strong>`;
+            projectText = e.projectName;
+            hoursHtml = `<strong>${e.hours}h</strong>`;
           } else if (e.projectName === 'Day OFF') {
-            badgeHtml = `<span class="pill pill-off">Day OFF</span>`;
-            hoursHtml = `<span class="text-muted">0h</span>`;
+            projectText = 'Day OFF';
+            hoursHtml = `<span>0h</span>`;
             rowClass = 'row-off';
           } else if (e.projectName === 'NO PROJECT') {
-            badgeHtml = `<span class="pill pill-missing">NO PROJECT</span>`;
-            hoursHtml = `<span class="text-danger font-bold">Unassigned</span>`;
+            projectText = 'NO PROJECT';
+            hoursHtml = `<span>Unassigned</span>`;
             rowClass = 'row-no-proj';
           } else {
-            badgeHtml = `<span class="text-muted text-xs">—</span>`;
-            hoursHtml = `<span class="text-muted text-xs">—</span>`;
+            projectText = '—';
+            hoursHtml = '—';
           }
 
-          const dayTypeBadge = e.isWeekend
-            ? `<span style="font-size:10px; color:var(--text-muted); background:var(--bg-subtle, #f1f5f9); padding:2px 6px; border-radius:4px;">${e.dayTypeLabel}</span>`
-            : `<span style="font-size:10px; color:#15803d; background:#dcfce7; padding:2px 6px; border-radius:4px;">Workday</span>`;
-
-          let categoryBadge = '—';
+          let categoryText = '—';
           if (e.projectName) {
             if (e.projectName === 'Day OFF' || e.projectName === 'NO PROJECT') {
-              categoryBadge = `<span class="text-xs text-muted">Status</span>`;
+              categoryText = 'Status';
             } else if (e.projectName.startsWith('Tender')) {
-              categoryBadge = `<span class="pill pill-tender">Tender</span>`;
+              categoryText = 'Tender';
             } else if (e.projectName.startsWith('Training') || e.projectName.startsWith('Academy') || e.projectName === 'Different Team Support') {
-              categoryBadge = `<span class="pill pill-training">Special</span>`;
+              categoryText = 'Special';
             } else {
-              categoryBadge = `<span class="pill pill-proj">Project</span>`;
+              categoryText = 'Project';
             }
           }
+
+          const dayStatusText = e.isWeekend ? e.dayTypeLabel : 'Workday';
 
           return `
             <tr class="${rowClass}">
               <td><strong>${formatDateDMY(e.dateStr)}</strong></td>
               <td>${e.dowName}</td>
-              <td>${badgeHtml}</td>
-              <td>${categoryBadge}</td>
+              <td>${projectText}</td>
+              <td>${categoryText}</td>
               <td style="text-align:right;">${hoursHtml}</td>
-              <td>${dayTypeBadge}</td>
+              <td>${dayStatusText}</td>
             </tr>
           `;
         }).join('');

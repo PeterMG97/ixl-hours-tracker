@@ -325,6 +325,15 @@ When focused on any grid slot:
 
 ---
 
+### 6.4 Employee Monthly Contributions Modal (`#empContribModal`)
+- Triggered by double-clicking any employee row on the schedule grid (Desktop) or opening member contributions (Mobile).
+- **Daily Contributions Log Table (`#contribDaysTable`)**:
+  - `Project / Task Contributed`: Plain, clean, unhighlighted text (no colored pill backgrounds, no green highlights).
+  - `Category`: Plain, unhighlighted category labels (`Special`, `Project`, `Tender`, `Status`).
+  - `Recorded Hours`: Clean text hours tally (`8h`, `0h`, `Unassigned`).
+  - `Day Status`: Plain unhighlighted day descriptor (`Workday`, `Cairo Weekend`, `Istanbul Weekend`).
+  - Strict zero-highlight protocol enforced across Desktop and Mobile interfaces in both Light and Dark themes.
+
 ## 7. Mobile Interface Deep Architecture & Touch Physics
 
 ### 7.1 Dual Mobile Modes: Editor vs. Grid View
@@ -610,3 +619,4 @@ Any software engineer or AI coding assistant modifying this repository MUST adhe
 
 ---
 *End of Technical Architecture Manual.*
+

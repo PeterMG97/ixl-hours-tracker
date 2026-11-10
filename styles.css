@@ -2593,6 +2593,20 @@ body.view-only .task-chip {
   white-space: nowrap !important;
   vertical-align: middle !important;
 }
+#contribDaysTable td .pill,
+#contribDaysTable .pill {
+  background: transparent !important;
+  color: inherit !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  font-weight: normal !important;
+}
+#contribProjectChips .task-chip {
+  background: var(--bg-card) !important;
+  color: var(--text-normal) !important;
+  border: 1px solid var(--border-medium) !important;
+}
 
 #projectDaysTable {
   min-width: 650px !important;
