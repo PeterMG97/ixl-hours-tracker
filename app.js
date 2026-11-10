@@ -575,6 +575,8 @@
     el.adminToggleBtn.classList.add('hidden');
     el.topbarBulkFillBtn.classList.add('hidden');
     if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
+    if (el.openBulkFillBtn) el.openBulkFillBtn.classList.add('hidden');
+    if (el.bulkFillModal) el.bulkFillModal.classList.add('hidden');
     if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
     if (el.mobileReturnToLoggerBtn) el.mobileReturnToLoggerBtn.classList.add('hidden');
     if (el.mobileAppContainer) el.mobileAppContainer.classList.add('hidden');
@@ -3322,11 +3324,16 @@
   // -------------------------------------------------------------
 
   el.topbarBulkFillBtn.addEventListener('click', () => {
+    if (state.isViewOnly) {
+      showToast('View-only link: Bulk Fill is disabled.', 'warning');
+      return;
+    }
     openBulkFillModal(state.currentUserId, state.todayStr);
   });
 
   if (el.bulkRangeToday) {
     el.bulkRangeToday.addEventListener('click', () => {
+      if (state.isViewOnly) return;
       const t = state.todayStr || (state.currentMonth + '-01');
       if (el.bulkFromDate) el.bulkFromDate.value = formatDateDMY(t);
       if (el.bulkToDate) el.bulkToDate.value = formatDateDMY(t);
@@ -3337,6 +3344,7 @@
 
   if (el.bulkRangeWeek) {
     el.bulkRangeWeek.addEventListener('click', () => {
+      if (state.isViewOnly) return;
       const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : state.currentUserId;
       const emp = state.employees.find(e => e.id === empId);
       const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
@@ -3376,6 +3384,7 @@
 
   if (el.bulkRangeMonth) {
     el.bulkRangeMonth.addEventListener('click', () => {
+      if (state.isViewOnly) return;
       const [y, m] = state.currentMonth.split('-').map(Number);
       const lastDay = new Date(y, m, 0).getDate();
       const fStr = `${state.currentMonth}-01`;
@@ -3388,6 +3397,10 @@
   }
 
   el.openBulkFillBtn.addEventListener('click', () => {
+    if (state.isViewOnly) {
+      showToast('View-only link: Bulk Fill is disabled.', 'warning');
+      return;
+    }
     if (!state.selectedCell) return;
     const { empId, dateStr } = state.selectedCell;
     closeCellPopover();
@@ -3395,6 +3408,10 @@
   });
 
   function openBulkFillModal(targetEmpId, defaultDate) {
+    if (state.isViewOnly) {
+      showToast('View-only link: Bulk Fill is disabled.', 'warning');
+      return;
+    }
     // Populate Employee Selector
     const activeEmps = state.employees.filter(e => e.active !== false);
     activeEmps.sort((a,b) => a.name.localeCompare(b.name));
@@ -4161,6 +4178,10 @@
     // Requirement: WBS Code editable by everyone without requiring admin rights
     tbody.querySelectorAll('.wbs-code-input').forEach(input => {
       const handleWbsSave = () => {
+        if (state.isViewOnly) {
+          showToast('View-only link: Editing WBS is disabled.', 'warning');
+          return;
+        }
         const pId = input.getAttribute('data-proj-id');
         const proj = state.projects.find(p => p.id === pId);
         if (!proj) return;
@@ -4200,6 +4221,10 @@
   document.getElementById('filterProjectTableInput').addEventListener('input', renderProjectsModal);
 
   document.getElementById('saveNewProjectBtn').addEventListener('click', () => {
+    if (state.isViewOnly) {
+      showToast('View-only link: Adding projects is disabled.', 'warning');
+      return;
+    }
     if (!requireAdmin()) return;
     const name = document.getElementById('newProjName').value.trim();
     const wbs = document.getElementById('newProjWbs').value.trim();
@@ -4234,6 +4259,10 @@
   });
 
   function openAdjustHoursDialog(pId) {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
     const proj = state.projects.find(p => p.id === pId);
     document.getElementById('adjustProjectName').textContent = proj.name;
     document.getElementById('adjustHoursInput').value = proj.initialHours || 0;
@@ -4242,6 +4271,10 @@
   }
 
   function openDeleteProjectModal(pId) {
+    if (state.isViewOnly) {
+      showToast('View-only link: Deleting projects is disabled.', 'warning');
+      return;
+    }
     const proj = state.projects.find(p => p.id === pId);
     if (!proj) return;
     document.getElementById('deleteProjectTargetId').value = pId;
@@ -4409,6 +4442,10 @@
   document.getElementById('showInactiveMembersCheckbox').addEventListener('change', renderTeamModal);
 
   document.getElementById('saveNewMemberBtn').addEventListener('click', () => {
+    if (state.isViewOnly) {
+      showToast('View-only link: Adding team members is disabled.', 'warning');
+      return;
+    }
     if (!requireAdmin()) return;
     const name = document.getElementById('newMemberName').value.trim();
     const secId = document.getElementById('newMemberSection').value;
@@ -4601,6 +4638,10 @@
   });
 
   function requireAdmin() {
+    if (state.isViewOnly) {
+      showToast('View-only link: Admin actions are disabled.', 'warning');
+      return false;
+    }
     if (state.isAdmin && isCurrentUserPeter()) return true;
     el.adminPinInput.value = '';
     el.pinErrorMsg.classList.add('hidden');
@@ -7593,7 +7634,13 @@
     if (!isMobile) {
       document.body.classList.add('is-desktop-device');
       document.body.classList.remove('is-mobile-device');
-      if (el.topbarBulkFillBtn) el.topbarBulkFillBtn.classList.remove('hidden');
+      if (el.topbarBulkFillBtn) {
+        if (state.isViewOnly) {
+          el.topbarBulkFillBtn.classList.add('hidden');
+        } else {
+          el.topbarBulkFillBtn.classList.remove('hidden');
+        }
+      }
       if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
       // PC / Laptop interface: Always show full grid, hide mobile container
       if (container) container.classList.add('hidden');

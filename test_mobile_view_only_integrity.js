@@ -46,9 +46,9 @@ test('1.1 Zero unicode emojis in index.html, app.js, and styles.css', () => {
   assert(!emojiRegex.test(css), 'Found emoji in styles.css');
 });
 
-test('1.2 Cache buster is bumped to v=9.7 in index.html', () => {
-  assert(html.includes('styles.css?v=9.7'), 'styles.css v=9.7 not found');
-  assert(html.includes('app.js?v=9.7'), 'app.js v=9.7 not found');
+test('1.2 Cache buster is bumped to v=9.8 in index.html', () => {
+  assert(html.includes('styles.css?v=9.8'), 'styles.css v=9.8 not found');
+  assert(html.includes('app.js?v=9.8'), 'app.js v=9.8 not found');
 });
 
 test('1.3 styles.css strictly hides mobile app container in view-only mode', () => {
@@ -88,7 +88,7 @@ test('2.2 URL mode=view check forces state.mobileViewMode = "grid"', () => {
 
 test('2.3 URL mode=view hides drawer toggle and mobile logger container immediately', () => {
   const viewOnlyInitIdx = js.indexOf("urlParams.get('mode') === 'view'");
-  const viewOnlyInitBlock = js.substring(viewOnlyInitIdx, viewOnlyInitIdx + 1100);
+  const viewOnlyInitBlock = js.substring(viewOnlyInitIdx, viewOnlyInitIdx + 1400);
   assert(viewOnlyInitBlock.includes("el.toggleMobileDesktopGridViewBtn.classList.add('hidden')"), 'Missing hide of toggleMobileDesktopGridViewBtn');
   assert(viewOnlyInitBlock.includes("el.mobileReturnToLoggerBtn.classList.add('hidden')"), 'Missing hide of mobileReturnToLoggerBtn');
   assert(viewOnlyInitBlock.includes("el.mobileAppContainer.classList.add('hidden')"), 'Missing hide of mobileAppContainer');

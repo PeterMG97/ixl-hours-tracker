@@ -1171,8 +1171,22 @@ body.view-only #mobileAppContainer,
 body.view-only #mobileReturnToLoggerBtn,
 body.view-only #toggleMobileDesktopGridViewBtn,
 body.view-only .mobile-logger-card,
-body.view-only .mobile-profile-bar {
+body.view-only .mobile-profile-bar,
+body.view-only #topbarBulkFillBtn,
+body.view-only #openBulkFillBtn,
+body.view-only .btn-bulk-fill,
+body.view-only .btn-bulk-refill,
+body.view-only .popover-footer-action,
+body.view-only #bulkFillModal,
+body.view-only .audit-quick-fill-btn,
+body.view-only #multiSelectBar,
+body.view-only .multi-select-bar,
+body.view-only #adminToggleBtn,
+body.view-only #openNoProjectModalBtn,
+body.view-only #noProjectModal {
   display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 body.view-only.is-mobile-device .schedule-card,
