@@ -2477,7 +2477,20 @@ body.view-only .task-chip {
 .data-table-wrapper {
   border: 1px solid var(--border-light);
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x pan-y !important;
+  max-width: 100% !important;
+  position: relative;
+  width: 100%;
+}
+.data-table-wrapper > .table-toolbar {
+  position: sticky;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 3;
 }
 .table-toolbar {
   padding: 8px 12px;
@@ -2507,6 +2520,144 @@ body.view-only .task-chip {
 }
 .data-table tr:hover td {
   background: #fafafa;
+}
+
+/* Individual Data Table Minimum Widths for Full Mobile Scrollability */
+#teamListTable {
+  min-width: 620px !important;
+  width: 100% !important;
+}
+#teamListTable th,
+#teamListTable td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  padding: 8px 10px !important;
+}
+.move-sec-select {
+  min-width: 145px !important;
+  width: auto !important;
+  max-width: 220px !important;
+  font-size: 11px !important;
+  padding: 4px 6px !important;
+}
+.change-hours-input {
+  width: 60px !important;
+  min-width: 55px !important;
+  text-align: center !important;
+  padding: 4px 6px !important;
+  font-size: 11px !important;
+}
+.team-table-row .btn-sm {
+  white-space: nowrap !important;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+}
+
+#projectsListTable {
+  min-width: 820px !important;
+  width: 100% !important;
+}
+#projectsListTable th,
+#projectsListTable td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  padding: 8px 10px !important;
+}
+
+#analyticsProjectTable {
+  min-width: 560px !important;
+  width: 100% !important;
+}
+#analyticsProjectTable th,
+#analyticsProjectTable td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+#noProjectTable {
+  min-width: 700px !important;
+  width: 100% !important;
+}
+#noProjectTable th,
+#noProjectTable td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+#contribDaysTable {
+  min-width: 680px !important;
+  width: 100% !important;
+}
+#contribDaysTable th,
+#contribDaysTable td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+#projectDaysTable {
+  min-width: 650px !important;
+  width: 100% !important;
+}
+#projectDaysTable th,
+#projectDaysTable td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+.audit-table {
+  min-width: 780px !important;
+  width: 100% !important;
+}
+.audit-table th,
+.audit-table td {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+.hist-log-table {
+  min-width: 880px !important;
+  width: 100% !important;
+}
+.hist-devices-table {
+  min-width: 860px !important;
+  width: 100% !important;
+}
+
+/* Add New Team Member Form Alignment & Office Section Visibility */
+#addMemberBox {
+  padding: 12px 14px;
+}
+#addMemberBox .form-grid-3 {
+  display: grid;
+  grid-template-columns: minmax(100px, 1.15fr) minmax(135px, 1.4fr) minmax(65px, 0.75fr);
+  gap: 8px;
+  align-items: flex-end !important;
+}
+#addMemberBox .form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  margin-bottom: 0 !important;
+}
+#addMemberBox .form-label {
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  margin-bottom: 4px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+#addMemberBox .form-control,
+#addMemberBox .form-select {
+  height: 34px !important;
+  padding: 6px 8px !important;
+  font-size: 11px !important;
+  box-sizing: border-box !important;
+}
+#newMemberSection {
+  min-width: 130px;
 }
 
 /* Team List Table High Contrast Styles */
@@ -5887,17 +6038,16 @@ body.modal-open {
   overflow: hidden !important;
 }
 
+/* Vertical-only scrollable lists and drawers */
 .mobile-project-list,
 .bulk-project-list,
 .popover-project-list,
 .mobile-agenda-list,
 .audit-history-list,
-.audit-table-wrap,
-.no-proj-table-wrap,
 .contrib-breakdown-list,
 .project-contrib-breakdown-list,
-.contrib-table-wrap,
 .settings-drawer-body {
+  overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-y !important;
   overscroll-behavior: contain !important;
@@ -5911,10 +6061,52 @@ body.modal-open {
   touch-action: pan-y;
 }
 
+/* Two-dimensional scrollable table wrappers across the entire application */
 .data-table-wrapper,
-.table-scroll-area {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+.table-scroll-area,
+.audit-table-wrap,
+.audit-table-wrapper,
+.no-proj-table-wrap,
+.contrib-table-wrap,
+.table-container {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x pan-y !important;
+  overscroll-behavior: contain !important;
+  max-width: 100% !important;
+}
+
+.data-table-wrapper::-webkit-scrollbar,
+.audit-table-wrap::-webkit-scrollbar,
+.audit-table-wrapper::-webkit-scrollbar,
+.no-proj-table-wrap::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.data-table-wrapper::-webkit-scrollbar-thumb,
+.audit-table-wrap::-webkit-scrollbar-thumb,
+.audit-table-wrapper::-webkit-scrollbar-thumb,
+.no-proj-table-wrap::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  #addProjectBox .form-grid-4 {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  #addProjectBox .form-grid-4 .span-2 {
+    grid-column: 1 / -1;
+  }
+  #addProjectBox .form-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 .mobile-project-list {
