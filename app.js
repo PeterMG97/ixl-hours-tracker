@@ -151,6 +151,9 @@
     removeStoredItem('ixl_current_user_name');
   }
 
+  // Application Earliest Selectable Boundary (Strict Start Date)
+  const APP_START_MONTH = '2026-11';
+
   // DOM Elements Cache
   const el = {
     connectionBadge: document.getElementById('connectionBadge'),
@@ -812,6 +815,7 @@
 
     updateAdminUI();
     updateUserDisplay();
+    populateMasterMonthSelect();
     renderSchedule();
     populateSectionDropdowns();
 
@@ -1237,6 +1241,7 @@
   // -------------------------------------------------------------
 
   function renderSchedule() {
+    ensureMonthInSelect(state.currentMonth);
     const days = getDaysInMonth(state.currentMonth);
     el.monthSelect.value = state.currentMonth;
     const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
@@ -5119,8 +5124,7 @@
   // Employee Monthly Contributions Modal (Triggered by double-click)
   // -------------------------------------------------------------
 
-  const APP_START_MONTH = '2026-11';
-
+  // APP_START_MONTH anchored at top-level scope ('2026-11')
   let contribCalDisplayYear = 2026;
   let contribRangeStart = null;
   let contribRangeEnd = null;
@@ -6454,6 +6458,9 @@
   // -------------------------------------------------------------
 
   el.monthSelect.addEventListener('change', () => {
+    if (el.monthSelect.value < APP_START_MONTH) {
+      el.monthSelect.value = APP_START_MONTH;
+    }
     state.currentMonth = el.monthSelect.value;
     renderSchedule();
   });
@@ -6461,9 +6468,12 @@
   el.prevMonthBtn.addEventListener('click', () => {
     const idx = el.monthSelect.selectedIndex;
     if (idx > 0) {
-      el.monthSelect.selectedIndex = idx - 1;
-      state.currentMonth = el.monthSelect.value;
-      renderSchedule();
+      const prevOpt = el.monthSelect.options[idx - 1];
+      if (prevOpt && prevOpt.value >= APP_START_MONTH) {
+        el.monthSelect.selectedIndex = idx - 1;
+        state.currentMonth = el.monthSelect.value;
+        renderSchedule();
+      }
     }
   });
 
@@ -6473,11 +6483,21 @@
       el.monthSelect.selectedIndex = idx + 1;
       state.currentMonth = el.monthSelect.value;
       renderSchedule();
+    } else {
+      const lastVal = el.monthSelect.options[el.monthSelect.options.length - 1].value;
+      const [lastY] = lastVal.split('-').map(Number);
+      appendYearToMonthSelect(lastY + 1);
+      el.monthSelect.selectedIndex = idx + 1;
+      state.currentMonth = el.monthSelect.value;
+      renderSchedule();
     }
   });
 
   el.jumpTodayBtn.addEventListener('click', () => {
-    state.currentMonth = state.todayStr.substring(0, 7);
+    let targetYm = state.todayStr.substring(0, 7);
+    if (targetYm < APP_START_MONTH) targetYm = APP_START_MONTH;
+    ensureMonthInSelect(targetYm);
+    state.currentMonth = targetYm;
     el.monthSelect.value = state.currentMonth;
     renderSchedule();
     setTimeout(() => {
@@ -7088,6 +7108,18 @@
       { ym: '2027-11', label: 'Nov/2027' },
       { ym: '2027-12', label: 'Dec/2027' }
     ];
+
+    if (el.monthSelect) {
+      const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      Array.from(el.monthSelect.options).forEach(opt => {
+        const ym = opt.value;
+        if (ym && ym >= APP_START_MONTH && !months.some(m => m.ym === ym)) {
+          const [yStr, mStr] = ym.split('-');
+          const m = parseInt(mStr, 10);
+          months.push({ ym, label: `${shortNames[m - 1]}/${yStr}` });
+        }
+      });
+    }
 
     el.auditMonthSelect.innerHTML = months.map(m =>
       `<option value="${m.ym}" ${m.ym === auditCurrentYm ? 'selected' : ''}>${m.label}</option>`
@@ -7711,50 +7743,115 @@
     }
   }
 
-  function updateMonthSelectLabels(isMobile) {
-    if (!el.monthSelect) return;
-    const shortMonths = {
-      '2026-11': '11/2026 - Nov',
-      '2026-12': '12/2026 - Dec',
-      '2027-01': '01/2027 - Jan',
-      '2027-02': '02/2027 - Feb',
-      '2027-03': '03/2027 - Mar',
-      '2027-04': '04/2027 - Apr',
-      '2027-05': '05/2027 - May',
-      '2027-06': '06/2027 - Jun',
-      '2027-07': '07/2027 - Jul',
-      '2027-08': '08/2027 - Aug',
-      '2027-09': '09/2027 - Sep',
-      '2027-10': '10/2027 - Oct',
-      '2027-11': '11/2027 - Nov',
-      '2027-12': '12/2027 - Dec'
-    };
-    const fullMonths = {
-      '2026-11': '11/2026 - November 2026 (Start)',
-      '2026-12': '12/2026 - December 2026',
-      '2027-01': '01/2027 - January 2027',
-      '2027-02': '02/2027 - February 2027',
-      '2027-03': '03/2027 - March 2027',
-      '2027-04': '04/2027 - April 2027',
-      '2027-05': '05/2027 - May 2027',
-      '2027-06': '06/2027 - June 2027',
-      '2027-07': '07/2027 - July 2027',
-      '2027-08': '08/2027 - August 2027',
-      '2027-09': '09/2027 - September 2027',
-      '2027-10': '10/2027 - October 2027',
-      '2027-11': '11/2027 - November 2027',
-      '2027-12': '12/2027 - December 2027'
-    };
+  // -------------------------------------------------------------
+  // Dynamic Month Engine (Any Month & Any Future Year, Start Nov 2026)
+  // -------------------------------------------------------------
 
+  function getMonthOptionLabel(ym, isMobile) {
+    if (!ym) return '';
+    const parts = ym.split('-');
+    if (parts.length < 2) return ym;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const mm = String(m).padStart(2, '0');
+    const fullNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const isStart = (ym === APP_START_MONTH);
+    if (isMobile) {
+      const name = shortNames[m - 1] || '';
+      return isStart ? `${mm}/${y} - ${name} (Start)` : `${mm}/${y} - ${name}`;
+    }
+    const name = fullMonths[m - 1] || '';
+    return isStart ? `${mm}/${y} - ${name} ${y} (Start)` : `${mm}/${y} - ${name} ${y}`;
+  }
+
+  function appendYearToMonthSelect(year) {
+    if (!el.monthSelect) return;
+    const isMobile = isMobileInterface();
+    for (let m = 1; m <= 12; m++) {
+      const ym = `${year}-${String(m).padStart(2, '0')}`;
+      let exists = false;
+      for (let i = 0; i < el.monthSelect.options.length; i++) {
+        if (el.monthSelect.options[i].value === ym) {
+          exists = true;
+          break;
+        }
+      }
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = ym;
+        opt.textContent = getMonthOptionLabel(ym, isMobile);
+        el.monthSelect.appendChild(opt);
+      }
+    }
+  }
+
+  function ensureMonthInSelect(ym) {
+    if (!el.monthSelect || !ym) return;
+    const parts = ym.split('-');
+    if (parts.length < 2) return;
+    const targetY = parseInt(parts[0], 10);
+    if (isNaN(targetY)) return;
+
+    let lastVal = el.monthSelect.options.length > 0 ? el.monthSelect.options[el.monthSelect.options.length - 1].value : APP_START_MONTH;
+    let lastY = parseInt(lastVal.split('-')[0], 10) || 2026;
+
+    while (lastY < targetY) {
+      lastY += 1;
+      appendYearToMonthSelect(lastY);
+    }
+  }
+
+  function populateMasterMonthSelect(startYear = 2026, endYear = 2040) {
+    if (!el.monthSelect) return;
+    const isMobile = isMobileInterface();
+    const curVal = el.monthSelect.value || state.currentMonth || APP_START_MONTH;
+
+    const existing = new Set();
+    for (let i = 0; i < el.monthSelect.options.length; i++) {
+      existing.add(el.monthSelect.options[i].value);
+    }
+
+    ['2026-11', '2026-12'].forEach(ym => {
+      if (!existing.has(ym)) {
+        const opt = document.createElement('option');
+        opt.value = ym;
+        opt.textContent = getMonthOptionLabel(ym, isMobile);
+        el.monthSelect.appendChild(opt);
+        existing.add(ym);
+      }
+    });
+
+    for (let y = 2027; y <= endYear; y++) {
+      for (let m = 1; m <= 12; m++) {
+        const ym = `${y}-${String(m).padStart(2, '0')}`;
+        if (!existing.has(ym)) {
+          const opt = document.createElement('option');
+          opt.value = ym;
+          opt.textContent = getMonthOptionLabel(ym, isMobile);
+          el.monthSelect.appendChild(opt);
+          existing.add(ym);
+        }
+      }
+    }
+
+    const optsArr = Array.from(el.monthSelect.options).filter(o => o.value >= APP_START_MONTH);
+    optsArr.sort((a, b) => a.value.localeCompare(b.value));
+    el.monthSelect.innerHTML = '';
+    optsArr.forEach(o => el.monthSelect.appendChild(o));
+
+    if (curVal && Array.from(el.monthSelect.options).some(o => o.value === curVal)) {
+      el.monthSelect.value = curVal;
+    } else {
+      el.monthSelect.value = APP_START_MONTH;
+    }
+  }
+
+  function updateMonthSelectLabels(isMobile) {
     if (!el.monthSelect || !el.monthSelect.options) return;
     for (let i = 0; i < el.monthSelect.options.length; i++) {
       const opt = el.monthSelect.options[i];
-      const val = opt.value;
-      if (isMobile) {
-        if (shortMonths[val]) opt.textContent = shortMonths[val];
-      } else {
-        if (fullMonths[val]) opt.textContent = fullMonths[val];
-      }
+      opt.textContent = getMonthOptionLabel(opt.value, isMobile);
     }
   }
 

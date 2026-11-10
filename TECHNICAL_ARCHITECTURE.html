@@ -411,6 +411,15 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Day Status & Hours:</strong> Clean, uncolored indicators without bright green or blue text.</li>
   </ul>
 
+  <h3>5.2 Dynamic Multi-Year Month Selection Engine</h3>
+  <p>To support long-range planning across multi-year engineering projects without artificial ceilings, the application incorporates a dynamic multi-year month engine that allows selecting any month and any future year while strictly preserving the November 2026 start boundary:</p>
+  <ul>
+    <li><strong>November 2026 Invariant (<code>APP_START_MONTH = '2026-11'</code>):</strong> Earliest selectable boundary is locked to November 2026. Previous Month navigation arrow (<code>#prevMonthBtn</code>) prevents navigation prior to 11/2026. Date range inputs across Bulk Fill, Analytics, and Contributions modals enforce <code>finalStart >= 2026-11-01</code>.</li>
+    <li><strong>Infinite Future Horizon:</strong> Pre-populated in markup with 170+ options from 11/2026 to 12/2040. When <code>#nextMonthBtn</code> reaches the last option, <code>appendYearToMonthSelect(lastY + 1)</code> dynamically appends subsequent years on demand (2041, 2042, 2050+).</li>
+    <li><strong>Dual-Mode Responsive Labels (<code>getMonthOptionLabel</code>):</strong> Formats options dynamically based on device viewport. Desktop PC uses full month names with years (e.g. <code>11/2026 - November 2026 (Start)</code>, <code>08/2035 - August 2035</code>), while Mobile uses compact 3-letter month formatting (e.g. <code>11/2026 - Nov (Start)</code>, <code>08/2035 - Aug</code>).</li>
+    <li><strong>Subsystem Synchronization:</strong> <code>#auditMonthSelect</code>, <code>#contribMonthSelect</code>, <code>#projectMonthSelect</code>, and <code>#analyticsMonthFilterSelect</code> dynamically inherit all future months from <code>#monthSelect</code>.</li>
+  </ul>
+
   <h2>6. Mobile Interface Architecture & Touch Physics</h2>
   <ul>
     <li><strong>Dual Modes:</strong> Mobile Editor mode (cards, agenda, 1-tap starred chips) vs. Read-Only Grid mode (horizontal table view).</li>

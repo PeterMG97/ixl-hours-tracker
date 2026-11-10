@@ -334,6 +334,41 @@ When focused on any grid slot:
   - `Day Status`: Plain unhighlighted day descriptor (`Workday`, `Cairo Weekend`, `Istanbul Weekend`).
   - Strict zero-highlight protocol enforced across Desktop and Mobile interfaces in both Light and Dark themes.
 
+---
+
+### 6.5 Dynamic Multi-Year Month Engine & Navigation Invariants
+To support long-range planning across multi-year engineering projects without artificial ceilings, the application incorporates a dynamic multi-year month engine that allows selecting any month and any future year while strictly preserving the November 2026 start boundary.
+
+```mermaid
+flowchart LR
+    Start["Nov 2026 (Earliest Limit)"] --> Current["Active Month (MM/YYYY)"]
+    Current --> Ext["Dynamic Future Horizon (2027 .. 2040+)"]
+    Ext -->|nextMonthBtn on Last Option| Infinite["appendYearToMonthSelect (Year + 1)"]
+    Current -->|prevMonthBtn at Index 0| Locked["Clamp at 2026-11 (No Prior Navigation)"]
+```
+
+#### Core Invariants:
+1. **Strict Earliest Selectable Boundary (`APP_START_MONTH = '2026-11'`)**:
+   - November 2026 is hard-locked as the earliest selectable boundary.
+   - The Previous Month navigation arrow (`#prevMonthBtn`) disables or stops decrementing when `selectedIndex === 0` or target month `< 2026-11`.
+   - Date inputs across Bulk Fill, Analytics, and Contributions modals enforce `finalStart >= 2026-11-01`.
+2. **Infinite Future Year Horizon**:
+   - Pre-populated in `index.html` and initialized in `populateMasterMonthSelect()` with 170+ options spanning from `2026-11` through `2040-12`.
+   - When `#nextMonthBtn` is clicked at the boundary of current options, `appendYearToMonthSelect(lastY + 1)` dynamically generates and appends the 12 months of the subsequent year, enabling unbounded forward navigation (2041, 2042, 2050, 2060, etc.).
+   - `ensureMonthInSelect(ym)` dynamically backfills any intermediate years if historical allocations or external state references a future year.
+3. **Dual-Mode Label Formatting (`getMonthOptionLabel`)**:
+   - **PC Desktop Interface**: Formatted with full month names and years:
+     - `11/2026`: `11/2026 - November 2026 (Start)`
+     - Future months: `${MM}/${YYYY} - ${FullMonthName} ${YYYY}` (e.g. `08/2035 - August 2035`)
+   - **Mobile Interface**: Compact 3-letter month formatting tailored for narrow phone viewports:
+     - `11/2026`: `11/2026 - Nov (Start)`
+     - Future months: `${MM}/${YYYY} - ${ShortMonthName}` (e.g. `08/2035 - Aug`)
+   - Re-evaluated dynamically on screen resize or device view toggle via `updateMonthSelectLabels(isMobile)`.
+4. **Subsystem Synchronization & Inheritance**:
+   - **Monthly Audit (`#auditMonthSelect`)**: `populateAuditMonthSelect()` retains the static baseline `{ ym: '2026-11', label: 'Nov/2026' }` and `{ ym: '2026-12', label: 'Dec/2026' }`, while dynamically pulling all future options from `#monthSelect`.
+   - **Contributions & Project Modals (`#contribMonthSelect`, `#projectMonthSelect`)**: `initContribMonthSelect()` and `initProjectMonthSelect()` extract all future months directly from `el.monthSelect.options`.
+   - **Analytics Month Filter (`#analyticsMonthFilterSelect`)**: Ingests all available months dynamically from `el.monthSelect.options` with `formatYearMonth(ym, false)`.
+
 ## 7. Mobile Interface Deep Architecture & Touch Physics
 
 ### 7.1 Dual Mobile Modes: Editor vs. Grid View
