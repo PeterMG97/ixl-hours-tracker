@@ -2934,25 +2934,38 @@
       return;
     }
 
+    let curVal = '';
+    if (state.selectedCell) {
+      const key = `${state.selectedCell.empId}_${state.selectedCell.dateStr}`;
+      const alloc = state.allocations[key];
+      if (alloc) curVal = alloc.project;
+    }
+
     let itemsHtml = '';
     if (specialItems.length > 0) {
-      itemsHtml += specialItems.map(item => `
-        <div class="proj-item is-special-action" data-val="${escapeHtml(item.val)}">
-          <div class="proj-item-main" style="flex:1; min-width:0;">
-            <strong>${escapeHtml(item.name)}</strong>
+      itemsHtml += specialItems.map(item => {
+        const isSelected = (curVal === item.val || (item.val === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (item.val === '__CLEAR__' && (!curVal || curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
+        return `
+          <div class="proj-item is-special-action ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
+            <div class="proj-item-main" style="flex:1; min-width:0;">
+              <strong>${escapeHtml(item.name)}</strong>
+            </div>
+            ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     itemsHtml += filtered.map(p => {
       const isStarred = isProjectStarred(p.name, targetEmpId);
+      const isSelected = (curVal === p.name);
       return `
-        <div class="proj-item ${isStarred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
+        <div class="proj-item ${isStarred ? 'is-starred-item' : ''} ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(p.name)}">
           <div class="proj-item-main" style="flex:1; min-width:0;">
             <strong>${escapeHtml(p.name)}</strong>
             ${p.wbs ? `<span class="item-wbs">WBS: ${escapeHtml(p.wbs)}</span>` : ''}
           </div>
+          ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
           <button type="button" class="btn-star-toggle ${isStarred ? 'is-starred' : ''}" data-project="${encodeURIComponent(p.name)}" title="${isStarred ? 'Remove from Starred' : 'Add to Starred'}" aria-label="Toggle Star">
             ${renderStarSvgHtml(isStarred, 15)}
           </button>
