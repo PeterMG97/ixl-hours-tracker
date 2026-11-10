@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALSTOM IXL Team Hours Tracker - Deep Technical Architecture & Developer Manual</title>
+  <style>
+    :root {
+      --primary: #003366;
+      --primary-accent: #0066cc;
+      --accent-red: #cc0000;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+      --code-bg: #0f172a;
+      --code-text: #38bdf8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+      padding: 40px 20px;
+    }
+
+    .doc-container {
+      max-width: 1040px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 60px 80px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    /* Print Controls */
+    .print-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #e2e8f0;
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin-bottom: 40px;
+    }
+    .print-bar span { font-size: 13px; font-weight: 600; color: #334155; }
+    .btn-print {
+      background: var(--primary-accent);
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-print:hover { background: var(--primary); }
+
+    /* Headers */
+    header {
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+    .brand-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-red);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 28px;
+      color: var(--primary);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+    .doc-meta strong { color: var(--text); }
+
+    h2 {
+      font-size: 20px;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-top: 40px;
+      margin-bottom: 16px;
+    }
+    h3 {
+      font-size: 16px;
+      color: #1e293b;
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+    p, li {
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 12px;
+    }
+    ul, ol {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    /* Badges & Alerts */
+    .alert-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary-accent);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+      font-size: 13px;
+    }
+    .alert-box strong { color: var(--primary); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    /* Code Blocks */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 16px 0;
+      line-height: 1.5;
+    }
+    code {
+      background: #e2e8f0;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Architecture Visual Blocks */
+    .arch-flow {
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* Print Stylesheet for Clean PDF Generation */
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .print-bar { display: none; }
+      .doc-container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      h2 {
+        page-break-before: always;
+      }
+      h2:first-of-type {
+        page-break-before: avoid;
+      }
+      pre, table {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="doc-container">
+  <!-- Print Bar -->
+  <div class="print-bar">
+    <span>Technical Documentation & Architecture Specification</span>
+    <button class="btn-print" onclick="window.print()">Export / Print as PDF</button>
+  </div>
+
+  <header>
+    <div class="brand-title">ALSTOM &bull; IXL Engineering Solutions</div>
+    <h1>IXL Team Hours Tracker & Allocation System<br><span style="font-size: 18px; font-weight: 500; color: #475569;">Comprehensive Technical Architecture, System Internals, & Developer Manual</span></h1>
+    <div class="doc-meta">
+      <div><strong>Version:</strong> 2.0.0 (Pure Technical)</div>
+      <div><strong>Target:</strong> Software Engineers & AI Agents</div>
+      <div><strong>Production:</strong> ixl-hours-tracker.web.app</div>
+      <div><strong>Git:</strong> main branch</div>
+    </div>
+  </header>
+
+  <div class="alert-box">
+    <strong>Developer Maintenance Contract:</strong> This document represents the authoritative single-source-of-truth technical blueprint for the entire application. Whenever any functionality, data structure, or endpoint is added, modified, or removed, this document MUST be updated accordingly.
+  </div>
+
+  <h2>1. Executive System Overview</h2>
+  <p>The <strong>Alstom IXL Team Hours Tracker</strong> is a specialized high-performance Single Page Application (SPA) designed to track, schedule, and reconcile daily engineering hours for multi-regional railway signaling teams in the <strong>Cairo</strong> and <strong>Istanbul</strong> engineering offices.</p>
+  
+  <p>Key architectural goals:</p>
+  <ul>
+    <li><strong>Double-Entry Accounting Reconciliation:</strong> Project hours aggregated across the system strictly match individual team member hours at all times (Project Sum = Employee Sum).</li>
+    <li><strong>Dual Office Calendars:</strong> Cairo (Friday/Saturday weekend) vs. Istanbul (Saturday/Sunday weekend) automated compliance.</li>
+    <li><strong>Deterministic Zero-Framework Architecture:</strong> Vanilla ES6+, Semantic HTML5, and CSS3 with hardware-accelerated touch physics. Zero heavy build tools or framework overhead.</li>
+    <li><strong>Zero-Emoji Standard:</strong> Strict corporate constraint prohibiting Unicode emojis across UI text, code symbols, test suites, and commit logs.</li>
+  </ul>
+
+  <div class="arch-flow">
+[Client Web Browser]
+   ├── Desktop (PC)    --> Excel-Style Grid, 2D Multi-Select, Keyboard Navigation
+   └── Mobile Touch    --> Mobile Editor (Form/Cards), Agenda List, 1-Tap Starred Chips
+        │
+        ├── In-Memory State Machine: window.state
+        ├── Local Storage & Cookie Fallback Cache (Synchronous optimistic updates)
+        └── Network REST Sync: POST /api/sync (Atomic payload with SHA-256 validation)
+             │
+             ├── Node.js Server (server.js) OR PowerShell Server (server.ps1)
+             └── Google Firebase Hosting Edge CDN (Production)
+  </div>
+
+  <h2>2. Complete File Inventory & Code Map</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>File Path</th>
+        <th>Size</th>
+        <th>Architectural Role & Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>index.html</code></td>
+        <td>109 KB</td>
+        <td>Complete SPA markup shell: schedule table, mobile cards, popovers, modals, responsive pictures.</td>
+      </tr>
+      <tr>
+        <td><code>app.js</code></td>
+        <td>368 KB</td>
+        <td>Master client state engine (~8,800 lines): DOM event delegation, math reconciliation, state sync, identity persistence.</td>
+      </tr>
+      <tr>
+        <td><code>styles.css</code></td>
+        <td>141 KB</td>
+        <td>Design system (~6,100 lines): CSS variables, light/dark themes, responsive layout breakpoints, dual-axis touch physics.</td>
+      </tr>
+      <tr>
+        <td><code>data.json</code></td>
+        <td>20 KB</td>
+        <td>Master single-source-of-truth database: sections, employees, projects, allocations, admin PIN hash, audit log.</td>
+      </tr>
+      <tr>
+        <td><code>data.backup.json</code></td>
+        <td>14 KB</td>
+        <td>Cold-start fallback image used for automatic recovery by local servers.</td>
+      </tr>
+      <tr>
+        <td><code>server.js</code></td>
+        <td>3.8 KB</td>
+        <td>Node.js Express REST API server providing <code>GET /api/data</code> and <code>POST /api/sync</code>.</td>
+      </tr>
+      <tr>
+        <td><code>server.ps1</code></td>
+        <td>8.5 KB</td>
+        <td>Native Windows PowerShell HTTP listener for restricted enterprise systems lacking Node.js runtime.</td>
+      </tr>
+      <tr>
+        <td><code>firebase.json</code></td>
+        <td>675 B</td>
+        <td>Firebase Hosting configuration: route rewrites, CDN cache-control headers, deploy ignore rules.</td>
+      </tr>
+      <tr>
+        <td><code>cloudflared.exe</code></td>
+        <td>55.3 MB</td>
+        <td>Cloudflare Tunnel binary for instant public link generation via <code>Share-Public-Link.bat</code>.</td>
+      </tr>
+      <tr>
+        <td><code>test_*.js & *.ps1</code></td>
+        <td>~200 KB</td>
+        <td>12 automated test suites verifying 2,150+ unit, integration, and security assertions.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Master Data Models & State Architecture</h2>
+  <h3>3.1 The In-Memory State Object (<code>window.state</code>)</h3>
+  <pre><code>window.state = {
+  sections: [],         // Office sections: Cairo, Istanbul
+  employees: [],        // 26 Team members (active & deactivated)
+  projects: [],         // 55 Projects, tenders, training & support
+  allocations: {},      // Hash map: "empId_YYYY-MM-DD" -> { project, hours }
+  auditHistory: [],     // Chronological security and edit events
+  adminPasswordHash: "",// SHA-256 hash for Peter MOUNIR admin mode
+  currentUserId: null,  // Active user profile ID ("emp_1", ...)
+  isAdmin: false,       // Master admin privilege flag
+  isViewOnly: false,    // Read-only URL parameter flag (?mode=view)
+  currentYear: 2026,    // Active calendar year (starts Nov 2026)
+  currentMonth: 11,     // Active calendar month (1-based: 11 = November)
+  deviceMode: "pc",     // "pc" or "mobile"
+  mobileViewMode: "form", // "form" (Editor) or "grid" (Viewer)
+  selectedCells: new Set(), // Set of active composite keys in 2D multi-select
+  activeKeyboardCell: null  // Composite key holding active keyboard focus
+};</code></pre>
+
+  <h3>3.2 Composite Key Architecture</h3>
+  <p>Allocations are keyed by composite strings formatted as <code>${employeeId}_${YYYY-MM-DD}</code> (e.g. <code>emp_22_2026-11-04</code>).</p>
+  <p>To prevent string splitting bugs when employee IDs contain underscores (such as <code>emp_22</code>), keys are parsed using <code>lastIndexOf('_')</code>:</p>
+  <pre><code>const lastUnderscore = key.lastIndexOf('_');
+const empId = key.substring(0, lastUnderscore);
+const dateStr = key.substring(lastUnderscore + 1);</code></pre>
+
+  <h2>4. Dual Office Calendar & Weekend Rules</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Office Section</th>
+        <th>Location</th>
+        <th>Official Weekend (Holidays)</th>
+        <th>Official Workdays</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Applications - Cairo</strong></td>
+        <td>Cairo</td>
+        <td>Friday (5), Saturday (6)</td>
+        <td>Sunday through Thursday</td>
+      </tr>
+      <tr>
+        <td><strong>ILS - Istanbul</strong></td>
+        <td>Istanbul</td>
+        <td>Saturday (6), Sunday (0)</td>
+        <td>Monday through Friday</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Multi-Day Range vs. Single Weekend Overtime Rule</h3>
+  <ul>
+    <li><strong>Multi-Day Range:</strong> When filling a date range that spans a weekend, the chosen holiday option is applied:
+      <ul>
+        <li><code>dayoff</code>: Weekends are set to <code>DAY OFF</code> with 0h. Workdays get the project.</li>
+        <li><code>include</code>: Weekends are worked and filled with project and hours.</li>
+        <li><code>skip</code>: Weekends are untouched.</li>
+      </ul>
+    </li>
+    <li><strong>Explicit Single Weekend Day:</strong> If an engineer clicks a single weekend day (e.g. Friday in Cairo), the system permits direct overtime logging without forcing <code>DAY OFF</code>.</li>
+  </ul>
+
+  <h2>5. Desktop (PC) Interface Architecture</h2>
+  <ul>
+    <li><strong>Excel-Style Grid Navigation:</strong> Arrow keys move the focused cell across days and employees. <code>Enter</code> opens the popover. <code>Delete</code> clears allocations.</li>
+    <li><strong>Pointer State Machine:</strong>
+      <ul>
+        <li>Single Click: Stands on cell without opening popovers (cleans keyboard focus).</li>
+        <li>Double Click: Opens the Project Selection Popover.</li>
+        <li>380ms Long Press: Enters 2D rectangular multi-cell selection.</li>
+        <li>8px Jitter Deadband: Prevents micro-mouse tremors from accidentally entering drag mode.</li>
+      </ul>
+    </li>
+    <li><strong>Admin 2D Multi-Selection:</strong> In Peter MOUNIR's Admin Mode, multi-cell drag expands across multiple employee rows and dates simultaneously.</li>
+  </ul>
+
+  <h2>6. Mobile Interface Architecture & Touch Physics</h2>
+  <ul>
+    <li><strong>Dual Modes:</strong> Mobile Editor mode (cards, agenda, 1-tap starred chips) vs. Read-Only Grid mode (horizontal table view).</li>
+    <li><strong>Dual-Axis Touch Physics:</strong> All table wrappers enforce <code>touch-action: pan-x pan-y !important</code> and <code>overflow-x: auto !important</code>, ensuring effortless left/right swipe navigation on phone displays.</li>
+    <li><strong>Add Member Form Baseline Alignment:</strong> <code>#addMemberBox .form-grid-3</code> enforces <code>align-items: flex-end</code> with <code>min-height: 28px</code> label containers so Full Name, Section, and Default Daily Hours inputs share an exact horizontal baseline.</li>
+    <li><strong>Profile-Isolated Starred Projects:</strong> Stored per-user in <code>localStorage</code> under <code>ixl_starred_{userId}</code>. 1-tap logging chips appear at the top of the mobile logger.</li>
+  </ul>
+
+  <h2>7. Role-Based Access Control & View-Only Defense</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Identification</th>
+        <th>Capabilities & Boundaries</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>View-Only</strong></td>
+        <td><code>?mode=view</code> URL query</td>
+        <td>Read-only inspection. All buttons, popovers, drawers, and sync requests are hard-blocked via CSS and JS guards.</td>
+      </tr>
+      <tr>
+        <td><strong>Team Member</strong></td>
+        <td>Chosen identity (e.g. Sarah KHALED)</td>
+        <td>Can edit only their own row. All other team member rows are read-only.</td>
+      </tr>
+      <tr>
+        <td><strong>Master Admin</strong></td>
+        <td>Peter MOUNIR (PIN-authenticated)</td>
+        <td>Full global rights: edit any row, 2D drag across team, add/deactivate members, move sections, adjust project baselines.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>8. Automated Test Harness (12 Suites / 2,150+ Assertions)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Test Suite</th>
+        <th>Tests</th>
+        <th>Core Verifications</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>test_all_users_integrity.js</code></td>
+        <td>1,822</td>
+        <td>Row edit permission isolation across all 26 users; popovers, keyboard delete, audit events.</td>
+      </tr>
+      <tr>
+        <td><code>test_suite.ps1</code></td>
+        <td>92</td>
+        <td>Database schema, Cairo/Istanbul rules, timezone rollover, DOM elements, PIN hashing.</td>
+      </tr>
+      <tr>
+        <td><code>test_starred_projects_integrity.js</code></td>
+        <td>52</td>
+        <td>Profile isolation of starred favorites, 1-tap chips, star protection for special items.</td>
+      </tr>
+      <tr>
+        <td><code>test_cell_click_hold_sequence.js</code></td>
+        <td>47</td>
+        <td>380ms hold timer, 8px micro-jitter deadband, standing focus, arrow navigation.</td>
+      </tr>
+      <tr>
+        <td><code>test_calculation_integrity.ps1</code></td>
+        <td>39</td>
+        <td>Double-entry accounting balance, baseline hours arithmetic, 1h-12h boundary clamps.</td>
+      </tr>
+      <tr>
+        <td><code>test_weekend_hours_assignment.js</code></td>
+        <td>28</td>
+        <td>Cairo vs. Istanbul weekend range logic vs. single-day overtime assignments.</td>
+      </tr>
+      <tr>
+        <td><code>test_pc_view_only_integrity.js</code></td>
+        <td>27</td>
+        <td>PC read-only URL defense: DOM button removal, popover blocking, key blocking.</td>
+      </tr>
+      <tr>
+        <td><code>test_mobile_view_only_integrity.js</code></td>
+        <td>27</td>
+        <td>Mobile read-only URL defense: grid lock, form hiding, apply mutation rejection.</td>
+      </tr>
+      <tr>
+        <td><code>test_mobile_project_browser.js</code></td>
+        <td>25</td>
+        <td>Mobile logger agenda selection, integer hour stepping (1-12h), special project naming.</td>
+      </tr>
+      <tr>
+        <td><code>test_mobile_list_scroll_alignment.js</code></td>
+        <td>23</td>
+        <td>Mobile table minimum widths, 2-axis touch physics, Add Member form baseline alignment.</td>
+      </tr>
+      <tr>
+        <td><code>test_pc_bulk_clear_integrity.js</code></td>
+        <td>15</td>
+        <td>Bulk fill clear action normalization, star immunity, Projects List chooser.</td>
+      </tr>
+      <tr>
+        <td><code>test_pc_welcome_screen_integrity.js</code></td>
+        <td>11</td>
+        <td>PC and mobile welcome splash full-bleed screen fit, spinner placement, asset parity.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>9. Developer Guidelines & Ongoing Maintenance Contract</h2>
+  <ol>
+    <li><strong>Mandatory Document Update:</strong> Whenever you add, modify, or delete any feature, data model, or style rule, you MUST immediately update both <code>TECHNICAL_ARCHITECTURE.md</code> and <code>TECHNICAL_ARCHITECTURE.html</code>.</li>
+    <li><strong>Strict Zero-Emoji Policy:</strong> Never use Unicode emojis in code, commits, or documentation.</li>
+    <li><strong>Preserve Double-Entry Math:</strong> Always run <code>test_calculation_integrity.ps1</code> after altering hours calculation logic.</li>
+    <li><strong>CRLF Line Endings:</strong> Preserve Windows CRLF (<code>\r\n</code>) line endings across repository files.</li>
+    <li><strong>Timezone Safety:</strong> Always construct dates via <code>parseLocalDate(dateStr)</code>, never using raw UTC midnight strings.</li>
+    <li><strong>Cache Busting:</strong> When updating <code>styles.css</code> or <code>app.js</code>, bump the cache query parameter in <code>index.html</code> (e.g. <code>?v=10.0</code>).</li>
+  </ol>
+</div>
+
+</body>
+</html>

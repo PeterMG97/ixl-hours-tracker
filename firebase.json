@@ -15,7 +15,8 @@
       "data.backup.json",
       "test_*.js",
       "welcome_pic/**",
-      "welcome_pic_mob/**"
+      "welcome_pic_mob/**",
+      "*.pdf"
     ],
     "rewrites": [
       {
