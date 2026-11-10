@@ -79,9 +79,9 @@ test('2.2 Rotating loading circle (splash-spinner) is present on welcome screen'
   assert(html.includes('class="splash-spinner-circle"'), 'splash-spinner-circle missing in index.html');
 });
 
-test('2.2a Loading circle is centered directly above "by" text (left: 50.72%)', () => {
-  assert(html.includes('left: 50.72%;'), 'index.html critical CSS missing left: 50.72% for splash-spinner-wrap');
-  assert(css.includes('left: 50.72%;'), 'styles.css missing left: 50.72% for splash-spinner-wrap');
+test('2.2a Loading circle is centered between "b" and "y" in "by" (left: 50.4%)', () => {
+  assert(html.includes('left: 50.4%;'), 'index.html critical CSS missing left: 50.4% for splash-spinner-wrap');
+  assert(css.includes('left: 50.4%;'), 'styles.css missing left: 50.4% for splash-spinner-wrap');
 });
 
 test('2.3 styles.css and critical CSS strictly isolate welcome screen to PC only (hidden on mobile)', () => {
