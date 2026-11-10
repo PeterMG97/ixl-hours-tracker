@@ -97,6 +97,13 @@ test('2.2a Loading circle is horizontally centered between "b" and "y" in "by" (
   assert(css.includes('left: 50.4%;'), 'styles.css missing left: 50.4% for splash-spinner-wrap');
 });
 
+test('2.2b PC welcome screen applies 100% full-bleed fit to screen without letterboxing borders', () => {
+  const pcWrapCritical = html.substring(html.indexOf('.welcome-artwork-wrapper'), html.indexOf('.splash-spinner-wrap'));
+  assert(pcWrapCritical.includes('object-fit: fill'), 'PC artwork object-fit: fill missing in critical CSS');
+  const pcWrapCss = css.substring(css.indexOf('.welcome-artwork-wrapper'), css.indexOf('.splash-spinner-wrap'));
+  assert(pcWrapCss.includes('object-fit: fill'), 'PC artwork object-fit: fill missing in styles.css');
+});
+
 test('2.3 Mobile-responsive positioning places circle above "by" and ensures 100% full-screen fit across all mobile devices', () => {
   // Mobile media queries configure full-bleed 100% dimensions, zero letterboxing borders, and centered spinner
   assert(html.includes('@media (max-width: 768px)'), 'Mobile media query missing in critical CSS');
