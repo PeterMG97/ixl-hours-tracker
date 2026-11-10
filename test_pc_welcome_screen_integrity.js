@@ -97,14 +97,16 @@ test('2.2a Loading circle is horizontally centered between "b" and "y" in "by" (
   assert(css.includes('left: 50.4%;'), 'styles.css missing left: 50.4% for splash-spinner-wrap');
 });
 
-test('2.3 Mobile-responsive positioning places circle above "by" without touching or interfering', () => {
-  // Mobile media queries configure safe clearance and portrait aspect ratio
+test('2.3 Mobile-responsive positioning places circle above "by" without touching or interfering, and raises picture 4mm', () => {
+  // Mobile media queries configure safe clearance, portrait aspect ratio, and 4mm upward picture raise
   assert(html.includes('@media (max-width: 768px)'), 'Mobile media query missing in critical CSS');
   assert(html.includes('aspect-ratio: 1408 / 3040;'), 'Mobile aspect-ratio 1408 / 3040 missing in critical CSS');
+  assert(html.includes('translateY(-4mm)'), 'Mobile picture translateY(-4mm) missing in critical CSS');
   assert(html.includes('top: 90.0%;'), 'Mobile top: 90.0% clearance missing in critical CSS');
   assert(html.includes('left: 50.0%;'), 'Mobile left: 50.0% centering missing in critical CSS');
   assert(css.includes('@media (max-width: 768px)'), 'Mobile media query missing in styles.css');
   assert(css.includes('aspect-ratio: 1408 / 3040;'), 'Mobile aspect-ratio 1408 / 3040 missing in styles.css');
+  assert(css.includes('translateY(-4mm)'), 'Mobile picture translateY(-4mm) missing in styles.css');
   assert(css.includes('top: 90.0%;'), 'Mobile top: 90.0% clearance missing in styles.css');
   assert(css.includes('left: 50.0%;'), 'Mobile left: 50.0% centering missing in styles.css');
   assert(css.includes('clamp('), 'Mobile responsive clamp sizing missing in styles.css');

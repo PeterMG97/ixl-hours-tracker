@@ -5716,6 +5716,10 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 @media (max-width: 768px) {
   .welcome-artwork-wrapper {
     aspect-ratio: 1408 / 3040;
+    overflow: visible;
+  }
+  .welcome-splash-picture {
+    transform: translateY(-4mm);
   }
   .splash-spinner-wrap {
     top: 90.0%;
