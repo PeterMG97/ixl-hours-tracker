@@ -48,10 +48,10 @@ test('1.4 styles.css defines selected project styling with badge and left border
   assert(css.includes('.special-action-tag'), 'special-action-tag styling missing');
 });
 
-test('1.5 app.js renderMobileProjectPillList includes special items (Day OFF, NO PROJECT, Clear/Delete)', () => {
-  assert(js.includes("name: 'Day OFF'"), 'Day OFF special item missing');
+test('1.5 app.js renderMobileProjectPillList includes special items (DAY OFF, NO PROJECT, CLEAR/DELETE)', () => {
+  assert(js.includes("name: 'DAY OFF'") || js.includes("name: 'Day OFF'"), 'DAY OFF special item missing');
   assert(js.includes("name: 'NO PROJECT'"), 'NO PROJECT special item missing');
-  assert(js.includes("name: 'Clear/Delete'"), 'Clear/Delete special item missing');
+  assert(js.includes("name: 'CLEAR/DELETE'") || js.includes("name: 'Clear/Delete'"), 'CLEAR/DELETE special item missing');
   assert(js.includes("val: '__CLEAR__'"), '__CLEAR__ val missing');
 });
 
@@ -67,9 +67,10 @@ test('1.5a Mobile logger Projects List name, NO PROJECT 1-text format, and Clear
   assert(noProjBlock.includes("tag: ''"), 'NO PROJECT must have empty tag');
   assert(noProjBlock.includes("sub: ''"), 'NO PROJECT must have empty sub');
 
-  // 3. Clear/Delete is called Clear/Delete in black text
-  const clearIdx = js.indexOf("name: 'Clear/Delete'");
-  assert(clearIdx !== -1, "name: 'Clear/Delete' not found in app.js");
+  // 3. Clear/Delete is called CLEAR/DELETE in black text
+  let clearIdx = js.indexOf("name: 'CLEAR/DELETE'");
+  if (clearIdx === -1) clearIdx = js.indexOf("name: 'Clear/Delete'");
+  assert(clearIdx !== -1, "name: 'CLEAR/DELETE' not found in app.js");
   const clearBlock = js.substring(clearIdx - 100, clearIdx + 250);
   assert(clearBlock.includes("val: '__CLEAR__'"), '__CLEAR__ val missing');
   assert(clearBlock.includes("isClear: false"), 'Clear/Delete isClear should be false to prevent red text');
@@ -77,7 +78,7 @@ test('1.5a Mobile logger Projects List name, NO PROJECT 1-text format, and Clear
   assert(clearBlock.includes("sub: ''"), 'Clear/Delete must have empty sub');
 
   // 4. populateMobileProjectSelect contains Clear/Delete without inline red style
-  assert(js.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'Clear/Delete option missing in populateMobileProjectSelect');
+  assert(js.includes('<option value="__CLEAR__">CLEAR/DELETE</option>') || js.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'CLEAR/DELETE option missing in populateMobileProjectSelect');
   assert(!js.includes('<option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>'), 'Old red clear option still in app.js');
 });
 

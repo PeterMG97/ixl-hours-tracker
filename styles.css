@@ -2040,10 +2040,21 @@ body.view-only .task-chip {
   border: 1px solid var(--border-light);
   text-align: center;
 }
-.btn-quick-pill.off { background: var(--badge-off-bg); color: var(--badge-off-text); }
-.btn-quick-pill.proj { background: var(--badge-proj-bg); color: var(--badge-proj-text); }
-.btn-quick-pill.sup { background: var(--badge-sup-bg); color: var(--badge-sup-text); }
-.btn-quick-pill.clear { background: #fee2e2; color: #991b1b; }
+.btn-quick-pill.off,
+.btn-quick-pill.proj,
+.btn-quick-pill.clear,
+.btn-quick-pill.sup {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+.btn-quick-pill.off:hover,
+.btn-quick-pill.proj:hover,
+.btn-quick-pill.clear:hover,
+.btn-quick-pill.sup:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
 
 .popover-category-filter {
   margin: 6px 0 6px 0;

@@ -2639,12 +2639,12 @@
   function isWorkActivity(projectName) {
     if (!projectName) return false;
     const trimmed = projectName.trim();
-    if (!trimmed || trimmed === 'Day OFF' || trimmed === 'NO STATUS') return false;
+    if (!trimmed || trimmed === 'Day OFF' || trimmed === 'DAY OFF' || trimmed === 'NO STATUS') return false;
     return true;
   }
 
   function sanitizeDayHours(projectName, rawHours, fallbackHours = 8) {
-    if (!projectName || projectName.trim() === '' || projectName.trim() === 'Day OFF') {
+    if (!projectName || projectName.trim() === '' || projectName.trim() === 'Day OFF' || projectName.trim() === 'DAY OFF') {
       return 0;
     }
     let h = parseFloat(rawHours);
@@ -2676,7 +2676,8 @@
       const fallbackH = cellEmp ? (cellEmp.defaultHoursPerDay || 8) : 8;
       const sanitizedHours = sanitizeDayHours(projectName, hours, fallbackH);
 
-      if (!projectName || projectName.trim() === '') {
+      const isClearVal = (!projectName || projectName.trim() === '' || projectName === '__CLEAR__' || projectName === 'Clear/Delete' || projectName === 'CLEAR/DELETE');
+      if (isClearVal) {
         delete state.allocations[key];
       } else {
         state.allocations[key] = {
@@ -2788,7 +2789,7 @@
   }
 
   function toggleStarredProject(projectName, empId = null) {
-    if (!projectName || projectName === 'Day OFF' || projectName === 'NO PROJECT' || projectName === 'NO STATUS' || projectName === '__CLEAR__') {
+    if (!projectName || projectName === 'Day OFF' || projectName === 'DAY OFF' || projectName === 'NO PROJECT' || projectName === 'NO STATUS' || projectName === '__CLEAR__' || projectName === 'Clear/Delete' || projectName === 'CLEAR/DELETE') {
       return false;
     }
     const pid = getEffectiveProfileId(empId);
@@ -2888,7 +2889,41 @@
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    if (filtered.length === 0) {
+    const specialItems = [];
+    if (cat === 'all' || cat === 'Special') {
+      if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
+        specialItems.push({
+          name: 'DAY OFF',
+          val: 'Day OFF',
+          tag: '',
+          tagClass: '',
+          sub: '',
+          isClear: false
+        });
+      }
+      if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
+        specialItems.push({
+          name: 'NO PROJECT',
+          val: 'NO PROJECT',
+          tag: '',
+          tagClass: '',
+          sub: '',
+          isClear: false
+        });
+      }
+      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q)) {
+        specialItems.push({
+          name: 'CLEAR/DELETE',
+          val: '__CLEAR__',
+          tag: '',
+          tagClass: '',
+          sub: '',
+          isClear: false
+        });
+      }
+    }
+
+    if (specialItems.length === 0 && filtered.length === 0) {
       el.popoverProjectList.innerHTML = `
         <div class="empty-starred-hint">
           ${cat === 'starred' 
@@ -2899,7 +2934,18 @@
       return;
     }
 
-    el.popoverProjectList.innerHTML = filtered.map(p => {
+    let itemsHtml = '';
+    if (specialItems.length > 0) {
+      itemsHtml += specialItems.map(item => `
+        <div class="proj-item is-special-action" data-val="${escapeHtml(item.val)}">
+          <div class="proj-item-main" style="flex:1; min-width:0;">
+            <strong>${escapeHtml(item.name)}</strong>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    itemsHtml += filtered.map(p => {
       const isStarred = isProjectStarred(p.name, targetEmpId);
       return `
         <div class="proj-item ${isStarred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
@@ -2913,6 +2959,8 @@
         </div>
       `;
     }).join('');
+
+    el.popoverProjectList.innerHTML = itemsHtml;
 
     el.popoverProjectList.querySelectorAll('.proj-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -3235,7 +3283,8 @@
 
     let hours = emp ? (emp.defaultHoursPerDay || 8) : 8;
 
-    if (!projectName || projectName.trim() === '') {
+    const isClearVal = (!projectName || projectName.trim() === '' || projectName === '__CLEAR__' || projectName === 'Clear/Delete' || projectName === 'CLEAR/DELETE');
+    if (isClearVal) {
       delete state.allocations[key];
     } else {
       const rawVal = el.popoverHoursInput ? el.popoverHoursInput.value : '';
@@ -3515,9 +3564,9 @@
     }
 
     el.bulkProjectSelect.innerHTML = `
-      <option value="Day OFF">Day OFF</option>
+      <option value="Day OFF">DAY OFF</option>
       <option value="NO PROJECT">NO PROJECT</option>
-      <option value="__CLEAR__">Clear/Delete</option>
+      <option value="__CLEAR__">CLEAR/DELETE</option>
       ${starredOptGroup}
       <optgroup label="Projects &amp; Tenders (Alphabetical)">
         ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
@@ -3525,7 +3574,7 @@
     `;
 
     if (curVal) {
-      if (curVal === 'Clear/Delete' || curVal === '__CLEAR__' || curVal.toLowerCase().includes('clear')) {
+      if (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__' || curVal.toLowerCase().includes('clear')) {
         el.bulkProjectSelect.value = '__CLEAR__';
       } else {
         el.bulkProjectSelect.value = curVal;
@@ -3537,7 +3586,7 @@
     if (!el.bulkCurrentProjectStarBtn || !el.bulkProjectSelect) return;
     const proj = el.bulkProjectSelect.value;
     const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
-    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__' || proj === 'Clear/Delete');
+    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'DAY OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === 'CLEAR/DELETE');
     
     if (isSpecial) {
       el.bulkCurrentProjectStarBtn.classList.remove('is-starred');
@@ -3604,11 +3653,12 @@
     if (cat === 'all' || cat === 'Special') {
       if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
         specialItems.push({
-          name: 'Day OFF',
+          name: 'DAY OFF',
           val: 'Day OFF',
-          tag: 'OFF',
-          tagClass: 'tag-dayoff',
-          sub: 'No hours / Holiday / Leave'
+          tag: '',
+          tagClass: '',
+          sub: '',
+          isClear: false
         });
       }
       if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
@@ -3617,12 +3667,13 @@
           val: 'NO PROJECT',
           tag: '',
           tagClass: '',
-          sub: ''
+          sub: '',
+          isClear: false
         });
       }
       if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q)) {
         specialItems.push({
-          name: 'Clear/Delete',
+          name: 'CLEAR/DELETE',
           val: '__CLEAR__',
           tag: '',
           tagClass: '',
@@ -3657,7 +3708,7 @@
     // 1. Render Special Actions
     if (specialItems.length > 0) {
       itemsHtml += specialItems.map(item => {
-        const isSelected = (curVal === item.val || (item.val === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === '__CLEAR__')));
+        const isSelected = (curVal === item.val || (item.val === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (item.val === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
         const hasTag = Boolean(item.tag);
         const hasSub = Boolean(item.sub);
         return `
@@ -3710,7 +3761,7 @@
           // Update selected classes in bulkProjectList in-place
           el.bulkProjectList.querySelectorAll('.proj-item').forEach(pi => {
             const piVal = pi.getAttribute('data-val');
-            const match = (piVal === pName || (piVal === '__CLEAR__' && (pName === 'Clear/Delete' || pName === '__CLEAR__')));
+            const match = (piVal === pName || (piVal === 'Day OFF' && (pName === 'DAY OFF' || pName === 'Day OFF')) || (piVal === '__CLEAR__' && (pName === 'Clear/Delete' || pName === 'CLEAR/DELETE' || pName === '__CLEAR__')));
             pi.classList.toggle('is-selected-proj', match);
             const badge = pi.querySelector('.proj-selected-badge');
             if (match) {
@@ -3764,7 +3815,7 @@
     el.bulkCurrentProjectStarBtn.addEventListener('click', () => {
       const proj = el.bulkProjectSelect ? el.bulkProjectSelect.value : '';
       const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
-      if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__' && proj !== 'Clear/Delete') {
+      if (proj && proj !== 'Day OFF' && proj !== 'DAY OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__' && proj !== 'Clear/Delete' && proj !== 'CLEAR/DELETE') {
         toggleStarredProject(proj, empId);
       }
     });
@@ -3856,8 +3907,8 @@
     }
 
     const isPeriodWithWeekend = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
-    const isExplicitDayOff = (proj === 'Day OFF');
-    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === '[CLEAR / DELETE HOURS]');
+    const isExplicitDayOff = (proj === 'Day OFF' || proj === 'DAY OFF');
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === 'CLEAR/DELETE' || proj === '[CLEAR / DELETE HOURS]');
 
     let cur = parseLocalDate(fromStr);
     let currentStr = fromStr;
@@ -3998,7 +4049,7 @@
 
     el.noProjectBatchSelect.innerHTML = `
       <option value="">-- Choose Project to Apply to All --</option>
-      <option value="Day OFF">Day OFF</option>
+      <option value="Day OFF">DAY OFF</option>
       ${starredOptGroupNoProj}
       <optgroup label="Projects &amp; Tenders (Alphabetical)">
         ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
@@ -4056,7 +4107,7 @@
 
     const projectOptionsHtml = `
       <option value="">-- Choose Project --</option>
-      <option value="Day OFF">Day OFF</option>
+      <option value="Day OFF">DAY OFF</option>
       <optgroup label="Projects & Tenders">
         ${activeProjects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
       </optgroup>
@@ -7873,9 +7924,9 @@
     }
 
     el.mobileProjectSelect.innerHTML = `
-      <option value="Day OFF">Day OFF</option>
+      <option value="Day OFF">DAY OFF</option>
       <option value="NO PROJECT">NO PROJECT</option>
-      <option value="__CLEAR__">Clear/Delete</option>
+      <option value="__CLEAR__">CLEAR/DELETE</option>
       ${starredOptGroup}
       <optgroup label="Projects &amp; Tenders (Alphabetical)">
         ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
@@ -7883,7 +7934,7 @@
     `;
 
     if (curVal) {
-      if (curVal === 'Clear/Delete' || curVal === '__CLEAR__' || curVal.toLowerCase().includes('clear')) {
+      if (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__' || curVal.toLowerCase().includes('clear')) {
         el.mobileProjectSelect.value = '__CLEAR__';
       } else {
         el.mobileProjectSelect.value = curVal;
@@ -7896,7 +7947,7 @@
     const proj = el.mobileProjectSelect.value;
     const isAdminUser = state.isAdmin && isCurrentUserPeter();
     const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
-    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__' || proj === 'Clear/Delete');
+    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'DAY OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === 'CLEAR/DELETE');
     
     if (isSpecial) {
       el.mobileCurrentProjectStarBtn.classList.remove('is-starred');
@@ -7962,11 +8013,11 @@
     if (cat === 'all' || cat === 'Special') {
       if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
         specialItems.push({
-          name: 'Day OFF',
+          name: 'DAY OFF',
           val: 'Day OFF',
-          tag: 'OFF',
-          tagClass: 'tag-dayoff',
-          sub: 'No hours / Holiday / Leave',
+          tag: '',
+          tagClass: '',
+          sub: '',
           isClear: false
         });
       }
@@ -7982,7 +8033,7 @@
       }
       if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q) || '[clear / delete hours]'.includes(q)) {
         specialItems.push({
-          name: 'Clear/Delete',
+          name: 'CLEAR/DELETE',
           val: '__CLEAR__',
           tag: '',
           tagClass: '',
@@ -8017,7 +8068,7 @@
     // 1. Render Special Actions (Day OFF, NO PROJECT, Clear/Delete)
     if (specialItems.length > 0) {
       itemsHtml += specialItems.map(item => {
-        const isSelected = (curVal === item.val);
+        const isSelected = (curVal === item.val || (item.val === 'Day OFF' && (curVal === 'DAY OFF' || curVal === 'Day OFF')) || (item.val === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === 'CLEAR/DELETE' || curVal === '__CLEAR__')));
         const hasTag = Boolean(item.tag);
         const hasSub = Boolean(item.sub);
         return `
@@ -8376,8 +8427,8 @@
     }
 
     const isPeriodWithWeekend = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
-    const isExplicitDayOff = (proj === 'Day OFF');
-    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === '[CLEAR / DELETE HOURS]');
+    const isExplicitDayOff = (proj === 'Day OFF' || proj === 'DAY OFF');
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === 'CLEAR/DELETE' || proj === '[CLEAR / DELETE HOURS]');
 
     let cur = parseLocalDate(fromStr);
     let currentStr = fromStr;

@@ -53,7 +53,7 @@ test('1.2 Cache buster bumped to v=10.0 in index.html', () => {
 });
 
 test('1.3 app.js populateBulkProjectSelect contains single <option value="__CLEAR__">Clear/Delete</option>', () => {
-  assert(js.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'Clear/Delete option missing from bulk select');
+  assert(js.includes('<option value="__CLEAR__">CLEAR/DELETE</option>') || js.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'CLEAR/DELETE option missing from bulk select');
 });
 
 test('1.4 app.js populateBulkProjectSelect does NOT contain old duplicate clear option tags', () => {
@@ -71,7 +71,7 @@ test('1.5 PC bulkProjectSelect Clear/Delete option has no inline styling (non-co
   const popBulkIdx = js.indexOf('function populateBulkProjectSelect');
   assert(popBulkIdx !== -1, 'populateBulkProjectSelect function missing');
   const popBulkBlock = js.substring(popBulkIdx, popBulkIdx + 1200);
-  assert(popBulkBlock.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'Clear/Delete option should be unstyled');
+  assert(popBulkBlock.includes('<option value="__CLEAR__">CLEAR/DELETE</option>') || popBulkBlock.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'CLEAR/DELETE option should be unstyled');
   assert(!popBulkBlock.includes('style="color:#ef4444'), 'Clear/Delete option should not have red styling');
   assert(!popBulkBlock.includes('style="color:red'), 'Clear/Delete option should not have inline color');
 });

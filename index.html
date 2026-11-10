@@ -474,8 +474,8 @@
             <label class="choice-card selected" id="mobileHolDayOffLabel">
               <input type="radio" name="mobileHolidayOption" id="mobileHolDayOff" value="dayoff" checked>
               <div class="choice-text">
-                <strong>Set Holidays as "Day OFF" (Recommended)</strong>
-                <p id="mobileHolDayOffDetail">Fills workdays with your project, and marks all holidays as Day OFF.</p>
+                <strong>Set Holidays as "DAY OFF" (Recommended)</strong>
+                <p id="mobileHolDayOffDetail">Fills workdays with your project, and marks all holidays as DAY OFF.</p>
               </div>
             </label>
             <label class="choice-card" id="mobileHolIncludeLabel">
@@ -552,9 +552,9 @@
     </div>
     <div class="popover-content">
       <div class="quick-pill-row">
-        <button class="btn-quick-pill off" data-val="Day OFF">Day OFF</button>
+        <button class="btn-quick-pill off" data-val="Day OFF">DAY OFF</button>
         <button class="btn-quick-pill proj" data-val="NO PROJECT">NO PROJECT</button>
-        <button class="btn-quick-pill clear" data-val="">Clear</button>
+        <button class="btn-quick-pill clear" data-val="__CLEAR__">CLEAR/DELETE</button>
       </div>
 
       <input type="text" id="projectSearchInput" class="form-control form-control-sm" placeholder="Search project or tender...">
@@ -710,7 +710,7 @@
           <label class="choice-card selected" id="holidayDayOffLabel" style="margin-bottom:8px; padding:10px;">
             <input type="radio" name="bulkHolidayOption" id="bulkHolidayDayOff" value="dayoff" checked>
             <div class="choice-text">
-              <strong>Set Holidays as "Day OFF" (Default &amp; Recommended)</strong>
+              <strong>Set Holidays as "DAY OFF" (Default &amp; Recommended)</strong>
               <p id="holidayDayOffDetail">Fills workdays with your project, and automatically sets all holidays as <strong>Day OFF</strong> (Cairo: Friday &amp; Saturday, Istanbul: Saturday &amp; Sunday).</p>
             </div>
           </label>
@@ -1944,14 +1944,14 @@
       <button type="button" class="btn btn-primary btn-sm" id="multiEditAssignBtn">
         Edit Selected
       </button>
-      <button type="button" class="btn btn-secondary btn-sm" id="multiQuickOffBtn" title="Set selected cells to Day OFF">
-        Day OFF
+      <button type="button" class="btn btn-secondary btn-sm" id="multiQuickOffBtn" title="Set selected cells to DAY OFF">
+        DAY OFF
       </button>
       <button type="button" class="btn btn-secondary btn-sm" id="multiQuickNoProjBtn" title="Set selected cells to NO PROJECT">
         NO PROJECT
       </button>
-      <button type="button" class="btn btn-ghost btn-sm" id="multiQuickClearBtn" title="Clear allocations on selected cells">
-        Clear
+      <button type="button" class="btn btn-secondary btn-sm" id="multiQuickClearBtn" title="Clear allocations on selected cells">
+        CLEAR/DELETE
       </button>
       <button type="button" class="btn btn-ghost btn-sm multi-select-cancel" id="multiSelectCancelBtn" title="Cancel selection (Esc)">
         Done
