@@ -46,9 +46,9 @@ test('1.1 Zero unicode emojis in index.html, app.js, and styles.css', () => {
   assert(!emojiRegex.test(css), 'Found emoji in styles.css');
 });
 
-test('1.2 Cache buster is bumped to v=9.9 in index.html', () => {
-  assert(html.includes('styles.css?v=9.9'), 'styles.css v=9.9 not found');
-  assert(html.includes('app.js?v=9.9'), 'app.js v=9.9 not found');
+test('1.2 Cache buster is bumped to v=10.0 in index.html', () => {
+  assert(html.includes('styles.css?v=10.0'), 'styles.css v=10.0 not found');
+  assert(html.includes('app.js?v=10.0'), 'app.js v=10.0 not found');
 });
 
 test('1.3 styles.css strictly hides mobile app container in view-only mode', () => {

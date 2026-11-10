@@ -29,9 +29,9 @@ test('1.1 Zero emojis across all files', () => {
   assert(!emojiRegex.test(js), 'Emoji in js');
 });
 
-test('1.2 Cache buster is v=9.9 in index.html', () => {
-  assert(html.includes('styles.css?v=9.9'), 'styles.css v=9.9 not found');
-  assert(html.includes('app.js?v=9.9'), 'app.js v=9.9 not found');
+test('1.2 Cache buster is v=10.0 in index.html', () => {
+  assert(html.includes('styles.css?v=10.0'), 'styles.css v=10.0 not found');
+  assert(html.includes('app.js?v=10.0'), 'app.js v=10.0 not found');
 });
 
 test('1.3 styles.css hides upper red-framed elements in mobile logger card', () => {
@@ -48,11 +48,37 @@ test('1.4 styles.css defines selected project styling with badge and left border
   assert(css.includes('.special-action-tag'), 'special-action-tag styling missing');
 });
 
-test('1.5 app.js renderMobileProjectPillList includes special items (Day OFF, NO PROJECT, [CLEAR / DELETE HOURS])', () => {
+test('1.5 app.js renderMobileProjectPillList includes special items (Day OFF, NO PROJECT, Clear/Delete)', () => {
   assert(js.includes("name: 'Day OFF'"), 'Day OFF special item missing');
   assert(js.includes("name: 'NO PROJECT'"), 'NO PROJECT special item missing');
-  assert(js.includes("name: '[CLEAR / DELETE HOURS]'"), '[CLEAR / DELETE HOURS] special item missing');
+  assert(js.includes("name: 'Clear/Delete'"), 'Clear/Delete special item missing');
   assert(js.includes("val: '__CLEAR__'"), '__CLEAR__ val missing');
+});
+
+test('1.5a Mobile logger Projects List name, NO PROJECT 1-text format, and Clear/Delete black text', () => {
+  // 1. Projects List title
+  assert(html.includes('<span class="mobile-browser-title">Projects List</span>'), 'Projects List title missing in index.html');
+  assert(!html.includes('Browse &amp; Star Projects List:'), 'Old Browse & Star title still in index.html');
+
+  // 2. NO PROJECT is 1 text in black text (tag: '', sub: '')
+  const noProjIdx = js.indexOf("val: 'NO PROJECT'");
+  assert(noProjIdx !== -1, "val: 'NO PROJECT' not found in app.js");
+  const noProjBlock = js.substring(noProjIdx - 100, noProjIdx + 200);
+  assert(noProjBlock.includes("tag: ''"), 'NO PROJECT must have empty tag');
+  assert(noProjBlock.includes("sub: ''"), 'NO PROJECT must have empty sub');
+
+  // 3. Clear/Delete is called Clear/Delete in black text
+  const clearIdx = js.indexOf("name: 'Clear/Delete'");
+  assert(clearIdx !== -1, "name: 'Clear/Delete' not found in app.js");
+  const clearBlock = js.substring(clearIdx - 100, clearIdx + 250);
+  assert(clearBlock.includes("val: '__CLEAR__'"), '__CLEAR__ val missing');
+  assert(clearBlock.includes("isClear: false"), 'Clear/Delete isClear should be false to prevent red text');
+  assert(clearBlock.includes("tag: ''"), 'Clear/Delete must have empty tag');
+  assert(clearBlock.includes("sub: ''"), 'Clear/Delete must have empty sub');
+
+  // 4. populateMobileProjectSelect contains Clear/Delete without inline red style
+  assert(js.includes('<option value="__CLEAR__">Clear/Delete</option>'), 'Clear/Delete option missing in populateMobileProjectSelect');
+  assert(!js.includes('<option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>'), 'Old red clear option still in app.js');
 });
 
 test('1.6 app.js renderMobileProjectPillList applies is-selected-proj to matching current value', () => {

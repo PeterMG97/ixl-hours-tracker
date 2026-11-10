@@ -7785,7 +7785,7 @@
     el.mobileProjectSelect.innerHTML = `
       <option value="Day OFF">Day OFF</option>
       <option value="NO PROJECT">NO PROJECT</option>
-      <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
+      <option value="__CLEAR__">Clear/Delete</option>
       ${starredOptGroup}
       <optgroup label="Projects &amp; Tenders (Alphabetical)">
         ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
@@ -7793,7 +7793,11 @@
     `;
 
     if (curVal) {
-      el.mobileProjectSelect.value = curVal;
+      if (curVal === 'Clear/Delete' || curVal === '__CLEAR__' || curVal.toLowerCase().includes('clear')) {
+        el.mobileProjectSelect.value = '__CLEAR__';
+      } else {
+        el.mobileProjectSelect.value = curVal;
+      }
     }
   }
 
@@ -7802,7 +7806,7 @@
     const proj = el.mobileProjectSelect.value;
     const isAdminUser = state.isAdmin && isCurrentUserPeter();
     const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
-    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__');
+    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__' || proj === 'Clear/Delete');
     
     if (isSpecial) {
       el.mobileCurrentProjectStarBtn.classList.remove('is-starred');
@@ -7880,20 +7884,20 @@
         specialItems.push({
           name: 'NO PROJECT',
           val: 'NO PROJECT',
-          tag: 'NO PROJ',
-          tagClass: 'tag-noproj',
-          sub: 'Unassigned / Waiting for Project',
+          tag: '',
+          tagClass: '',
+          sub: '',
           isClear: false
         });
       }
-      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || '[clear / delete hours]'.includes(q)) {
+      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q) || '[clear / delete hours]'.includes(q)) {
         specialItems.push({
-          name: '[CLEAR / DELETE HOURS]',
+          name: 'Clear/Delete',
           val: '__CLEAR__',
-          tag: 'CLEAR',
-          tagClass: 'tag-clear',
-          sub: 'Remove allocated hours for selected date(s)',
-          isClear: true
+          tag: '',
+          tagClass: '',
+          sub: '',
+          isClear: false
         });
       }
     }
@@ -7920,18 +7924,24 @@
 
     let itemsHtml = '';
 
-    // 1. Render Special Actions (Day OFF, NO PROJECT, [CLEAR / DELETE HOURS])
+    // 1. Render Special Actions (Day OFF, NO PROJECT, Clear/Delete)
     if (specialItems.length > 0) {
       itemsHtml += specialItems.map(item => {
         const isSelected = (curVal === item.val);
+        const hasTag = Boolean(item.tag);
+        const hasSub = Boolean(item.sub);
         return `
           <div class="proj-item is-special-action ${item.isClear ? 'is-special-clear' : ''} ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
             <div class="proj-item-main" style="flex:1; min-width:0;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="special-action-tag ${item.tagClass}">${item.tag}</span>
+              ${hasTag ? `
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="special-action-tag ${item.tagClass}">${item.tag}</span>
+                  <strong ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.name)}</strong>
+                </div>
+              ` : `
                 <strong ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.name)}</strong>
-              </div>
-              <span class="item-wbs" ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.sub)}</span>
+              `}
+              ${hasSub ? `<span class="item-wbs" ${item.isClear ? 'style="color:#ef4444;"' : ''}>${escapeHtml(item.sub)}</span>` : ''}
             </div>
             ${isSelected ? `<span class="proj-selected-badge ${item.isClear ? 'is-badge-danger' : ''}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
           </div>
@@ -8277,7 +8287,7 @@
 
     const isPeriodWithWeekend = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
     const isExplicitDayOff = (proj === 'Day OFF');
-    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__');
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === '[CLEAR / DELETE HOURS]');
 
     let cur = parseLocalDate(fromStr);
     let currentStr = fromStr;
@@ -8397,7 +8407,7 @@
         const proj = el.mobileProjectSelect ? el.mobileProjectSelect.value : '';
         const isAdminUser = state.isAdmin && isCurrentUserPeter();
         const empId = (isAdminUser && state.mobileTargetEmpId) ? state.mobileTargetEmpId : getEffectiveProfileId();
-        if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__') {
+        if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__' && proj !== 'Clear/Delete') {
           toggleStarredProject(proj, empId);
         }
       });
