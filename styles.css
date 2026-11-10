@@ -4599,7 +4599,43 @@ body.view-only .task-chip {
     width: 95% !important;
     margin: 10px auto !important;
     max-height: 92vh !important;
-    padding: 14px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+  }
+
+  .modal-header {
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+  }
+
+  .modal-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior: contain !important;
+    padding: 14px 16px !important;
+  }
+
+  .modal-footer {
+    flex-shrink: 0 !important;
+    padding: 10px 16px !important;
+  }
+
+  /* Employees list in User Identification Modal: single smooth scroll within modal-body */
+  .user-select-grid {
+    grid-template-columns: 1fr !important;
+    max-height: none !important;
+    overflow: visible !important;
+    gap: 8px !important;
+  }
+
+  .user-select-card {
+    touch-action: pan-y;
   }
 
   .modal-dialog.modal-xl {
@@ -5841,4 +5877,54 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 
 .mobile-launch-footer {
   display: none !important;
+}
+
+/* ========================================================
+   Mobile Interface Smooth Touch Scrolling Engine
+   Ensures all scrollable lists, tables and dialogs navigate smoothly
+   ======================================================== */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+.mobile-project-list,
+.bulk-project-list,
+.popover-project-list,
+.mobile-agenda-list,
+.audit-history-list,
+.audit-table-wrap,
+.no-proj-table-wrap,
+.contrib-breakdown-list,
+.project-contrib-breakdown-list,
+.contrib-table-wrap,
+.settings-drawer-body {
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: contain !important;
+}
+
+.mobile-project-list .proj-item,
+.bulk-project-list .proj-item,
+.popover-project-list .proj-item,
+.mobile-agenda-row,
+.user-select-card {
+  touch-action: pan-y;
+}
+
+.data-table-wrapper,
+.table-scroll-area {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.mobile-project-list {
+  max-height: 280px !important;
+}
+
+.bulk-project-list {
+  max-height: 220px !important;
+}
+
+.mobile-agenda-list {
+  max-height: 260px !important;
 }

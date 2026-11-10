@@ -6553,11 +6553,16 @@
   function openModal(modalEl) {
     toggleSettingsDrawer(false);
     modalEl.classList.remove('hidden');
+    document.body.classList.add('modal-open');
   }
 
   function closeModal(modalEl) {
     if (modalEl) modalEl.classList.add('hidden');
     closeDmyCalendar();
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal')).some(m => !m.classList.contains('hidden'));
+    if (!anyModalOpen) {
+      document.body.classList.remove('modal-open');
+    }
   }
 
   document.querySelectorAll('.modal-close').forEach(btn => {
@@ -6583,6 +6588,7 @@
       clearSelection();
       toggleSettingsDrawer(false);
       document.querySelectorAll('.modal').forEach(m => closeModal(m));
+      document.body.classList.remove('modal-open');
       return;
     }
 
