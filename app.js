@@ -3585,6 +3585,9 @@
           el.bulkProjectSelect.value = pName;
           updateBulkStarBtnState();
           renderBulkStarredChips();
+          if (el.bulkProjectList) {
+            renderBulkProjectList(el.bulkProjectSearchInput ? el.bulkProjectSearchInput.value : '');
+          }
         }
       });
     });
@@ -3593,8 +3596,41 @@
   function renderBulkProjectList(query = '') {
     if (!el.bulkProjectList) return;
     const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
-    const q = (query || '').toLowerCase();
+    const q = (query || '').toLowerCase().trim();
     const cat = state.bulkCategory || 'all';
+    const curVal = el.bulkProjectSelect ? el.bulkProjectSelect.value : 'Day OFF';
+
+    const specialItems = [];
+    if (cat === 'all' || cat === 'Special') {
+      if (!q || 'day off'.includes(q) || 'off'.includes(q)) {
+        specialItems.push({
+          name: 'Day OFF',
+          val: 'Day OFF',
+          tag: 'OFF',
+          tagClass: 'tag-dayoff',
+          sub: 'No hours / Holiday / Leave'
+        });
+      }
+      if (!q || 'no project'.includes(q) || 'noproj'.includes(q)) {
+        specialItems.push({
+          name: 'NO PROJECT',
+          val: 'NO PROJECT',
+          tag: '',
+          tagClass: '',
+          sub: ''
+        });
+      }
+      if (!q || 'clear'.includes(q) || 'delete'.includes(q) || 'remove'.includes(q) || 'clear/delete'.includes(q)) {
+        specialItems.push({
+          name: 'Clear/Delete',
+          val: '__CLEAR__',
+          tag: '',
+          tagClass: '',
+          sub: '',
+          isClear: false
+        });
+      }
+    }
 
     const filtered = state.projects.filter(p => {
       if (p.active === false) return false;
@@ -3607,7 +3643,7 @@
 
     filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    if (filtered.length === 0) {
+    if (specialItems.length === 0 && filtered.length === 0) {
       el.bulkProjectList.innerHTML = `
         <div class="empty-starred-hint">
           ${cat === 'starred' ? 'No starred projects yet for this profile.<br>Click the star icon beside any project to add it.' : 'No matching projects found.'}
@@ -3616,20 +3652,52 @@
       return;
     }
 
-    el.bulkProjectList.innerHTML = filtered.map(p => {
+    let itemsHtml = '';
+
+    // 1. Render Special Actions
+    if (specialItems.length > 0) {
+      itemsHtml += specialItems.map(item => {
+        const isSelected = (curVal === item.val || (item.val === '__CLEAR__' && (curVal === 'Clear/Delete' || curVal === '__CLEAR__')));
+        const hasTag = Boolean(item.tag);
+        const hasSub = Boolean(item.sub);
+        return `
+          <div class="proj-item is-special-action ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(item.val)}">
+            <div class="proj-item-main" style="flex:1; min-width:0;">
+              ${hasTag ? `
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="special-action-tag ${item.tagClass}">${item.tag}</span>
+                  <strong>${escapeHtml(item.name)}</strong>
+                </div>
+              ` : `
+                <strong>${escapeHtml(item.name)}</strong>
+              `}
+              ${hasSub ? `<span class="item-wbs">${escapeHtml(item.sub)}</span>` : ''}
+            </div>
+            ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Render Projects
+    itemsHtml += filtered.map(p => {
       const starred = isProjectStarred(p.name, empId);
+      const isSelected = (curVal === p.name);
       return `
-        <div class="proj-item ${starred ? 'is-starred-item' : ''}" data-val="${escapeHtml(p.name)}">
+        <div class="proj-item ${starred ? 'is-starred-item' : ''} ${isSelected ? 'is-selected-proj' : ''}" data-val="${escapeHtml(p.name)}">
           <div class="proj-item-main" style="flex:1; min-width:0;">
             <strong>${escapeHtml(p.name)}</strong>
             ${p.wbs ? `<span class="item-wbs">WBS: ${escapeHtml(p.wbs)}</span>` : ''}
           </div>
+          ${isSelected ? `<span class="proj-selected-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected</span>` : ''}
           <button type="button" class="btn-star-toggle ${starred ? 'is-starred' : ''}" data-project="${encodeURIComponent(p.name)}" title="${starred ? 'Remove from Starred' : 'Add to Starred'}" aria-label="Toggle Star">
             ${renderStarSvgHtml(starred, 15)}
           </button>
         </div>
       `;
     }).join('');
+
+    el.bulkProjectList.innerHTML = itemsHtml;
 
     el.bulkProjectList.querySelectorAll('.proj-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -3639,6 +3707,28 @@
           el.bulkProjectSelect.value = pName;
           updateBulkStarBtnState();
           renderBulkStarredChips();
+          // Update selected classes in bulkProjectList in-place
+          el.bulkProjectList.querySelectorAll('.proj-item').forEach(pi => {
+            const piVal = pi.getAttribute('data-val');
+            const match = (piVal === pName || (piVal === '__CLEAR__' && (pName === 'Clear/Delete' || pName === '__CLEAR__')));
+            pi.classList.toggle('is-selected-proj', match);
+            const badge = pi.querySelector('.proj-selected-badge');
+            if (match) {
+              if (!badge) {
+                const b = document.createElement('span');
+                b.className = 'proj-selected-badge';
+                b.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Selected';
+                const starBtn = pi.querySelector('.btn-star-toggle');
+                if (starBtn) {
+                  pi.insertBefore(b, starBtn);
+                } else {
+                  pi.appendChild(b);
+                }
+              }
+            } else {
+              if (badge) badge.remove();
+            }
+          });
         }
       });
       const starBtn = item.querySelector('.btn-star-toggle');

@@ -250,6 +250,33 @@ test('4.1 Clear/Delete cannot be starred or favorited', () => {
   assert.strictEqual(isSpecial('Valid Project Name'), false, 'Normal project is not special');
 });
 
+// ========================================================
+// MODULE 5: PC Bulk Fill Projects List Default Chooser
+// ========================================================
+console.log('\n>>> MODULE 5: PC Bulk Fill Projects List Default Chooser');
+
+test('5.1 styles.css hides bulk select dropdown and toggle button, keeping Projects List directly visible', () => {
+  assert(css.includes('#bulkFillModal .project-select-with-star'), 'Missing #bulkFillModal .project-select-with-star rule in styles.css');
+  assert(css.includes('#bulkFillModal .bulk-browse-toggle-wrapper'), 'Missing #bulkFillModal .bulk-browse-toggle-wrapper rule in styles.css');
+  assert(css.includes('#bulkFillModal .bulk-browse-section'), 'Missing #bulkFillModal .bulk-browse-section rule in styles.css');
+});
+
+test('5.2 index.html bulkBrowseSection is not hidden by default in modal markup', () => {
+  assert(!html.includes('id="bulkBrowseSection" class="bulk-browse-section hidden"'), 'bulkBrowseSection should not have hidden class');
+  assert(html.includes('id="bulkBrowseSection" class="bulk-browse-section"'), 'bulkBrowseSection should have bulk-browse-section class');
+});
+
+test('5.3 app.js renderBulkProjectList renders special items and selected project highlight', () => {
+  const fnIdx = js.indexOf('function renderBulkProjectList');
+  assert(fnIdx !== -1, 'renderBulkProjectList missing in app.js');
+  const fnBlock = js.substring(fnIdx, fnIdx + 4000);
+  assert(fnBlock.includes('specialItems'), 'renderBulkProjectList should include specialItems');
+  assert(fnBlock.includes('Day OFF'), 'renderBulkProjectList should include Day OFF');
+  assert(fnBlock.includes('NO PROJECT'), 'renderBulkProjectList should include NO PROJECT');
+  assert(fnBlock.includes('Clear/Delete'), 'renderBulkProjectList should include Clear/Delete');
+  assert(fnBlock.includes('is-selected-proj'), 'renderBulkProjectList should apply is-selected-proj');
+});
+
 console.log('\n==========================================================');
 console.log(` PC BULK FILL CLEAR/DELETE SUITE COMPLETE: ${passCount} PASSED, ${failCount} FAILED`);
 console.log('==========================================================');

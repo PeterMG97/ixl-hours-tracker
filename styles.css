@@ -5484,6 +5484,21 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   display: none !important;
 }
 
+/* PC Bulk Fill: Rely directly on Browse & Star Projects List as default chooser */
+#bulkFillModal .project-select-with-star,
+#bulkFillModal .bulk-browse-toggle-wrapper {
+  display: none !important;
+}
+
+#bulkFillModal .bulk-browse-section {
+  display: block !important;
+  margin-top: 4px;
+}
+
+#bulkFillModal .bulk-project-list {
+  max-height: 220px;
+}
+
 #mobileBrowserContent {
   display: block !important;
 }
