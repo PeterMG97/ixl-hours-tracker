@@ -1164,6 +1164,21 @@ body.view-only #userPermissionBanner,
 body.view-only .user-permission-banner {
   display: none !important;
 }
+
+/* In View-Only mode: Disable and hide all mobile editor/logger interfaces and enforce read-only grid */
+body.view-only .mobile-app-container,
+body.view-only #mobileAppContainer,
+body.view-only #mobileReturnToLoggerBtn,
+body.view-only #toggleMobileDesktopGridViewBtn,
+body.view-only .mobile-logger-card,
+body.view-only .mobile-profile-bar {
+  display: none !important;
+}
+
+body.view-only.is-mobile-device .schedule-card,
+body.view-only .schedule-card {
+  display: block !important;
+}
 .banner-link {
   color: #1d4ed8;
   font-weight: 600;
@@ -4911,6 +4926,12 @@ body.view-only .task-chip {
 /* On Desktop (> 768px): Hide Mobile App Container Always */
 body.is-desktop-device .mobile-app-container,
 body.is-desktop-device .mobile-grid-notice {
+  display: none !important;
+}
+
+/* In View-Only mode on Mobile: Strictly hide mobile logger container across all responsive breakpoints */
+body.view-only.is-mobile-device .mobile-app-container,
+body.view-only .mobile-app-container {
   display: none !important;
 }
 

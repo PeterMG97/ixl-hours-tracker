@@ -66,6 +66,11 @@
   }
 
   function resolveStoredUser() {
+    if (state.isViewOnly) {
+      state.currentUserId = null;
+      state.mobileTargetEmpId = null;
+      return null;
+    }
     const savedId = getStoredItem('ixl_current_user_id');
     const savedName = getStoredItem('ixl_current_user_name');
 
@@ -560,13 +565,19 @@
   if (urlParams.get('mode') === 'view' || window.location.pathname.endsWith('/view')) {
     state.isViewOnly = true;
     state.currentUserId = null; // Generic non-specific profile in view-only mode
+    state.mobileTargetEmpId = null;
     state.isAdmin = false;
+    state.mobileViewMode = 'grid'; // Only enable grid view in view-only mode
     document.body.classList.add('view-only');
+    document.body.classList.add('mobile-readonly-grid');
     el.viewModeBanner.classList.remove('hidden');
     if (el.userPermissionBanner) el.userPermissionBanner.classList.add('hidden');
     el.adminToggleBtn.classList.add('hidden');
     el.topbarBulkFillBtn.classList.add('hidden');
     if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
+    if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
+    if (el.mobileReturnToLoggerBtn) el.mobileReturnToLoggerBtn.classList.add('hidden');
+    if (el.mobileAppContainer) el.mobileAppContainer.classList.add('hidden');
     document.getElementById('userIdentityCard').style.display = 'none';
   }
 
@@ -1023,6 +1034,10 @@
   el.userPickerBtn.addEventListener('click', openUserSelectModal);
 
   function openUserSelectModal() {
+    if (state.isViewOnly) {
+      showToast('View-only link: Profile selection is disabled.', 'warning');
+      return;
+    }
     renderUserSelectGrid('');
     openModal(el.userSelectModal);
   }
@@ -1054,6 +1069,10 @@
 
     el.userSelectGrid.querySelectorAll('.user-select-card').forEach(card => {
       card.addEventListener('click', () => {
+        if (state.isViewOnly) {
+          showToast('View-only link: Profile switching is disabled.', 'warning');
+          return;
+        }
         const empId = card.getAttribute('data-emp-id');
         if (empId === 'view-all') {
           state.currentUserId = 'view-all';
@@ -2640,6 +2659,10 @@
   }
 
   function batchApplyToSelectedCells(projectName, hours) {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
     if (state.selectedCells.size === 0) return;
     const count = state.selectedCells.size;
     const uniqueEmps = getSelectedUniqueEmployees();
@@ -2691,6 +2714,10 @@
   }
 
   function openCellPopover(empId, dateStr, targetBtn) {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
     setKeyboardFocusedCell(empId, dateStr);
     state.selectedCell = { empId, dateStr, element: targetBtn };
     const emp = state.employees.find(e => e.id === empId);
@@ -3187,6 +3214,10 @@
   }
 
   function saveCellAssignment(projectName) {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
     if (state.isMultiEditing && state.selectedCells.size > 0) {
       batchApplyToSelectedCells(projectName, el.popoverHoursInput.value);
       return;
@@ -3678,6 +3709,10 @@
 
   // Execute Bulk Fill (Treating holidays as Day OFF option)
   el.confirmBulkFillBtn.addEventListener('click', () => {
+    if (state.isViewOnly) {
+      showToast('View-only link: Bulk Fill is disabled.', 'warning');
+      return;
+    }
     const empId = el.bulkEmployeeSelect.value;
     const emp = state.employees.find(e => e.id === empId);
     const sec = state.sections.find(s => s.id === emp.sectionId) || {};
@@ -3800,6 +3835,10 @@
   // -------------------------------------------------------------
 
   function openNoProjectModal(targetEmpId) {
+    if (state.isViewOnly) {
+      showToast('View-only link: NO PROJECT Manager is disabled.', 'warning');
+      return;
+    }
     if (!state.currentUserId && !state.isAdmin) {
       showToast('Please identify yourself first from the top bar.', 'warning');
       openUserSelectModal();
@@ -3942,6 +3981,10 @@
     // Attach row save listeners
     el.noProjectTableBody.querySelectorAll('.btn-save-row').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (state.isViewOnly) {
+          showToast('View-only link: Editing is disabled.', 'warning');
+          return;
+        }
         const dateStr = btn.getAttribute('data-date');
         const tr = btn.closest('tr');
         const projSelect = tr.querySelector('.row-project-select');
@@ -3969,6 +4012,10 @@
   }
 
   el.noProjectBatchApplyBtn.addEventListener('click', () => {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
     const chosenProj = el.noProjectBatchSelect.value;
     if (!chosenProj) {
       showToast('Please choose a project from the dropdown to apply.', 'warning');
@@ -7519,6 +7566,30 @@
     dockMobileConnectionBadge(isMobile);
     updateMonthSelectLabels(isMobile);
 
+    // In View-Only mode: mobile logger is permanently removed, only read-only grid view is enabled
+    if (state.isViewOnly) {
+      state.mobileViewMode = 'grid';
+      state.currentUserId = null;
+      state.mobileTargetEmpId = null;
+      if (container) container.classList.add('hidden');
+      if (gridCard) gridCard.classList.remove('hidden');
+      if (el.mobileReturnToLoggerBtn) el.mobileReturnToLoggerBtn.classList.add('hidden');
+      if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
+      if (el.topbarBulkFillBtn) el.topbarBulkFillBtn.classList.add('hidden');
+      document.body.classList.add('mobile-readonly-grid');
+      if (isMobile) {
+        document.body.classList.add('is-mobile-device');
+        document.body.classList.remove('is-desktop-device');
+        if (notice) notice.classList.remove('hidden');
+        setDayColumnWidth(38, true);
+      } else {
+        document.body.classList.add('is-desktop-device');
+        document.body.classList.remove('is-mobile-device');
+        if (notice) notice.classList.add('hidden');
+      }
+      return;
+    }
+
     if (!isMobile) {
       document.body.classList.add('is-desktop-device');
       document.body.classList.remove('is-mobile-device');
@@ -8102,6 +8173,10 @@
   }
 
   function handleMobileApply() {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
     const isAdminUser = state.isAdmin && isCurrentUserPeter();
     let empId = state.currentUserId;
     if (isAdminUser && state.mobileTargetEmpId && state.employees.some(e => e.id === state.mobileTargetEmpId)) {
@@ -8425,6 +8500,10 @@
     // Toggle Desktop Grid View (Read-Only) from Settings drawer
     if (el.toggleMobileDesktopGridViewBtn) {
       el.toggleMobileDesktopGridViewBtn.addEventListener('click', () => {
+        if (state.isViewOnly) {
+          showToast('View-only link: Only Grid View (Read-Only) is enabled.', 'warning');
+          return;
+        }
         state.mobileViewMode = (state.mobileViewMode === 'grid') ? 'form' : 'grid';
         toggleSettingsDrawer(false);
         updateDeviceViewMode();
@@ -8439,6 +8518,10 @@
     // Return to Mobile Logger button
     if (el.mobileReturnToLoggerBtn) {
       el.mobileReturnToLoggerBtn.addEventListener('click', () => {
+        if (state.isViewOnly) {
+          showToast('View-only link: Only Grid View (Read-Only) is enabled.', 'warning');
+          return;
+        }
         state.mobileViewMode = 'form';
         updateDeviceViewMode();
         showToast('Returned to Mobile Schedule Logger.');
@@ -8479,7 +8562,7 @@
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
       }
-      if (isMobileInterface()) {
+      if (isMobileInterface() && !state.isViewOnly) {
         if (state && state.mobileViewMode !== 'form') {
           state.mobileViewMode = 'form';
           updateDeviceViewMode();
@@ -8487,7 +8570,7 @@
       }
     }
 
-    if (isMobileInterface()) {
+    if (isMobileInterface() && !state.isViewOnly) {
       if (state && state.mobileViewMode !== 'form') {
         state.mobileViewMode = 'form';
         updateDeviceViewMode();
