@@ -12,7 +12,10 @@
       "*.md",
       "*.yaml",
       "server.js",
-      "data.backup.json"
+      "data.backup.json",
+      "test_*.js",
+      "welcome_pic/**",
+      "welcome_pic_mob/**"
     ],
     "rewrites": [
       {

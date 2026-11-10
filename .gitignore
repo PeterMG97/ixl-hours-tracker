@@ -6,4 +6,5 @@ Thumbs.db
 *.msi
 cloudflared.exe
 firebase.exe
+.firebase/
 
