@@ -3517,8 +3517,7 @@
     el.bulkProjectSelect.innerHTML = `
       <option value="Day OFF">Day OFF</option>
       <option value="NO PROJECT">NO PROJECT</option>
-      <option value="__CLEAR__" style="color:#ef4444; font-weight:700;">[CLEAR / DELETE HOURS]</option>
-      <option value="">-- Clear / Erase Allocations --</option>
+      <option value="__CLEAR__">Clear/Delete</option>
       ${starredOptGroup}
       <optgroup label="Projects &amp; Tenders (Alphabetical)">
         ${activeProjects.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
@@ -3526,7 +3525,11 @@
     `;
 
     if (curVal) {
-      el.bulkProjectSelect.value = curVal;
+      if (curVal === 'Clear/Delete' || curVal === '__CLEAR__' || curVal.toLowerCase().includes('clear')) {
+        el.bulkProjectSelect.value = '__CLEAR__';
+      } else {
+        el.bulkProjectSelect.value = curVal;
+      }
     }
   }
 
@@ -3534,7 +3537,7 @@
     if (!el.bulkCurrentProjectStarBtn || !el.bulkProjectSelect) return;
     const proj = el.bulkProjectSelect.value;
     const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
-    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__');
+    const isSpecial = (!proj || proj === 'Day OFF' || proj === 'NO PROJECT' || proj === 'NO STATUS' || proj === '__CLEAR__' || proj === 'Clear/Delete');
     
     if (isSpecial) {
       el.bulkCurrentProjectStarBtn.classList.remove('is-starred');
@@ -3671,7 +3674,7 @@
     el.bulkCurrentProjectStarBtn.addEventListener('click', () => {
       const proj = el.bulkProjectSelect ? el.bulkProjectSelect.value : '';
       const empId = el.bulkEmployeeSelect ? el.bulkEmployeeSelect.value : getEffectiveProfileId();
-      if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__') {
+      if (proj && proj !== 'Day OFF' && proj !== 'NO PROJECT' && proj !== 'NO STATUS' && proj !== '__CLEAR__' && proj !== 'Clear/Delete') {
         toggleStarredProject(proj, empId);
       }
     });
@@ -3764,7 +3767,7 @@
 
     const isPeriodWithWeekend = isPeriodWithWeekendForRange(fromStr, toStr, sec.location);
     const isExplicitDayOff = (proj === 'Day OFF');
-    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__');
+    const isClearAction = (!proj || proj.trim() === '' || proj === '__CLEAR__' || proj === 'Clear/Delete' || proj === '[CLEAR / DELETE HOURS]');
 
     let cur = parseLocalDate(fromStr);
     let currentStr = fromStr;
