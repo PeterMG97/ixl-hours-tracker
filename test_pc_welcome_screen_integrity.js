@@ -1,11 +1,12 @@
 /**
  * test_pc_welcome_screen_integrity.js
  * Dedicated automated test suite verifying that:
- * 1. The welcome/loading screen is strictly enabled for the PC interface only (and hidden on mobile).
+ * 1. The welcome/loading screen is enabled for both PC and Mobile interfaces.
  * 2. The picture used is the exact, unmodified, full-quality original image (2752x1536, 268,506 bytes, matching welcome_pic/1.jpg).
- * 3. The rotating loading circle (splash spinner) is positioned on the welcome screen.
- * 4. Automated dismissal (with click/key skip) is wired cleanly on PC.
- * 5. Zero emojis across files.
+ * 3. The rotating loading circle (splash spinner) is positioned directly above "by" and centered between "b" and "y" (left: 50.4%).
+ * 4. On mobile, the spinner has responsive sizing and clearance above "by" without touching or interfering.
+ * 5. Automated dismissal (with click/touch/key skip) is wired cleanly on both PC and mobile.
+ * 6. Zero emojis across files.
  */
 
 const fs = require('fs');
@@ -28,7 +29,7 @@ function test(description, fn) {
 }
 
 console.log('==========================================================');
-console.log(' RUNNING PC WELCOME / LOADING SCREEN INTEGRITY TEST SUITE');
+console.log(' RUNNING WELCOME / LOADING SCREEN INTEGRITY TEST SUITE');
 console.log('==========================================================\n');
 
 const html = fs.readFileSync('index.html', 'utf8');
@@ -63,13 +64,24 @@ test('1.3 alstom-welcome-pc.jpg is byte-for-byte identical to welcome_pic/1.jpg 
   assert.strictEqual(pcHash, origHash, 'PC welcome image SHA256 must match welcome_pic/1.jpg byte-for-byte');
 });
 
-// ========================================================
-// MODULE 2: PC-Only Welcome Screen Layout & Markup
-// ========================================================
-console.log('\n>>> MODULE 2: PC-Only Welcome Screen Layout & Markup');
+test('1.4 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic/1.jpg', () => {
+  if (fs.existsSync('alstom-welcome-mobile.jpg')) {
+    const origBuf = fs.readFileSync('welcome_pic/1.jpg');
+    const mobBuf = fs.readFileSync('alstom-welcome-mobile.jpg');
+    assert.strictEqual(mobBuf.length, 268506, 'Mobile welcome image must be exactly 268,506 bytes');
+    const origHash = crypto.createHash('sha256').update(origBuf).digest('hex');
+    const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');
+    assert.strictEqual(mobHash, origHash, 'Mobile welcome image SHA256 must match welcome_pic/1.jpg');
+  }
+});
 
-test('2.1 index.html references alstom-welcome-pc.jpg with natural dimensions (2752x1536)', () => {
-  assert(html.includes('src="alstom-welcome-pc.jpg?v=10.0"'), 'Missing alstom-welcome-pc.jpg reference in index.html');
+// ========================================================
+// MODULE 2: Welcome Screen Layout & Responsive Placement
+// ========================================================
+console.log('\n>>> MODULE 2: Welcome Screen Layout & Responsive Placement');
+
+test('2.1 index.html references full-resolution artwork with natural dimensions (2752x1536)', () => {
+  assert(html.includes('alstom-welcome-pc.jpg?v=10.0'), 'Missing welcome image reference in index.html');
   assert(html.includes('width="2752"'), 'Missing width="2752" in index.html');
   assert(html.includes('height="1536"'), 'Missing height="1536" in index.html');
 });
@@ -79,48 +91,46 @@ test('2.2 Rotating loading circle (splash-spinner) is present on welcome screen'
   assert(html.includes('class="splash-spinner-circle"'), 'splash-spinner-circle missing in index.html');
 });
 
-test('2.2a Loading circle is centered between "b" and "y" in "by" (left: 50.4%)', () => {
+test('2.2a Loading circle is horizontally centered between "b" and "y" in "by" (left: 50.4%)', () => {
   assert(html.includes('left: 50.4%;'), 'index.html critical CSS missing left: 50.4% for splash-spinner-wrap');
   assert(css.includes('left: 50.4%;'), 'styles.css missing left: 50.4% for splash-spinner-wrap');
 });
 
-test('2.3 styles.css and critical CSS strictly isolate welcome screen to PC only (hidden on mobile)', () => {
-  // Critical CSS checks
+test('2.3 Mobile-responsive positioning places circle above "by" without touching or interfering', () => {
+  // Mobile media queries configure safe clearance
   assert(html.includes('@media (max-width: 768px)'), 'Mobile media query missing in critical CSS');
-  assert(html.includes('@media (min-width: 769px)'), 'PC media query missing in critical CSS');
-  
-  // styles.css checks
+  assert(html.includes('top: 83.8%;'), 'Mobile top: 83.8% clearance missing in critical CSS');
   assert(css.includes('@media (max-width: 768px)'), 'Mobile media query missing in styles.css');
-  assert(css.includes('@media (min-width: 769px)'), 'PC media query missing in styles.css');
-  assert(css.includes('display: none !important;'), 'display: none !important missing in styles.css');
+  assert(css.includes('top: 83.8%;'), 'Mobile top: 83.8% clearance missing in styles.css');
+  assert(css.includes('clamp('), 'Mobile responsive clamp sizing missing in styles.css');
 });
 
 // ========================================================
-// MODULE 3: JavaScript Lifecycle & Device Mode Locking
+// MODULE 3: JavaScript Lifecycle & Device Support
 // ========================================================
-console.log('\n>>> MODULE 3: JavaScript Lifecycle & Device Mode Locking');
+console.log('\n>>> MODULE 3: JavaScript Lifecycle & Device Support');
 
-test('3.1 initMobileWelcomeScreen immediately hides welcome screen on mobile devices', () => {
+test('3.1 initMobileWelcomeScreen unhides overlay on boot for both mobile and PC', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
   assert(fnIdx !== -1, 'initMobileWelcomeScreen function missing in app.js');
   const fnBlock = js.substring(fnIdx, fnIdx + 1200);
-  assert(fnBlock.includes('if (isMobileInterface())'), 'Missing isMobileInterface check in initMobileWelcomeScreen');
-  assert(fnBlock.includes("overlay.classList.add('hidden', 'hidden-permanently')"), 'Missing mobile hide call');
-  assert(fnBlock.includes("overlay.style.display = 'none'"), 'Missing mobile display:none call');
+  assert(fnBlock.includes("overlay.classList.remove('hidden', 'hidden-permanently')"), 'Missing unhide call');
+  assert(fnBlock.includes("overlay.style.display = 'flex'"), 'Missing display:flex call');
+  assert(fnBlock.includes('touchstart'), 'Missing touchstart listener for mobile tap dismiss');
 });
 
-test('3.2 initMobileWelcomeScreen unhides overlay on PC and supports auto-dismissal and key/click skip', () => {
+test('3.2 initMobileWelcomeScreen supports auto-dismissal, click/tap skip, and view-only guard', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
   const fnBlock = js.substring(fnIdx, fnIdx + 1600);
-  assert(fnBlock.includes("overlay.classList.remove('hidden', 'hidden-permanently')"), 'Missing PC unhide call');
-  assert(fnBlock.includes("overlay.style.display = 'flex'"), 'Missing PC display:flex call');
   assert(fnBlock.includes('dismissWelcome'), 'Missing dismissWelcome function');
   assert(fnBlock.includes('setTimeout'), 'Missing auto-dismiss timer');
+  assert(fnBlock.includes('click'), 'Missing click dismiss listener');
   assert(fnBlock.includes('keydown'), 'Missing keyboard dismiss listener');
+  assert(fnBlock.includes('if (isMobileInterface() && !state.isViewOnly)'), 'Missing view-only check in initMobileWelcomeScreen');
 });
 
 console.log('\n==========================================================');
-console.log(` PC WELCOME SCREEN INTEGRITY SUITE COMPLETE: ${passCount} PASSED, ${failCount} FAILED`);
+console.log(` WELCOME SCREEN INTEGRITY SUITE COMPLETE: ${passCount} PASSED, ${failCount} FAILED`);
 console.log('==========================================================');
 
 if (failCount > 0) {

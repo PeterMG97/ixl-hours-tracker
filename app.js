@@ -8601,25 +8601,12 @@
 
     
   // -------------------------------------------------------------
-  // Mobile Welcome Splash Screen (Mobile Interface Only)
+  // Mobile & PC Welcome Splash Screen
   // -------------------------------------------------------------
   function initMobileWelcomeScreen() {
     const overlay = document.getElementById('mobileWelcomeOverlay');
     if (!overlay) return;
 
-    if (isMobileInterface()) {
-      overlay.classList.add('hidden', 'hidden-permanently');
-      overlay.style.display = 'none';
-      if (isMobileInterface() && !state.isViewOnly) {
-        if (state && state.mobileViewMode !== 'form') {
-          state.mobileViewMode = 'form';
-          updateDeviceViewMode();
-        }
-      }
-      return;
-    }
-
-    // PC Interface Only: show welcome/loading screen and smoothly dismiss
     overlay.classList.remove('hidden', 'hidden-permanently');
     overlay.style.display = 'flex';
 
@@ -8645,8 +8632,9 @@
       }
     }, 4000);
 
-    // Click or keypress skips immediately
+    // Tap, click, or keypress skips immediately
     overlay.addEventListener('click', dismissWelcome);
+    overlay.addEventListener('touchstart', dismissWelcome, { passive: true });
     window.addEventListener('keydown', function handleKey() {
       if (!dismissed) {
         dismissWelcome();
