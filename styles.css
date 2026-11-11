@@ -4180,6 +4180,15 @@ body.view-only .task-chip {
   color: #ffffff;
 }
 
+#histResetFiltersBtn {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+#histResetFiltersBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
 .hist-filters-bar {
   display: flex;
   align-items: center;

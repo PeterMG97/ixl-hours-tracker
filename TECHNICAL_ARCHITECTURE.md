@@ -601,6 +601,38 @@ Every administrative or schedule change appends an immutable event record:
 }
 ```
 
+### 9.3 Activity Log Clear & Reset Architecture
+To provide administrators full control over audit retention, the Activity Log view features a dedicated reset button (`#histResetFiltersBtn`) linked to the `clearActivityLog()` engine:
+
+```mermaid
+flowchart TD
+    AdminClick["Admin Clicks #histResetFiltersBtn ('Reset')"] --> CheckEmpty{"state.history.length > 0?"}
+    CheckEmpty -->|No| ToastEmpty["Reset filters, render empty state, show 'Activity Log is already empty' toast"]
+    CheckEmpty -->|Yes| ConfirmDialog{"confirm('Are you sure you want to clear the Activity Log?')"}
+    ConfirmDialog -->|Cancel| Abort["Abort: state.history untouched"]
+    ConfirmDialog -->|OK| ClearState["state.history = []"]
+    ClearState --> ResetFilters["Reset search input, profile dropdown, cross-only check"]
+    ResetFilters --> SyncServer["syncToServer() (Firestore & LocalStorage)"]
+    SyncServer --> RenderData["renderAuditHistoryData()"]
+    RenderData --> RecalcKpis["KPIs Updated: Total Edits = 0, Cross-Profile = 0"]
+    RecalcKpis --> EmptyTable["Table renders 'No edit history entries recorded yet.'"]
+    EmptyTable --> ToastCleared["showToast('Activity Log cleared')"]
+```
+
+#### Operational Mechanics:
+1. **Interactive Reset Control (`#histResetFiltersBtn`)**:
+   - Styled with smooth transition and crimson hover highlight (`color: #ef4444`, `background: rgba(239, 68, 68, 0.1)`).
+   - Carries an informative title attribute (`title="Clear Activity Log"`).
+2. **Defensive Confirmation Guard**:
+   - Safeguards against accidental erasure via `confirm('Are you sure you want to clear the Activity Log?')`.
+   - If the user cancels, the log is completely preserved with zero side-effects.
+3. **Complete State Synchronization & Empty State Rendering**:
+   - When cleared, `state.history` is emptied to `[]`.
+   - Filters are restored to default states (`value = ''`, `value = 'all'`, `checked = false`).
+   - Real-time KPIs reflect 0 recorded changes.
+   - The Activity Log table renders a clean empty state message: `No edit history entries recorded yet.`.
+   - The mutation is synchronously persisted to LocalStorage and synced to Firebase Firestore via `syncToServer()`.
+
 ---
 
 ## 10. Client-Server Synchronization & Storage Layer

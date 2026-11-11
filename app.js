@@ -7805,10 +7805,13 @@
       });
 
       if (filtered.length === 0) {
+        const emptyMsg = (!history || history.length === 0)
+          ? 'No edit history entries recorded yet.'
+          : 'No edit history entries found matching your filter criteria.';
         el.histLogTableBody.innerHTML = `
           <tr>
             <td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">
-              No edit history entries found matching your filter criteria.
+              ${emptyMsg}
             </td>
           </tr>
         `;
@@ -8019,12 +8022,31 @@
     if (el.histCrossOnlyCheck) {
       el.histCrossOnlyCheck.addEventListener('change', () => renderAuditHistoryData());
     }
+  function clearActivityLog() {
+    if (!state.history || state.history.length === 0) {
+      if (el.histSearchInput) el.histSearchInput.value = '';
+      if (el.histProfileFilter) el.histProfileFilter.value = 'all';
+      if (el.histCrossOnlyCheck) el.histCrossOnlyCheck.checked = false;
+      renderAuditHistoryData();
+      showToast('Activity Log is already empty');
+      return false;
+    }
+    if (!confirm('Are you sure you want to clear the Activity Log?')) {
+      return false;
+    }
+    state.history = [];
+    if (el.histSearchInput) el.histSearchInput.value = '';
+    if (el.histProfileFilter) el.histProfileFilter.value = 'all';
+    if (el.histCrossOnlyCheck) el.histCrossOnlyCheck.checked = false;
+    syncToServer();
+    renderAuditHistoryData();
+    showToast('Activity Log cleared');
+    return true;
+  }
+
     if (el.histResetFiltersBtn) {
       el.histResetFiltersBtn.addEventListener('click', () => {
-        if (el.histSearchInput) el.histSearchInput.value = '';
-        if (el.histProfileFilter) el.histProfileFilter.value = 'all';
-        if (el.histCrossOnlyCheck) el.histCrossOnlyCheck.checked = false;
-        renderAuditHistoryData();
+        clearActivityLog();
       });
     }
 

@@ -452,6 +452,14 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Profile-Isolated Starred Projects:</strong> Stored per-user in <code>localStorage</code> under <code>ixl_starred_{userId}</code>. 1-tap logging chips appear at the top of the mobile logger.</li>
   </ul>
 
+  <h3>5.6 Activity Log Reset & Clear Engine</h3>
+  <p>To enable administrators to manage audit trail retention, the Activity Log view incorporates a dedicated reset button (<code>#histResetFiltersBtn</code>) and clearing workflow:</p>
+  <ul>
+    <li><strong>Defensive Confirmation Guard:</strong> Prompt confirmation protects the audit log from accidental wiping.</li>
+    <li><strong>State & Storage Purge:</strong> When confirmed, <code>state.history</code> is cleared, filter controls are reset, real-time KPIs update to 0, and changes are synced immediately to LocalStorage and Firebase Cloud.</li>
+    <li><strong>Clean Empty State:</strong> The Activity Log table displays a clean descriptor (<code>No edit history entries recorded yet.</code>) when no logs exist.</li>
+  </ul>
+
   <h2>7. Role-Based Access Control & View-Only Defense</h2>
   <table>
     <thead>
