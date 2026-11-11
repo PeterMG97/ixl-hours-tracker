@@ -609,18 +609,36 @@ Theme switching is executed via `[data-theme='dark']` attributes on `<html>`:
 - **Dark**: Deep slate blue (`#0b1120` / `#1e293b`) optimized for dim lighting. Employee names render in crisp `#ffffff`.
 - **Auto**: Synchronizes with client clock (Daytime 07:00-19:00 = Light, Nighttime 19:00-07:00 = Dark).
 
+### 11.3 Application Boot Sequence & Welcome Splash Screen Resilience
+
+The application features a dedicated, zero-letterboxing welcome screen (`#mobileWelcomeOverlay`) on both PC and Mobile devices displaying official Alstom artwork and a dynamic loading spinner.
+
+#### Boot Execution Sequence:
+1. `initMobileWelcomeScreen()`: Instantly attaches user skip listeners (click, touch, keydown, and 10000ms fallback timer) before layout computations or network requests begin.
+2. `initTheme()`: Loads and enforces theme settings (Light, Dark, Auto).
+3. `initColumnWidths()`: Configures responsive column sizes across device viewports.
+4. `updateDeviceViewMode()`: Detects mobile vs. desktop interface, applies layout geometry, and synchronizes month label format.
+5. `initMobileEventListeners()`, `initDmyDateInputs()`, `initAuditEvents()`, `initAuditHistory()`: Binds interactive modules.
+6. `loadData()`: Executes non-blocking cache retrieval and initiates real-time Firestore synchronization.
+
+#### Multi-Tier Defense Against Splash Screen Freezing:
+- **Tier 1 (Instant Event Listeners)**: Skippable immediately upon any click, tap, or keypress. The overlay fade-out sequence (`fade-out` class, 400ms CSS transition, followed by `hidden-permanently` and `display: none`) is executed.
+- **Tier 2 (Inline HTML Handler)**: `#mobileWelcomeOverlay` declares an inline `onclick` handler directly in `index.html`. Even in cases of catastrophic script interruptions or delayed bundle parsing, any user touch or click instantly dismisses the overlay.
+- **Tier 3 (Inline HTML Fallback Timer)**: A lightweight inline script guarantees dismissal after 6000ms if no interaction occurs.
+- **Tier 4 (10-Second Auto-Dismiss)**: The internal JavaScript timer automatically clears the screen after 10 seconds.
+
 ---
 
 ## 12. Comprehensive Automated Test Suites Catalog
 
-The project maintains 12 automated test suites (2,150+ assertions) executed with zero external test runner packages:
+The project maintains 14 automated test suites (2,160+ assertions) executed with zero external test runner packages:
 
 | Test Suite Script | Assertion Count | Primary Contracts Tested |
 |---|---|---|
 | `test_all_users_integrity.js` | 1,822 tests | Row edit permission isolation across all 26 users; popovers, delete keys, audit events |
 | `test_suite.ps1` | 92 tests | Database schema, Cairo/Istanbul holiday rules, timezone rollover, DOM elements, PIN hashing |
+| `test_cell_click_hold_sequence.js` | 77 tests | 380ms hold timer, 8px micro-jitter deadband, single click standing focus, arrow navigation |
 | `test_starred_projects_integrity.js` | 52 tests | Profile isolation of starred favorites, star toggle persistence, special items immunity |
-| `test_cell_click_hold_sequence.js` | 47 tests | 380ms hold timer, 8px micro-jitter deadband, single click standing focus, arrow navigation |
 | `test_calculation_integrity.ps1` | 39 tests | Double-entry project vs employee reconciliation, baseline hour additions, 1h-12h clamps |
 | `test_weekend_hours_assignment.js` | 28 tests | Cairo vs Istanbul multi-day period vs single-day weekend overtime logging |
 | `test_pc_view_only_integrity.js` | 27 tests | PC read-only URL mode, DOM button suppression, cell double click / hold defenses |
@@ -629,6 +647,8 @@ The project maintains 12 automated test suites (2,150+ assertions) executed with
 | `test_mobile_list_scroll_alignment.js`| 23 tests | Mobile table min-widths, 2-axis touch physics, Add Member form horizontal baseline alignment |
 | `test_pc_bulk_clear_integrity.js` | 15 tests | Bulk fill clear action normalization, star immunity, Projects List direct chooser |
 | `test_pc_welcome_screen_integrity.js` | 11 tests | PC and mobile welcome splash full-bleed fit, spinner centering, byte-for-byte asset parity |
+| `test_dynamic_month_selection.js` | 8 tests | Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels |
+| `test_quick_pill_separation.js` | 6 tests | Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE |
 
 **Execution**:
 ```powershell

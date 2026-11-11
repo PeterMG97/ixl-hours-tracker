@@ -7703,7 +7703,7 @@
       const name = shortNames[m - 1] || '';
       return isStart ? `${mm}/${y} - ${name} (Start)` : `${mm}/${y} - ${name}`;
     }
-    const name = fullMonths[m - 1] || '';
+    const name = fullNames[m - 1] || '';
     return isStart ? `${mm}/${y} - ${name} ${y} (Start)` : `${mm}/${y} - ${name} ${y}`;
   }
 
@@ -8801,6 +8801,7 @@
   }
 
   // Boot Application
+  initMobileWelcomeScreen();
   initTheme();
   initColumnWidths();
   updateDeviceViewMode(); // Instant unhide and layout calculation for mobile before network
@@ -8808,7 +8809,6 @@
   initDmyDateInputs();
   initAuditEvents();
   initAuditHistory();
-  initMobileWelcomeScreen();
   loadData();
 
 })();

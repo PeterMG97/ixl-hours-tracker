@@ -534,10 +534,28 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
         <td>11</td>
         <td>PC and mobile welcome splash full-bleed screen fit, spinner placement, asset parity.</td>
       </tr>
+      <tr>
+        <td><code>test_dynamic_month_selection.js</code></td>
+        <td>8</td>
+        <td>Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels.</td>
+      </tr>
+      <tr>
+        <td><code>test_quick_pill_separation.js</code></td>
+        <td>6</td>
+        <td>Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE.</td>
+      </tr>
     </tbody>
   </table>
 
-  <h2>9. Developer Guidelines & Ongoing Maintenance Contract</h2>
+  <h2>9. Application Boot Sequence & Welcome Screen Resilience</h2>
+  <p>The application employs a multi-tiered boot sequence to guarantee that the splash screen (<code>#mobileWelcomeOverlay</code>) never blocks entry or freezes:</p>
+  <ul>
+    <li><strong>Boot Order:</strong> <code>initMobileWelcomeScreen()</code> binds click, touch, keydown, and 10000ms auto-dismiss handlers at step 1 before any layout or data requests execute.</li>
+    <li><strong>Inline Markup Fallback:</strong> The overlay element in <code>index.html</code> specifies an inline <code>onclick</code> handler that triggers CSS fade-out and unmounts the overlay even in the event of script loading interruptions.</li>
+    <li><strong>Safety Fallback Timer:</strong> A lightweight inline script guarantees dismissal after 6000ms if no interaction occurs.</li>
+  </ul>
+
+  <h2>10. Developer Guidelines & Ongoing Maintenance Contract</h2>
   <ol>
     <li><strong>Mandatory Document Update:</strong> Whenever you add, modify, or delete any feature, data model, or style rule, you MUST immediately update both <code>TECHNICAL_ARCHITECTURE.md</code> and <code>TECHNICAL_ARCHITECTURE.html</code>.</li>
     <li><strong>Strict Zero-Emoji Policy:</strong> Never use Unicode emojis in code, commits, or documentation.</li>

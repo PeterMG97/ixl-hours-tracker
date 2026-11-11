@@ -126,3 +126,4 @@ runTest('1.6 styles.css defines .btn-quick-pill and active .is-selected-proj sty
 console.log(`\n==========================================================`);
 console.log(` QUICK PILL EXCLUSIVE TOP PLACEMENT SUITE COMPLETE: ${passedTests} PASSED, 0 FAILED`);
 console.log(`==========================================================\n`);
+

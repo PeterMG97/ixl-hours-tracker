@@ -79,23 +79,10 @@ runTest('1.3 app.js defines Dynamic Month Engine helpers', () => {
 // 4. Unit testing getMonthOptionLabel math
 runTest('1.4 getMonthOptionLabel formats PC and Mobile labels for any month and any future year', () => {
   const APP_START_MONTH = '2026-11';
-  function getMonthOptionLabel(ym, isMobile) {
-    if (!ym) return '';
-    const parts = ym.split('-');
-    if (parts.length < 2) return ym;
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    const mm = String(m).padStart(2, '0');
-    const fullNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const isStart = (ym === APP_START_MONTH);
-    if (isMobile) {
-      const name = shortNames[m - 1] || '';
-      return isStart ? `${mm}/${y} - ${name} (Start)` : `${mm}/${y} - ${name}`;
-    }
-    const name = fullNames[m - 1] || '';
-    return isStart ? `${mm}/${y} - ${name} ${y} (Start)` : `${mm}/${y} - ${name} ${y}`;
-  }
+  // Evaluate the actual implementation from app.js directly
+  const fnMatch = js.match(/function getMonthOptionLabel\([\s\S]*?\n  \}/);
+  assert(fnMatch, 'Could not extract getMonthOptionLabel from app.js');
+  const getMonthOptionLabel = new Function('APP_START_MONTH', `${fnMatch[0]}; return getMonthOptionLabel;`)(APP_START_MONTH);
 
   // PC Formatting
   assert.strictEqual(getMonthOptionLabel('2026-11', false), '11/2026 - November 2026 (Start)');
@@ -117,21 +104,10 @@ runTest('1.4 getMonthOptionLabel formats PC and Mobile labels for any month and 
 // 5. Simulation of DOM select element & dynamic appending
 runTest('1.5 appendYearToMonthSelect and ensureMonthInSelect dynamically extend beyond 2040', () => {
   const APP_START_MONTH = '2026-11';
-  function getMonthOptionLabel(ym, isMobile) {
-    const parts = ym.split('-');
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    const mm = String(m).padStart(2, '0');
-    const fullNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const isStart = (ym === APP_START_MONTH);
-    if (isMobile) {
-      const name = shortNames[m - 1] || '';
-      return isStart ? `${mm}/${y} - ${name} (Start)` : `${mm}/${y} - ${name}`;
-    }
-    const name = fullNames[m - 1] || '';
-    return isStart ? `${mm}/${y} - ${name} ${y} (Start)` : `${mm}/${y} - ${name} ${y}`;
-  }
+  // Evaluate the actual implementation from app.js directly
+  const fnMatch = js.match(/function getMonthOptionLabel\([\s\S]*?\n  \}/);
+  assert(fnMatch, 'Could not extract getMonthOptionLabel from app.js');
+  const getMonthOptionLabel = new Function('APP_START_MONTH', `${fnMatch[0]}; return getMonthOptionLabel;`)(APP_START_MONTH);
 
   const mockSelect = {
     options: [

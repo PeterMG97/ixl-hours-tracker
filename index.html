@@ -190,7 +190,7 @@
 </head>
 <body>
   <!-- Welcome Splash Screen (PC Interface Only) -->
-  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen">
+  <div id="mobileWelcomeOverlay" class="mobile-welcome-overlay" aria-modal="true" role="dialog" aria-label="Alstom IXL Launch Screen" onclick="this.classList.add('fade-out'); var self = this; setTimeout(function(){ self.classList.add('hidden-permanently', 'hidden'); self.style.display='none'; }, 400);">
     <div class="welcome-splash-stage">
       <div class="welcome-artwork-wrapper">
         <picture class="welcome-splash-picture">
