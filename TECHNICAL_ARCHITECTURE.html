@@ -428,6 +428,22 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Active State Feedback:</strong> When an active cell or allocation holds <code>Day OFF</code>, <code>NO PROJECT</code>, or <code>__CLEAR__</code>, the corresponding top button dynamically displays <code>.is-selected-proj</code> selection styling.</li>
   </ul>
 
+  <h3>5.4 Modal Footer Clean Interface Architecture</h3>
+  <ul>
+    <li><strong>Projects & WBS Management (<code>#projectsModal</code>):</strong> The legacy explanatory hint text is completely removed from the modal footer across Desktop and Mobile interfaces, maintaining a clean right-aligned Close button.</li>
+    <li><strong>Project Monthly Data & Period Analytics (<code>#projectMonthlyModal</code>):</strong> The legacy explanatory hint text is completely removed from the modal footer across Desktop and Mobile interfaces, ensuring complete visual consistency.</li>
+  </ul>
+
+  <h3>5.5 Modern PC Main Calendar Widget & Direct Day Navigation</h3>
+  <p>To deliver a modern scheduling experience, the PC topbar period navigator incorporates a rounded card calendar popover widget matching modern UI aesthetics with direct day jumping and schedule centering:</p>
+  <ul>
+    <li><strong>Modern Card Container (<code>#mainCalendarPopover</code>):</strong> Features smooth rounded corners (<code>border-radius: 20px</code>), high elevation shadow, and dark/light adaptive theming.</li>
+    <li><strong>Interactive Header Bar:</strong> Month/year title with toggle button (<code>#mainCalTitleBtn</code>) switching seamlessly between the 7-column day view and the 12-month quick picker grid. Navigation arrows lock at November 2026.</li>
+    <li><strong>7-Column Day Matrix:</strong> Displays MON to SUN headers, muted adjacent-month days, solid circular blue active day selection (<code>#0284c7</code>), current today ring, and colored activity dots (green project, amber special, cyan tender).</li>
+    <li><strong>Direct Day Navigation & Schedule Centering Engine:</strong> Clicking any day or the <code>TODAY</code> shortcut triggers <code>openAndMoveToDate(dateStr)</code>, which synchronizes state, updates <code>#monthSelect</code>, renders the schedule, and smoothly scrolls <code>.table-scroll-area</code> to horizontally center the target day column with an animated high-contrast pulse highlight (<code>.day-jump-highlight</code>) and keyboard focus.</li>
+    <li><strong>Preserved Accessibility & Test Compatibility:</strong> The underlying <code>&lt;select id="monthSelect" class="period-select sr-only"&gt;</code> maintains all 170+ dynamically populated options for complete compatibility.</li>
+  </ul>
+
   <h2>6. Mobile Interface Architecture & Touch Physics</h2>
   <ul>
     <li><strong>Dual Modes:</strong> Mobile Editor mode (cards, agenda, 1-tap starred chips) vs. Read-Only Grid mode (horizontal table view).</li>

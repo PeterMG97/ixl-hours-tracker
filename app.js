@@ -175,6 +175,9 @@
 
     // Month Navigation
     monthSelect: document.getElementById('monthSelect'),
+    mainCalendarTriggerBtn: document.getElementById('mainCalendarTriggerBtn'),
+    mainCalendarMonthDisplay: document.getElementById('mainCalendarMonthDisplay'),
+    mainCalendarPopover: document.getElementById('mainCalendarPopover'),
     prevMonthBtn: document.getElementById('prevMonthBtn'),
     nextMonthBtn: document.getElementById('nextMonthBtn'),
     jumpTodayBtn: document.getElementById('jumpTodayBtn'),
@@ -1242,6 +1245,7 @@
 
   function renderSchedule() {
     ensureMonthInSelect(state.currentMonth);
+    updateMainCalendarTriggerDisplay();
     const days = getDaysInMonth(state.currentMonth);
     el.monthSelect.value = state.currentMonth;
     const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
@@ -1262,7 +1266,7 @@
         </th>
         <th class="col-metric" rowspan="2" title="Total hours allocated for this month">Hours</th>
         ${days.map(d => `
-          <th class="col-slot ${d.isToday ? 'is-today' : ''}" title="${formatDateDMY(d.dateStr)}">
+          <th class="col-slot ${d.isToday ? 'is-today' : ''}" data-date="${d.dateStr}" data-day="${d.num}" title="${formatDateDMY(d.dateStr)}">
             <div class="slot-num">${d.num}</div>
             <div class="slot-name">${d.name}</div>
             <div class="col-resizer resizer-day" title="Drag to resize Day columns (Excel style)"></div>
@@ -6396,6 +6400,387 @@
   });
 
   // -------------------------------------------------------------
+  // Main PC Schedule Calendar Engine & Popover Navigation
+  // -------------------------------------------------------------
+  let mainCalViewYear = 2026;
+  let mainCalViewMonth = 11; // 1-12
+  let mainCalViewMode = 'days'; // 'days' | 'monthyear'
+
+  function updateMainCalendarTriggerDisplay() {
+    const disp = document.getElementById('mainCalendarMonthDisplay');
+    if (!disp) return;
+    const isMobile = isMobileInterface();
+    const ym = state.currentMonth || APP_START_MONTH;
+    disp.textContent = getMonthOptionLabel(ym, isMobile);
+  }
+
+  function scrollToDay(dateStr) {
+    if (!dateStr) return;
+    setTimeout(() => {
+      const scrollArea = document.querySelector('.table-scroll-area');
+      const dayTh = document.querySelector('th.col-slot[data-date="' + dateStr + '"]');
+      if (scrollArea && dayTh) {
+        const containerRect = scrollArea.getBoundingClientRect();
+        const thRect = dayTh.getBoundingClientRect();
+        const scrollOffset = scrollArea.scrollLeft + (thRect.left - containerRect.left) - (containerRect.width / 2) + (thRect.width / 2);
+        scrollArea.scrollTo({
+          left: Math.max(0, scrollOffset),
+          behavior: 'smooth'
+        });
+      }
+
+      // Animated high-contrast pulse highlight across all cells of the day
+      const dayCols = document.querySelectorAll('[data-date="' + dateStr + '"]');
+      dayCols.forEach(col => col.classList.add('day-jump-highlight'));
+      setTimeout(() => {
+        dayCols.forEach(col => col.classList.remove('day-jump-highlight'));
+      }, 2400);
+
+      // If a user profile is selected, stand keyboard focus on their cell for that day
+      if (state.currentUserId && state.currentUserId !== 'view-all') {
+        setKeyboardFocusedCell(state.currentUserId, dateStr);
+      }
+    }, 60);
+  }
+
+  function openAndMoveToDate(dateStr) {
+    if (!dateStr) return;
+    if (dateStr < APP_START_MONTH + '-01') {
+      dateStr = APP_START_MONTH + '-01';
+    }
+
+    const ym = dateStr.substring(0, 7);
+    ensureMonthInSelect(ym);
+
+    state.currentMonth = ym;
+    if (el.monthSelect) {
+      el.monthSelect.value = ym;
+    }
+    state.selectedNavDate = dateStr;
+
+    updateMainCalendarTriggerDisplay();
+    renderSchedule();
+    closeMainCalendarPopover();
+    scrollToDay(dateStr);
+  }
+
+  function openMainCalendarPopover() {
+    const trigger = document.getElementById('mainCalendarTriggerBtn');
+    const popover = document.getElementById('mainCalendarPopover');
+    if (!trigger || !popover) return;
+
+    // Synchronize initial calendar view with current month
+    const parts = (state.currentMonth || APP_START_MONTH).split('-');
+    mainCalViewYear = parseInt(parts[0], 10) || 2026;
+    mainCalViewMonth = parseInt(parts[1], 10) || 11;
+    mainCalViewMode = 'days';
+
+    renderMainCal();
+
+    popover.classList.remove('hidden');
+    trigger.setAttribute('aria-expanded', 'true');
+
+    // Position popover aligned under the trigger button
+    const rect = trigger.getBoundingClientRect();
+    const popoverWidth = 320;
+    let left = rect.right - popoverWidth;
+    if (left < 10) left = 10;
+    if (left + popoverWidth > window.innerWidth - 10) {
+      left = window.innerWidth - popoverWidth - 10;
+    }
+    const top = rect.bottom + 8;
+    popover.style.top = top + 'px';
+    popover.style.left = left + 'px';
+  }
+
+  function closeMainCalendarPopover() {
+    const popover = document.getElementById('mainCalendarPopover');
+    const trigger = document.getElementById('mainCalendarTriggerBtn');
+    if (popover) popover.classList.add('hidden');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function renderMainCal() {
+    const titleText = document.getElementById('mainCalTitleText');
+    const daysView = document.getElementById('mainCalDaysView');
+    const monthYearView = document.getElementById('mainCalMonthYearView');
+    const prevBtn = document.getElementById('mainCalPrevBtn');
+    const nextBtn = document.getElementById('mainCalNextBtn');
+    const titleBtn = document.getElementById('mainCalTitleBtn');
+    const todayLabel = document.getElementById('mainCalTodayLabel');
+
+    const monthShortNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const curYm = mainCalViewYear + '-' + String(mainCalViewMonth).padStart(2, '0');
+
+    // Disable prev month button if viewing November 2026
+    if (prevBtn) {
+      prevBtn.disabled = (curYm <= APP_START_MONTH);
+    }
+
+    if (titleText) {
+      titleText.textContent = monthShortNames[mainCalViewMonth - 1] + ' ' + mainCalViewYear;
+    }
+
+    if (titleBtn) {
+      titleBtn.classList.toggle('is-active', mainCalViewMode === 'monthyear');
+    }
+
+    if (todayLabel) {
+      const todayDay = parseInt((state.todayStr || '').split('-')[2], 10) || 1;
+      todayLabel.textContent = 'TODAY ' + todayDay;
+    }
+
+    if (mainCalViewMode === 'days') {
+      if (daysView) daysView.classList.remove('hidden');
+      if (monthYearView) monthYearView.classList.add('hidden');
+      renderMainCalDaysGrid();
+    } else {
+      if (daysView) daysView.classList.add('hidden');
+      if (monthYearView) monthYearView.classList.remove('hidden');
+      renderMainCalMonthYearGrid();
+    }
+  }
+
+  function renderMainCalDaysGrid() {
+    const grid = document.getElementById('mainCalDaysGrid');
+    if (!grid) return;
+
+    const y = mainCalViewYear;
+    const m = mainCalViewMonth; // 1-12
+    const firstDay = new Date(y, m - 1, 1);
+    // Monday-based day of week: Monday=0, Tuesday=1 ... Sunday=6
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const daysInCurMonth = new Date(y, m, 0).getDate();
+    const daysInPrevMonth = new Date(y, m - 1, 0).getDate();
+
+    // Prior month parameters
+    let prevY = y;
+    let prevM = m - 1;
+    if (prevM < 1) { prevM = 12; prevY = y - 1; }
+
+    // Next month parameters
+    let nextY = y;
+    let nextM = m + 1;
+    if (nextM > 12) { nextM = 1; nextY = y + 1; }
+
+    const selectedDate = state.selectedNavDate || (state.currentMonth + '-01');
+    const todayStr = state.todayStr;
+
+    let cellsHtml = '';
+
+    // 1. Previous month trailing days
+    for (let i = startOffset - 1; i >= 0; i--) {
+      const dNum = daysInPrevMonth - i;
+      const dateStr = prevY + '-' + String(prevM).padStart(2, '0') + '-' + String(dNum).padStart(2, '0');
+      const isDisabled = (dateStr < APP_START_MONTH + '-01');
+      const isSelected = (dateStr === selectedDate);
+      const isToday = (dateStr === todayStr);
+
+      cellsHtml += '<button type="button" class="main-cal-day-cell is-adjacent ' + (isDisabled ? 'is-disabled' : '') + ' ' + (isSelected ? 'is-selected' : '') + ' ' + (isToday ? 'is-today' : '') + '" data-date="' + dateStr + '" ' + (isDisabled ? 'disabled' : '') + '><span class="day-num">' + dNum + '</span></button>';
+    }
+
+    // 2. Current month days
+    for (let d = 1; d <= daysInCurMonth; d++) {
+      const dateStr = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const isDisabled = (dateStr < APP_START_MONTH + '-01');
+      const isSelected = (dateStr === selectedDate);
+      const isToday = (dateStr === todayStr);
+
+      // Check if any allocations exist on this date for dot indicator
+      let dotType = null;
+      for (const [k, alloc] of Object.entries(state.allocations)) {
+        if (k.endsWith('_' + dateStr) && alloc && alloc.project && alloc.project !== 'Day OFF' && alloc.project !== 'NO PROJECT' && alloc.project !== 'NO STATUS') {
+          if (alloc.project.startsWith('Training') || alloc.project.startsWith('Academy') || alloc.project === 'Different Team Support') {
+            dotType = 'dot-special';
+          } else if (alloc.project.startsWith('Tender')) {
+            dotType = 'dot-tender';
+          } else {
+            dotType = 'dot-project';
+            break;
+          }
+        }
+      }
+
+      cellsHtml += '<button type="button" class="main-cal-day-cell ' + (isDisabled ? 'is-disabled' : '') + ' ' + (isSelected ? 'is-selected' : '') + ' ' + (isToday ? 'is-today' : '') + '" data-date="' + dateStr + '" ' + (isDisabled ? 'disabled' : '') + '><span class="day-num">' + d + '</span>' + (dotType ? '<div class="day-activity-dots"><span class="day-activity-dot ' + dotType + '"></span></div>' : '<div class="day-activity-dots"></div>') + '</button>';
+    }
+
+    // 3. Next month leading days (fill up to 42 cells or 35 cells)
+    const totalRendered = startOffset + daysInCurMonth;
+    const targetTotal = totalRendered > 35 ? 42 : 35;
+    const nextDaysNeeded = targetTotal - totalRendered;
+
+    for (let d = 1; d <= nextDaysNeeded; d++) {
+      const dateStr = nextY + '-' + String(nextM).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const isSelected = (dateStr === selectedDate);
+      const isToday = (dateStr === todayStr);
+
+      cellsHtml += '<button type="button" class="main-cal-day-cell is-adjacent ' + (isSelected ? 'is-selected' : '') + ' ' + (isToday ? 'is-today' : '') + '" data-date="' + dateStr + '"><span class="day-num">' + d + '</span></button>';
+    }
+
+    grid.innerHTML = cellsHtml;
+
+    // Attach click listeners to all day cells
+    grid.querySelectorAll('.main-cal-day-cell:not(.is-disabled)').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dateStr = cell.getAttribute('data-date');
+        if (dateStr) {
+          openAndMoveToDate(dateStr);
+        }
+      });
+    });
+  }
+
+  function renderMainCalMonthYearGrid() {
+    const yearTitle = document.getElementById('mainCalYearTitle');
+    const monthsGrid = document.getElementById('mainCalMonthsGrid');
+    const prevYearBtn = document.getElementById('mainCalPrevYearBtn');
+    if (!monthsGrid) return;
+
+    if (yearTitle) {
+      yearTitle.textContent = String(mainCalViewYear);
+    }
+    if (prevYearBtn) {
+      prevYearBtn.disabled = (mainCalViewYear <= 2026);
+    }
+
+    const monthShortNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const curSelectedYm = state.currentMonth || APP_START_MONTH;
+
+    let html = '';
+    for (let m = 1; m <= 12; m++) {
+      const ym = mainCalViewYear + '-' + String(m).padStart(2, '0');
+      const isDisabled = (ym < APP_START_MONTH);
+      const isActive = (ym === curSelectedYm);
+
+      html += '<button type="button" class="main-cal-month-btn ' + (isActive ? 'is-active' : '') + '" data-month="' + m + '" ' + (isDisabled ? 'disabled' : '') + '>' + monthShortNames[m - 1] + '</button>';
+    }
+
+    monthsGrid.innerHTML = html;
+
+    monthsGrid.querySelectorAll('.main-cal-month-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const m = parseInt(btn.getAttribute('data-month'), 10);
+        mainCalViewMonth = m;
+        mainCalViewMode = 'days';
+        renderMainCal();
+      });
+    });
+  }
+
+  function initMainCalendarListeners() {
+    const trigger = document.getElementById('mainCalendarTriggerBtn');
+    const popover = document.getElementById('mainCalendarPopover');
+    const prevBtn = document.getElementById('mainCalPrevBtn');
+    const nextBtn = document.getElementById('mainCalNextBtn');
+    const titleBtn = document.getElementById('mainCalTitleBtn');
+    const prevYearBtn = document.getElementById('mainCalPrevYearBtn');
+    const nextYearBtn = document.getElementById('mainCalNextYearBtn');
+    const todayBtn = document.getElementById('mainCalTodayBtn');
+    const closeBtn = document.getElementById('mainCalCloseBtn');
+
+    if (trigger) {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (popover && !popover.classList.contains('hidden')) {
+          closeMainCalendarPopover();
+        } else {
+          openMainCalendarPopover();
+        }
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeMainCalendarPopover();
+      });
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mainCalViewMonth -= 1;
+        if (mainCalViewMonth < 1) {
+          mainCalViewMonth = 12;
+          mainCalViewYear -= 1;
+        }
+        if (mainCalViewYear < 2026) {
+          mainCalViewYear = 2026;
+          mainCalViewMonth = 11;
+        } else if (mainCalViewYear === 2026 && mainCalViewMonth < 11) {
+          mainCalViewMonth = 11;
+        }
+        renderMainCal();
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mainCalViewMonth += 1;
+        if (mainCalViewMonth > 12) {
+          mainCalViewMonth = 1;
+          mainCalViewYear += 1;
+        }
+        appendYearToMonthSelect(mainCalViewYear);
+        renderMainCal();
+      });
+    }
+
+    if (titleBtn) {
+      titleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mainCalViewMode = (mainCalViewMode === 'days') ? 'monthyear' : 'days';
+        renderMainCal();
+      });
+    }
+
+    if (prevYearBtn) {
+      prevYearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mainCalViewYear > 2026) {
+          mainCalViewYear -= 1;
+          renderMainCalMonthYearGrid();
+        }
+      });
+    }
+
+    if (nextYearBtn) {
+      nextYearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mainCalViewYear += 1;
+        appendYearToMonthSelect(mainCalViewYear);
+        renderMainCalMonthYearGrid();
+      });
+    }
+
+    if (todayBtn) {
+      todayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetDate = state.todayStr || (APP_START_MONTH + '-01');
+        openAndMoveToDate(targetDate);
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (popover && !popover.classList.contains('hidden')) {
+        if (!popover.contains(e.target) && trigger && !trigger.contains(e.target)) {
+          closeMainCalendarPopover();
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && popover && !popover.classList.contains('hidden')) {
+        closeMainCalendarPopover();
+      }
+    });
+  }
+
+
+  // -------------------------------------------------------------
   // Month Controls & Navigation
   // -------------------------------------------------------------
 
@@ -8802,6 +9187,7 @@
 
   // Boot Application
   initMobileWelcomeScreen();
+  initMainCalendarListeners();
   initTheme();
   initColumnWidths();
   updateDeviceViewMode(); // Instant unhide and layout calculation for mobile before network

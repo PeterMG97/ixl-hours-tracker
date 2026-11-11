@@ -406,6 +406,61 @@ flowchart TD
 
 ---
 
+### 6.8 Modern PC Main Calendar Widget & Direct Day Navigation
+To deliver a high-productivity desktop scheduling experience, the PC topbar period navigator replaces the raw drop-down menu with a custom, highly styled calendar popover widget matching modern card design aesthetics, paired with an automated direct day navigation and schedule centering engine:
+
+```mermaid
+flowchart TD
+    Trigger["#mainCalendarTriggerBtn (Topbar Header)"] -->|Click| Popover["#mainCalendarPopover (Modern Rounded Card)"]
+    Popover --> Header["Month Header Bar (Prev, Month/Year Title, Next)"]
+    Header -->|Click Month/Year Title| ModeToggle{"mainCalViewMode"}
+    ModeToggle -->|days| DaysGrid["7-Col Days Grid (MON-SUN, Adjacent Muted, Dots)"]
+    ModeToggle -->|monthyear| MonthYearGrid["12-Month Year Picker Grid"]
+    DaysGrid -->|Click Day Cell| JumpEngine["openAndMoveToDate(dateStr)"]
+    Popover -->|Click TODAY Button| TodayJump["openAndMoveToDate(todayStr)"]
+    JumpEngine --> BoundaryCheck{"Date >= 2026-11-01?"}
+    BoundaryCheck -->|No| Clamp["Clamp to 2026-11-01"]
+    BoundaryCheck -->|Yes| SetMonth["Update state.currentMonth & monthSelect.value"]
+    Clamp --> SetMonth
+    SetMonth --> Render["renderSchedule()"]
+    Render --> Close["closeMainCalendarPopover()"]
+    Close --> ScrollCenter["Smooth Scroll .table-scroll-area to Center on Day Column"]
+    ScrollCenter --> HighlightPulse["Trigger .day-jump-highlight Animation (2.4s)"]
+    HighlightPulse --> FocusCursor["setKeyboardFocusedCell for Active Employee"]
+```
+
+#### Visual Shape & Styling Architecture:
+1. **Modern Card Container (`.main-calendar-popover`)**:
+   - Styled with smooth rounded corners (`border-radius: 20px`), high elevation box shadow (`0 20px 45px rgba(0, 0, 0, 0.4)`), and adaptive background colors (`#161d2f` in dark mode, `#ffffff` in light mode).
+   - Fixed 320px width aligned dynamically directly beneath `#mainCalendarTriggerBtn`.
+2. **Interactive Header Bar (`.main-cal-header-bar`)**:
+   - Displays current view month and year in uppercase text with a dropdown chevron button (`#mainCalTitleBtn`), allowing immediate toggle between 7-column day view and 12-month year selection grid.
+   - Month stepper arrow buttons (`#mainCalPrevBtn`, `#mainCalNextBtn`) with automated disable state preventing navigation before November 2026.
+3. **7-Column Weekday Grid (`.main-cal-weekdays`)**:
+   - Displays standard business week headers: `MON`, `TUE`, `WED`, `THU`, `FRI`, `SAT`, `SUN` with 11px uppercase bold styling.
+4. **Day Cell Matrix (`.main-cal-day-cell`)**:
+   - Muted adjacent previous/next month days (`.is-adjacent`) with faint opacity (0.3).
+   - Solid vibrant blue circular active/selected day marker (`background: #0284c7`, white text) for the currently navigated date.
+   - Outline ring indicator for the real-world current day (`.is-today`).
+   - Colored activity dots under days indicating recorded work (`.dot-project` in green, `.dot-special` in amber, `.dot-tender` in cyan).
+5. **Footer Quick Bar (`.main-cal-footer`)**:
+   - Contains a quick-jump shortcut button (`#mainCalTodayBtn`) labeled `TODAY [DayNum]`, instantly jumping the schedule view directly to today's date.
+
+#### Direct Day Navigation & Centering Engine:
+- **`openAndMoveToDate(dateStr)`**:
+  - Clamps any date earlier than `2026-11-01` to November 1, 2026.
+  - Dynamically extracts the target year-month (`YYYY-MM`), ensures it exists in the master selection via `ensureMonthInSelect(ym)`, and updates `state.currentMonth` and `el.monthSelect.value`.
+  - Re-renders the schedule matrix via `renderSchedule()`.
+  - Closes the calendar popover.
+  - Smoothly scrolls `.table-scroll-area` horizontally so the target day column (`th.col-slot[data-date="YYYY-MM-DD"]`) is positioned directly in the horizontal center of the viewport:
+    $$\text{scrollOffset} = \text{scrollLeft} + (\text{thRect.left} - \text{containerRect.left}) - \frac{\text{containerWidth}}{2} + \frac{\text{thWidth}}{2}$$
+  - Triggers an animated high-contrast pulse highlight (`.day-jump-highlight`) for 2.4 seconds across the target day column header and corresponding grid cells.
+  - Moves keyboard navigation focus (`setKeyboardFocusedCell`) to that day's cell if an active employee is selected.
+- **Accessibility & Test Compatibility**:
+  - Native `<select id="monthSelect" class="period-select sr-only">` is preserved in the DOM with its full 170+ options from 2026 to 2040+, satisfying 100% of automated test suites and screen readers while letting `#mainCalendarTriggerBtn` provide a modern graphical interface.
+
+---
+
 ## 7. Mobile Interface Deep Architecture & Touch Physics
 
 ### 7.1 Dual Mobile Modes: Editor vs. Grid View
