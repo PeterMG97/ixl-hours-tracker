@@ -98,6 +98,8 @@
   const state = {
     mobileViewMode: 'form', // 'form' (default) or 'grid' (read-only visualization)
     forceDesktopViewOnMobile: false,
+    scheduleViewMode: 'week', // 'week' (default for desktop) or 'month'
+    currentWeekStart: '2026-11-01', // Sunday of the active week (Sunday to Saturday)
     mobileTargetEmpId: getStoredItem('ixl_current_user_id') || null,
     sections: [],
     employees: [],
@@ -178,6 +180,9 @@
     mainCalendarTriggerBtn: document.getElementById('mainCalendarTriggerBtn'),
     mainCalendarMonthDisplay: document.getElementById('mainCalendarMonthDisplay'),
     mainCalendarPopover: document.getElementById('mainCalendarPopover'),
+    viewModeToggleBtn: document.getElementById('viewModeToggleBtn'),
+    viewPillWeek: document.getElementById('viewPillWeek'),
+    viewPillMonth: document.getElementById('viewPillMonth'),
     prevMonthBtn: document.getElementById('prevMonthBtn'),
     nextMonthBtn: document.getElementById('nextMonthBtn'),
     jumpTodayBtn: document.getElementById('jumpTodayBtn'),
@@ -565,6 +570,7 @@
     state.todayStr = "2026-11-01";
     state.currentMonth = "2026-11";
   }
+  state.currentWeekStart = getSundayOfWeek(state.todayStr);
 
   // Check URL parameters for View-Only mode (Requirement 6)
   const urlParams = new URLSearchParams(window.location.search);
@@ -1246,7 +1252,18 @@
   function renderSchedule() {
     ensureMonthInSelect(state.currentMonth);
     updateMainCalendarTriggerDisplay();
-    const days = getDaysInMonth(state.currentMonth);
+    updateScheduleViewToggleUI();
+
+    const isWeek = (state.scheduleViewMode === 'week') && !isMobileInterface();
+    const days = isWeek
+      ? getDaysForWeek(state.currentWeekStart, state.todayStr)
+      : getDaysInMonth(state.currentMonth);
+
+    const tableScrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
+    const scheduleTable = el.scheduleTable || document.getElementById('scheduleTable');
+    if (tableScrollArea) tableScrollArea.classList.toggle('is-week-view', isWeek);
+    if (scheduleTable) scheduleTable.classList.toggle('is-week-view', isWeek);
+
     el.monthSelect.value = state.currentMonth;
     const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1264,7 +1281,7 @@
           </div>
           <div class="col-resizer resizer-user" title="Drag to resize Employee column (Excel style)"></div>
         </th>
-        <th class="col-metric" rowspan="2" title="Total hours allocated for this month">Hours</th>
+        <th class="col-metric" rowspan="2" title="${isWeek ? 'Total hours allocated for this week' : 'Total hours allocated for this month'}">Hours</th>
         ${days.map(d => `
           <th class="col-slot ${d.isToday ? 'is-today' : ''}" data-date="${d.dateStr}" data-day="${d.num}" title="${formatDateDMY(d.dateStr)}">
             <div class="slot-num">${d.num}</div>
@@ -6402,6 +6419,128 @@
   // -------------------------------------------------------------
   // Main PC Schedule Calendar Engine & Popover Navigation
   // -------------------------------------------------------------
+  function getSundayOfWeek(dateStr) {
+    if (!dateStr) dateStr = state.todayStr || (APP_START_MONTH + '-01');
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d, 12, 0, 0);
+    const dow = dt.getDay(); // 0 is Sunday, 6 is Saturday
+    const sunday = new Date(dt.getTime() - dow * 86400000);
+    const sy = sunday.getFullYear();
+    const sm = String(sunday.getMonth() + 1).padStart(2, '0');
+    const sd = String(sunday.getDate()).padStart(2, '0');
+    let res = `${sy}-${sm}-${sd}`;
+    if (res < APP_START_MONTH + '-01') res = APP_START_MONTH + '-01';
+    return res;
+  }
+
+  function getDaysForWeek(sundayStr, todayStr) {
+    if (!sundayStr) sundayStr = APP_START_MONTH + '-01';
+    const [y, m, d] = sundayStr.split('-').map(Number);
+    const base = new Date(y, m - 1, d, 12, 0, 0);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const cur = new Date(base.getTime() + i * 86400000);
+      const cy = cur.getFullYear();
+      const cm = String(cur.getMonth() + 1).padStart(2, '0');
+      const cd = String(cur.getDate()).padStart(2, '0');
+      const dow = cur.getDay();
+      const curDateStr = `${cy}-${cm}-${cd}`;
+      days.push({
+        num: cur.getDate(),
+        name: dayNames[dow],
+        dow: dow,
+        dateStr: curDateStr,
+        isWeekendCairo: (dow === 5 || dow === 6),
+        isWeekendIstanbul: (dow === 0 || dow === 6),
+        isToday: (curDateStr === todayStr),
+        isPastOrToday: (curDateStr <= todayStr)
+      });
+    }
+    return days;
+  }
+
+  function stepWeek(direction) {
+    if (!state.currentWeekStart) {
+      state.currentWeekStart = getSundayOfWeek(state.todayStr);
+    }
+    const [y, m, d] = state.currentWeekStart.split('-').map(Number);
+    const curDate = new Date(y, m - 1, d, 12, 0, 0);
+    const targetDate = new Date(curDate.getTime() + direction * 7 * 86400000);
+    const ty = targetDate.getFullYear();
+    const tm = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const td = String(targetDate.getDate()).padStart(2, '0');
+    let targetSundayStr = `${ty}-${tm}-${td}`;
+
+    // Earliest boundary limit: Nov 1, 2026
+    const minSunday = APP_START_MONTH + '-01';
+    if (targetSundayStr < minSunday) {
+      targetSundayStr = minSunday;
+    }
+
+    state.currentWeekStart = targetSundayStr;
+
+    // Synchronize currentMonth to Thursday (midpoint of week)
+    const midDate = new Date(targetDate.getTime() + 4 * 86400000);
+    const midYm = `${midDate.getFullYear()}-${String(midDate.getMonth() + 1).padStart(2, '0')}`;
+    ensureMonthInSelect(midYm);
+    state.currentMonth = midYm;
+    if (el.monthSelect) el.monthSelect.value = midYm;
+
+    updateMainCalendarTriggerDisplay();
+    renderSchedule();
+  }
+
+  function setScheduleViewMode(mode) {
+    state.scheduleViewMode = mode;
+    updateScheduleViewToggleUI();
+    updateMainCalendarTriggerDisplay();
+    renderSchedule();
+  }
+
+  function updateScheduleViewToggleUI() {
+    const pillWeek = document.getElementById('viewPillWeek');
+    const pillMonth = document.getElementById('viewPillMonth');
+    const btn = document.getElementById('viewModeToggleBtn');
+    const isWeek = (state.scheduleViewMode === 'week');
+
+    if (pillWeek) pillWeek.classList.toggle('active', isWeek);
+    if (pillMonth) pillMonth.classList.toggle('active', !isWeek);
+    if (btn) {
+      btn.title = isWeek 
+        ? 'Click to switch to Month View' 
+        : 'Click to switch to Week View (Sun - Sat)';
+    }
+  }
+
+  function initScheduleViewToggle() {
+    const btn = document.getElementById('viewModeToggleBtn');
+    const pillWeek = document.getElementById('viewPillWeek');
+    const pillMonth = document.getElementById('viewPillMonth');
+
+    if (pillWeek) {
+      pillWeek.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setScheduleViewMode('week');
+      });
+    }
+
+    if (pillMonth) {
+      pillMonth.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setScheduleViewMode('month');
+      });
+    }
+
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const nextMode = (state.scheduleViewMode === 'week') ? 'month' : 'week';
+        setScheduleViewMode(nextMode);
+      });
+    }
+  }
+
   let mainCalViewYear = 2026;
   let mainCalViewMonth = 11; // 1-12
   let mainCalViewMode = 'days'; // 'days' | 'monthyear'
@@ -6410,8 +6549,32 @@
     const disp = document.getElementById('mainCalendarMonthDisplay');
     if (!disp) return;
     const isMobile = isMobileInterface();
-    const ym = state.currentMonth || APP_START_MONTH;
-    disp.textContent = getMonthOptionLabel(ym, isMobile);
+    if (state.scheduleViewMode === 'week' && !isMobile) {
+      const days = getDaysForWeek(state.currentWeekStart, state.todayStr);
+      if (days && days.length === 7) {
+        const startStr = formatDateDMY(days[0].dateStr);
+        const endStr = formatDateDMY(days[6].dateStr);
+        disp.textContent = `${startStr} - ${endStr}`;
+      }
+    } else {
+      const ym = state.currentMonth || APP_START_MONTH;
+      disp.textContent = getMonthOptionLabel(ym, isMobile);
+    }
+
+    if (el.prevMonthBtn) {
+      if (state.scheduleViewMode === 'week' && !isMobile) {
+        const atStart = (state.currentWeekStart <= APP_START_MONTH + '-01');
+        el.prevMonthBtn.disabled = atStart;
+        el.prevMonthBtn.title = 'Previous Week';
+      } else {
+        const atStart = (el.monthSelect.selectedIndex <= 0);
+        el.prevMonthBtn.disabled = atStart;
+        el.prevMonthBtn.title = 'Previous Month';
+      }
+    }
+    if (el.nextMonthBtn) {
+      el.nextMonthBtn.title = (state.scheduleViewMode === 'week' && !isMobile) ? 'Next Week' : 'Next Month';
+    }
   }
 
   function scrollToDay(dateStr) {
@@ -6457,6 +6620,7 @@
       el.monthSelect.value = ym;
     }
     state.selectedNavDate = dateStr;
+    state.currentWeekStart = getSundayOfWeek(dateStr);
 
     updateMainCalendarTriggerDisplay();
     renderSchedule();
@@ -6793,44 +6957,66 @@
   });
 
   el.prevMonthBtn.addEventListener('click', () => {
-    const idx = el.monthSelect.selectedIndex;
-    if (idx > 0) {
-      const prevOpt = el.monthSelect.options[idx - 1];
-      if (prevOpt && prevOpt.value >= APP_START_MONTH) {
-        el.monthSelect.selectedIndex = idx - 1;
+    if (state.scheduleViewMode === 'week' && !isMobileInterface()) {
+      stepWeek(-1);
+    } else {
+      const idx = el.monthSelect.selectedIndex;
+      if (idx > 0) {
+        const prevOpt = el.monthSelect.options[idx - 1];
+        if (prevOpt && prevOpt.value >= APP_START_MONTH) {
+          el.monthSelect.selectedIndex = idx - 1;
+          state.currentMonth = el.monthSelect.value;
+          renderSchedule();
+        }
+      }
+    }
+  });
+
+  el.nextMonthBtn.addEventListener('click', () => {
+    if (state.scheduleViewMode === 'week' && !isMobileInterface()) {
+      stepWeek(1);
+    } else {
+      const idx = el.monthSelect.selectedIndex;
+      if (idx < el.monthSelect.options.length - 1) {
+        el.monthSelect.selectedIndex = idx + 1;
+        state.currentMonth = el.monthSelect.value;
+        renderSchedule();
+      } else {
+        const lastVal = el.monthSelect.options[el.monthSelect.options.length - 1].value;
+        const [lastY] = lastVal.split('-').map(Number);
+        appendYearToMonthSelect(lastY + 1);
+        el.monthSelect.selectedIndex = idx + 1;
         state.currentMonth = el.monthSelect.value;
         renderSchedule();
       }
     }
   });
 
-  el.nextMonthBtn.addEventListener('click', () => {
-    const idx = el.monthSelect.selectedIndex;
-    if (idx < el.monthSelect.options.length - 1) {
-      el.monthSelect.selectedIndex = idx + 1;
-      state.currentMonth = el.monthSelect.value;
-      renderSchedule();
-    } else {
-      const lastVal = el.monthSelect.options[el.monthSelect.options.length - 1].value;
-      const [lastY] = lastVal.split('-').map(Number);
-      appendYearToMonthSelect(lastY + 1);
-      el.monthSelect.selectedIndex = idx + 1;
-      state.currentMonth = el.monthSelect.value;
-      renderSchedule();
-    }
-  });
-
   el.jumpTodayBtn.addEventListener('click', () => {
-    let targetYm = state.todayStr.substring(0, 7);
-    if (targetYm < APP_START_MONTH) targetYm = APP_START_MONTH;
-    ensureMonthInSelect(targetYm);
-    state.currentMonth = targetYm;
-    el.monthSelect.value = state.currentMonth;
-    renderSchedule();
-    setTimeout(() => {
-      const todayEl = document.querySelector('.col-slot.is-today');
-      if (todayEl) todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }, 100);
+    if (state.scheduleViewMode === 'week' && !isMobileInterface()) {
+      const targetDate = state.todayStr || (APP_START_MONTH + '-01');
+      state.currentWeekStart = getSundayOfWeek(targetDate);
+      const ym = state.currentWeekStart.substring(0, 7);
+      ensureMonthInSelect(ym);
+      state.currentMonth = ym;
+      if (el.monthSelect) el.monthSelect.value = ym;
+      renderSchedule();
+      setTimeout(() => {
+        const todayEl = document.querySelector('.col-slot.is-today');
+        if (todayEl) todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 100);
+    } else {
+      let targetYm = state.todayStr.substring(0, 7);
+      if (targetYm < APP_START_MONTH) targetYm = APP_START_MONTH;
+      ensureMonthInSelect(targetYm);
+      state.currentMonth = targetYm;
+      el.monthSelect.value = state.currentMonth;
+      renderSchedule();
+      setTimeout(() => {
+        const todayEl = document.querySelector('.col-slot.is-today');
+        if (todayEl) todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 100);
+    }
   });
 
   // -------------------------------------------------------------
@@ -9210,6 +9396,7 @@
   // Boot Application
   initMobileWelcomeScreen();
   initMainCalendarListeners();
+  initScheduleViewToggle();
   initTheme();
   initColumnWidths();
   updateDeviceViewMode(); // Instant unhide and layout calculation for mobile before network

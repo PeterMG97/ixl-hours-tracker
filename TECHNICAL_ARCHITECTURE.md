@@ -461,6 +461,44 @@ flowchart TD
 
 ---
 
+### 6.9 Dual Schedule View Engine: View (Month / Week)
+To eliminate visual noise and cognitive fatigue when inspecting dense monthly spreadsheets (28-31 columns), the desktop application provides a topbar togglable key `View (Month / Week)` featuring an ultra-clean, comfortable 7-day Sunday-to-Saturday schedule view alongside the traditional full monthly grid:
+
+```mermaid
+flowchart TD
+    ToggleBtn["#viewModeToggleBtn ('View: Week / Month')"] -->|Click| SwitchMode{"state.scheduleViewMode"}
+    SwitchMode -->|week (Default)| RenderWeek["Render 7-Day Week Grid (Sunday - Saturday)"]
+    SwitchMode -->|month| RenderMonth["Render Full Month Grid (28-31 Days)"]
+    RenderWeek --> WideCols["Comfortable Wide Columns (120px+), Full Project Titles"]
+    RenderWeek --> WeekNav["Nav Arrows: Increment/Decrement by exactly 1 Week (7 Days)"]
+    RenderWeek --> WeekLabel["Period Display: DD/MM/YYYY - DD/MM/YYYY"]
+    RenderMonth --> MonthNav["Nav Arrows: Step by Month, 48px Compact Columns"]
+    RenderMonth --> MonthLabel["Period Display: MM/YYYY - Month YYYY"]
+    WideCols --> SharedParity["100% Functionality Parity: Drag, Hold, Delete, Edit, Hazing"]
+```
+
+#### Operational Mechanics & Design Tenets:
+1. **Interactive Togglable Key (`#viewModeToggleBtn`)**:
+   - Styled as a sleek segmented control button situated beside the period navigator: `View: [Week] / [Month]`.
+   - The active view is highlighted in solid blue (`#0284c7`, white text) while the alternate option remains muted.
+   - Default Mode: Defaults automatically to **Week View** (`state.scheduleViewMode = 'week'`), anchored to the week containing today's real-world date.
+2. **Sunday-to-Saturday Week Horizon**:
+   - Calculates the active week's Sunday anchor via `getSundayOfWeek(dateStr)`.
+   - Renders exactly 7 consecutive days starting on **Sunday** and concluding on **Saturday** via `getDaysForWeek(sundayStr, todayStr)`.
+   - Weekend columns preserve office-specific holiday shading (Friday/Saturday in Cairo, Saturday/Sunday in Istanbul).
+3. **One-Week Navigation Steppers (`stepWeek`)**:
+   - In Week View, the left and right navigation arrows (`#prevMonthBtn`, `#nextMonthBtn`) advance or rewind the schedule by exactly **one week (7 days)**.
+   - Enforces the system start horizon at November 1, 2026 (`2026-11-01`), which is inherently a Sunday; stepping backward from Week 1 is locked.
+   - The topbar period display dynamically reflects the exact date span: `08/11/2026 - 14/11/2026`.
+4. **Ergonomic Wide-Cell Layout**:
+   - Unlike the compact 48px columns of the 31-day month view, Week View assigns generous column widths (`width: calc((100% - 250px) / 7)`, `min-width: 120px`).
+   - Task chips expand to `height: 28px` with `font-size: 11.5px`, displaying full project and tender titles cleanly without truncation.
+5. **Zero Modification to Monthly Grid & Complete Parity**:
+   - The traditional monthly grid is 100% preserved with its exact original groups, colors, and layouts.
+   - All interactive capabilities—single click standing, double-click popover edit, left-click hold and drag multi-select, keyboard arrow navigation, Delete key cell clearing, section expand/collapse, employee hazing, and Admin 2D selection—operate identically across both views.
+
+---
+
 ## 7. Mobile Interface Deep Architecture & Touch Physics
 
 ### 7.1 Dual Mobile Modes: Editor vs. Grid View

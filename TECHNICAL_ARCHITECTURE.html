@@ -460,6 +460,15 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Clean Empty State:</strong> The Activity Log table displays a clean descriptor (<code>No edit history entries recorded yet.</code>) when no logs exist.</li>
   </ul>
 
+  <h3>5.7 Dual Schedule View Engine: View (Month / Week)</h3>
+  <p>To reduce visual clutter and provide an eye-pleasing working view, the desktop application incorporates a togglable key <code>View (Month / Week)</code> supporting both a 7-day week view and the full monthly grid:</p>
+  <ul>
+    <li><strong>Default Week View (Sunday to Saturday):</strong> Defaults to the 7-day week containing today's date, presenting Sunday through Saturday with generous column widths (120px+) and full allocation titles.</li>
+    <li><strong>1-Week Stepper Navigation:</strong> Left and right arrows in Week view step forward and backward by exactly one week (7 days), locked at the November 1, 2026 earliest horizon.</li>
+    <li><strong>Clean Topbar Key (<code>#viewModeToggleBtn</code>):</strong> Styled segmented button displaying <code>View: Week / Month</code> with responsive active highlight.</li>
+    <li><strong>Untouched Monthly Grid & Full Feature Parity:</strong> The monthly grid remains completely untouched. Cell editing, drag/hold multi-selection, keyboard navigation, section collapsing, and admin features function with 100% parity across both views.</li>
+  </ul>
+
   <h2>7. Role-Based Access Control & View-Only Defense</h2>
   <table>
     <thead>
