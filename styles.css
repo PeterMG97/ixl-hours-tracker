@@ -6686,7 +6686,150 @@ body.modal-open {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Week View Grid Layout Enhancements                                         */
+/* Week View: Visual Noise Reduction & Dark Slate Palette                      */
+/* -------------------------------------------------------------------------- */
+.table-scroll-area.is-week-view {
+  background: var(--bg-app);
+}
+
+[data-theme="dark"] .table-scroll-area.is-week-view {
+  background: #0b0f19 !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view {
+  background: #0b0f19 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Subtle, low-contrast 1px dividers */
+.schedule-table.is-week-view td,
+.schedule-table.is-week-view th {
+  border-color: rgba(226, 232, 240, 0.6) !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view td,
+[data-theme="dark"] .schedule-table.is-week-view th {
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+
+/* Row backgrounds in Week View */
+[data-theme="dark"] .schedule-table.is-week-view tbody tr.user-row {
+  background: #111827 !important;
+  transition: background 0.15s ease;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view tbody tr.user-row:hover {
+  background: #172033 !important;
+}
+
+/* Group Headers in Week View */
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row {
+  background: #0d1322 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover {
+  background: #141c2e !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Week View: Refined Typography & Sticky Left Column                          */
+/* -------------------------------------------------------------------------- */
+.schedule-table.is-week-view th,
+.schedule-table.is-week-view td {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* Sticky Employee Left Column in Week View */
+.schedule-table.is-week-view td.col-user,
+.schedule-table.is-week-view th.col-user {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 10 !important;
+  background: #ffffff !important;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view td.col-user,
+[data-theme="dark"] .schedule-table.is-week-view th.col-user {
+  background: #0f172a !important;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.35) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.schedule-table.is-week-view .user-name-text {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.15px !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .user-name-text {
+  color: #f1f5f9 !important;
+}
+
+/* Group header title */
+.schedule-table.is-week-view .group-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .group-title {
+  color: #94a3b8 !important;
+}
+
+/* Hours Column */
+.schedule-table.is-week-view .col-metric {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  font-family: var(--font-mono, monospace) !important;
+  text-align: center !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .col-metric {
+  background: #0d1424 !important;
+  color: #38bdf8 !important;
+}
+
+/* Day Header Cells */
+.schedule-table.is-week-view th.col-slot {
+  padding: 10px 4px !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view th.col-slot {
+  background: #0d1424 !important;
+}
+
+.schedule-table.is-week-view th.col-slot .slot-num {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.2px !important;
+}
+
+.schedule-table.is-week-view th.col-slot .slot-name {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  margin-top: 2px !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view th.col-slot.is-today .slot-num,
+[data-theme="dark"] .schedule-table.is-week-view th.col-slot.is-today .slot-name {
+  color: #38bdf8 !important;
+  font-weight: 800 !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Week View: Restyled Allocation Pills (border-radius: 8px)                  */
 /* -------------------------------------------------------------------------- */
 .schedule-table.is-week-view,
 .table-scroll-area.is-week-view .schedule-table {
@@ -6703,32 +6846,163 @@ body.modal-open {
 }
 
 .schedule-table.is-week-view .task-chip {
-  font-size: 11.5px !important;
+  border-radius: 8px !important;
   height: 28px !important;
   line-height: 26px !important;
-  padding: 0 8px !important;
-  width: 96% !important;
-  max-width: 100% !important;
+  padding: 0 10px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1px !important;
+  text-align: center !important;
+  display: block !important;
+  width: 95% !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  transition: all 0.15s ease !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  display: block !important;
-  margin: 0 auto !important;
-  border-radius: 6px !important;
-  box-sizing: border-box !important;
 }
 
-.schedule-table.is-week-view th.col-slot {
-  padding: 8px 4px !important;
+/* 1. Projects: Refined deep sapphire / indigo */
+.schedule-table.is-week-view .task-chip.proj {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(59, 130, 246, 0.45) !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25) !important;
 }
 
-.schedule-table.is-week-view th.col-slot .slot-num {
-  font-size: 14px !important;
-  font-weight: 700 !important;
+[data-theme="dark"] .schedule-table.is-week-view .task-chip.proj {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(37, 99, 235, 0.8)) !important;
+  color: #eff6ff !important;
+  border: 1px solid rgba(96, 165, 250, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.5) !important;
 }
 
-.schedule-table.is-week-view th.col-slot .slot-name {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.5px !important;
+.schedule-table.is-week-view .task-chip.proj:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* 2. Special Training / Academy & Support: Fresh emerald mint green */
+.schedule-table.is-week-view .task-chip.training,
+.schedule-table.is-week-view .task-chip.support {
+  background: linear-gradient(135deg, #047857, #10b981) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(52, 211, 153, 0.45) !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25) !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .task-chip.training,
+[data-theme="dark"] .schedule-table.is-week-view .task-chip.support {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(5, 150, 105, 0.8)) !important;
+  color: #ecfdf5 !important;
+  border: 1px solid rgba(52, 211, 153, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(6, 78, 59, 0.4) !important;
+}
+
+.schedule-table.is-week-view .task-chip.training:hover,
+.schedule-table.is-week-view .task-chip.support:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* 3. Tenders: Modern cyan / teal */
+.schedule-table.is-week-view .task-chip.tender {
+  background: linear-gradient(135deg, #0e7490, #06b6d4) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(45, 212, 191, 0.45) !important;
+  box-shadow: 0 2px 6px rgba(6, 182, 212, 0.25) !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .task-chip.tender {
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8)) !important;
+  color: #f0fdfa !important;
+  border: 1px solid rgba(45, 212, 191, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4) !important;
+}
+
+.schedule-table.is-week-view .task-chip.tender:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(6, 182, 212, 0.4) !important;
+}
+
+/* 4. Weekends & Day OFF: Quiet neutral slate with subtle background shading */
+.schedule-table.is-week-view td.col-slot.is-weekend {
+  background: rgba(241, 245, 249, 0.7) !important;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.02) 10px, rgba(0, 0, 0, 0.02) 20px) !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view td.col-slot.is-weekend {
+  background: #0d1424 !important;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.012) 10px, rgba(255, 255, 255, 0.012) 20px) !important;
+}
+
+.schedule-table.is-week-view .task-chip.off {
+  background: rgba(226, 232, 240, 0.7) !important;
+  color: #64748b !important;
+  border: 1px solid rgba(203, 213, 225, 0.8) !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .task-chip.off {
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(51, 65, 85, 0.4) !important;
+  box-shadow: none !important;
+}
+
+/* Empty chip in Week View */
+.schedule-table.is-week-view .task-chip.empty {
+  background: transparent !important;
+  border: 1px dashed rgba(203, 213, 225, 0.4) !important;
+  color: transparent !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .task-chip.empty {
+  border: 1px dashed rgba(255, 255, 255, 0.08) !important;
+}
+
+.schedule-table.is-week-view .task-chip.empty:hover {
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  background: rgba(56, 189, 248, 0.05) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Week View: Crisp Glowing Cyan/Blue Focus & Selection Indicator              */
+/* -------------------------------------------------------------------------- */
+.schedule-table.is-week-view .keyboard-focused-cell,
+.table-scroll-area.is-week-view .keyboard-focused-cell {
+  outline: 2px solid #0284c7 !important;
+  outline-offset: -2px !important;
+  box-shadow: inset 0 0 0 1px #0284c7, 0 0 14px rgba(2, 132, 199, 0.45) !important;
+  z-index: 25 !important;
+  position: relative !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view .keyboard-focused-cell,
+[data-theme="dark"] .table-scroll-area.is-week-view .keyboard-focused-cell {
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: -2px !important;
+  box-shadow: inset 0 0 0 1px #38bdf8, 0 0 16px rgba(56, 189, 248, 0.55) !important;
+  z-index: 25 !important;
+  position: relative !important;
+}
+
+.schedule-table.is-week-view td.col-slot.is-selected-cell,
+.table-scroll-area.is-week-view td.col-slot.is-selected-cell {
+  position: relative !important;
+  background-color: rgba(14, 165, 233, 0.16) !important;
+  outline: 2px solid #0284c7 !important;
+  outline-offset: -2px !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.35) !important;
+  z-index: 18 !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view td.col-slot.is-selected-cell,
+[data-theme="dark"] .table-scroll-area.is-week-view td.col-slot.is-selected-cell {
+  background-color: rgba(56, 189, 248, 0.22) !important;
+  outline-color: #38bdf8 !important;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.45) !important;
+  z-index: 18 !important;
 }

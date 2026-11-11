@@ -1229,17 +1229,19 @@
 
   function getCompactLabel(projectName) {
     if (!projectName) return '';
-    if (projectName === 'Day OFF') return 'OFF';
+    if (projectName === 'Day OFF') return (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Day OFF' : 'OFF';
     if (projectName === 'Different Team Support') return 'Support';
-    if (projectName === 'NO PROJECT') return 'NO PROJ';
+    if (projectName === 'NO PROJECT') return (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'NO PROJECT' : 'NO PROJ';
     let clean = projectName
       .replace(/^Project - /, '')
       .replace(/^GP - /, 'GP: ')
-      .replace(/^Tender - /, 'T: ')
-      .replace(/^Training - /, 'Tr: ')
-      .replace(/^Academy - /, 'Acad: ');
+      .replace(/^Tender - /, (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Tender: ' : 'T: ')
+      .replace(/^Training - /, (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Training: ' : 'Tr: ')
+      .replace(/^Academy - /, (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Academy: ' : 'Acad: ');
     
-    // Dynamic text truncation based on current day column width (Excel behavior)
+    if (state.scheduleViewMode === 'week' && !isMobileInterface()) {
+      return clean;
+    }
     const colWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--day-col-width')) || 48;
     const maxChars = Math.max(3, Math.floor(colWidth / 6.5));
     return clean.length > maxChars ? clean.substring(0, maxChars - 1) + '…' : clean;
@@ -1360,6 +1362,7 @@
 
           const badgeClass = getProjectBadgeClass(projectName);
           const shortLabel = getCompactLabel(projectName);
+          const displayLabel = (isWeek && hasVal) ? `${shortLabel} (${hours}h)` : shortLabel;
 
           const isSelected = state.selectedCells.has(key);
 
@@ -1371,7 +1374,7 @@
                       data-emp-id="${emp.id}" 
                       data-date="${d.dateStr}"
                       title="${emp.name} | ${formatDateDMY(d.dateStr)}: ${projectName || (isUnfilledPast ? 'Unfilled workday' : 'Empty')}">
-                ${shortLabel}
+                ${displayLabel}
               </button>
             </td>
           `;

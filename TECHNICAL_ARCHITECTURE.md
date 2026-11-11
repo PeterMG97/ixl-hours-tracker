@@ -496,6 +496,15 @@ flowchart TD
 5. **Zero Modification to Monthly Grid & Complete Parity**:
    - The traditional monthly grid is 100% preserved with its exact original groups, colors, and layouts.
    - All interactive capabilities—single click standing, double-click popover edit, left-click hold and drag multi-select, keyboard arrow navigation, Delete key cell clearing, section expand/collapse, employee hazing, and Admin 2D selection—operate identically across both views.
+6. **Dedicated Week-Only Aesthetics Engine**:
+   - **Reduced Visual Noise**: Heavy table gridlines are replaced with ultra-subtle, low-contrast 1px dividers on a clean dark slate palette (`#0b0f19` to `#111827`), reducing eye strain during extended scheduling sessions.
+   - **Refined Typography & Sticky Left Column**: Modern grotesque sans typography (`Inter` / `SF Pro` aesthetic) with clear hierarchical weight. The employee left column (`.col-user`) remains sticky with subtle depth shadows (`box-shadow: 3px 0 10px rgba(0, 0, 0, 0.35)`).
+   - **Restyled Allocation Pills (`border-radius: 8px`)**:
+     - *Projects*: Refined deep sapphire / indigo (`linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(37, 99, 235, 0.8))`).
+     - *Special Training / Academy & Support*: Fresh emerald mint green (`linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(5, 150, 105, 0.8))`).
+     - *Tenders*: Modern cyan / teal (`linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8))`).
+     - *Weekends & Day OFF*: Quiet neutral slate (`#1e293b` / `#334155`) with subtle 45-degree diagonal striped background shading.
+   - **Crisp Glowing Focus Indicator**: High-contrast, radiant cyan/blue cursor ring (`outline: 2px solid #38bdf8`, `box-shadow: 0 0 16px rgba(56, 189, 248, 0.55)`) that clearly identifies the active cell cursor without obscuring underlying text.
 
 ---
 
