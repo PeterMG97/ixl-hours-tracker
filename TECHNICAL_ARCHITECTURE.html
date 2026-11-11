@@ -547,7 +547,14 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     </tbody>
   </table>
 
-  <h2>9. Application Boot Sequence & Welcome Screen Resilience</h2>
+  <h2>9. Modal Footer Clean Interface Architecture</h2>
+  <p>To eliminate visual clutter and ensure a clean, modern aesthetic across both Desktop (PC) and Mobile interfaces:</p>
+  <ul>
+    <li><strong>Projects &amp; WBS Management (<code>#projectsModal</code>):</strong> The legacy helper message (<em>Double-click any project to enter a custom start/end date range...</em>) is completely removed from the modal footer. The modal footer cleanly displays only the right-aligned <code>Close</code> button.</li>
+    <li><strong>Project Analytics / Monthly Data (<code>#projectMonthlyModal</code>):</strong> The legacy helper message (<em>Double-click any project name in the projects list...</em>) is removed from the modal footer, maintaining full visual parity with <code>#analyticsModal</code> and <code>#projectsModal</code>.</li>
+  </ul>
+
+  <h2>10. Application Boot Sequence & Welcome Screen Resilience</h2>
   <p>The application employs a multi-tiered boot sequence to guarantee that the splash screen (<code>#mobileWelcomeOverlay</code>) never blocks entry or freezes:</p>
   <ul>
     <li><strong>Boot Order:</strong> <code>initMobileWelcomeScreen()</code> binds click, touch, keydown, and 10000ms auto-dismiss handlers at step 1 before any layout or data requests execute.</li>
@@ -555,7 +562,7 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Safety Fallback Timer:</strong> A lightweight inline script guarantees dismissal after 6000ms if no interaction occurs.</li>
   </ul>
 
-  <h2>10. Developer Guidelines & Ongoing Maintenance Contract</h2>
+  <h2>11. Developer Guidelines & Ongoing Maintenance Contract</h2>
   <ol>
     <li><strong>Mandatory Document Update:</strong> Whenever you add, modify, or delete any feature, data model, or style rule, you MUST immediately update both <code>TECHNICAL_ARCHITECTURE.md</code> and <code>TECHNICAL_ARCHITECTURE.html</code>.</li>
     <li><strong>Strict Zero-Emoji Policy:</strong> Never use Unicode emojis in code, commits, or documentation.</li>

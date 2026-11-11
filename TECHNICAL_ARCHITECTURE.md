@@ -400,6 +400,12 @@ flowchart TD
 
 ---
 
+### 6.7 Modal Footer Clean Interface Architecture
+- **Projects & WBS Management (`#projectsModal`)**: The legacy explanatory hint text (`Double-click any project to enter a custom start/end date range...`) is completely removed from the modal footer across both Desktop and Mobile interfaces. The footer maintains a clean, right-aligned `Close` action button (`.btn-secondary.modal-close`).
+- **Project Monthly Data & Period Analytics (`#projectMonthlyModal`)**: The legacy explanatory hint text (`Double-click any project name in the projects list...`) is completely removed from the modal footer across both Desktop and Mobile interfaces, ensuring complete visual consistency with `#analyticsModal` and `#projectsModal`.
+
+---
+
 ## 7. Mobile Interface Deep Architecture & Touch Physics
 
 ### 7.1 Dual Mobile Modes: Editor vs. Grid View
