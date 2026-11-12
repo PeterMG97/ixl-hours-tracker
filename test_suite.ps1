@@ -442,6 +442,18 @@ if (Test-Path $devDirectoryTestScript) {
 }
 Assert-Test "6.65 Device Directory Select, Multi-Select, and Delete Integrity" $devDirectoryPass "Dedicated test verifying selection, multi-select checkboxes, single/batch device deletion, KPI updates, and zero emojis"
 
+$dayCommentsTestScript = Join-Path $AppDir "test_day_comments_integrity.js"
+$dayCommentsPass = $false
+if (Test-Path $dayCommentsTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeDayCommOutput = & $nodePath $dayCommentsTestScript 2>&1
+        $dayCommentsPass = ($LASTEXITCODE -eq 0) -and ($nodeDayCommOutput -match "DAY COMMENTS TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $dayCommentsPass = ($jsContent.Contains("popoverCommentToggleBtn")) -and ($htmlContent.Contains("popoverCommentToggleBtn"))
+    }
+}
+Assert-Test "6.66 Day Comments Engine Integrity across Single Day, Multi-Select, Bulk Fill, and Mobile" $dayCommentsPass "Dedicated test verifying (+) comment option on PC single cell, multi-select, bulk range, and mobile editor"
+
 
 
 

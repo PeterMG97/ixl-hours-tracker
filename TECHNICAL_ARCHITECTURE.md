@@ -228,7 +228,8 @@ window.state = {
 {
   "emp_1_2026-11-01": {
     "project": "Project - Cairo Metro Line 4",
-    "hours": 8
+    "hours": 8,
+    "comment": "Working on interlocking design"
   },
   "emp_1_2026-11-06": {
     "project": "DAY OFF",
@@ -236,12 +237,17 @@ window.state = {
   },
   "emp_2_2026-11-03": {
     "project": "NO PROJECT",
-    "hours": 0
+    "hours": 0,
+    "comment": "Pending tender allocation"
   }
 }
 ```
 - **Composite Key Structure**: `${employeeId}_${YYYY-MM-DD}`.
   - Parsed strictly using `key.lastIndexOf('_')` to guarantee safe extraction when employee IDs contain underscores (e.g., `emp_22`).
+- **Data Properties**:
+  - `project` (string): Project name, tender name, or status indicator.
+  - `hours` (number): Daily hours (1 to 12h for work activities; 0h for Day OFF).
+  - `comment` (optional string): User or admin comment describing work or reason for allocation (up to 250 characters).
 - **Special System Projects**:
   - `DAY OFF`: Scheduled non-working day or official holiday (hours enforced strictly to `0`).
   - `NO PROJECT`: Working day marked with no billable project assigned (unfilled badge indicator).
@@ -509,6 +515,31 @@ flowchart TD
        - *Desktop Hours Suffix*: All allocated task chips on PC format clean titles with `(hours)h` suffix.
      - **Crisp Glowing Focus Indicator**: High-contrast, radiant cyan/blue cursor ring (`outline: 2px solid #38bdf8`, `box-shadow: 0 0 16px rgba(56, 189, 248, 0.55)`) that clearly identifies the active cell cursor without obscuring underlying text.
    - All interactive capabilities—single click standing, double-click popover edit, left-click hold and drag multi-select, keyboard arrow navigation, Delete key cell clearing, section expand/collapse, employee hazing, and Admin 2D selection—operate identically across both views.
+
+---
+
+### 6.8 Day Comments Engine & Cross-Interface Workflows
+The Day Comments Engine enables team members and administrators to attach contextual notes and remarks to individual schedule allocations across both PC and Mobile platforms.
+
+#### Core Design & Implementation Specifications:
+1. **Minimalist (+) Toggle Symbol**:
+   - Comments are kept optional and discreet to avoid visual clutter.
+   - Represented uniformly by a simple, elegant `(+)` symbol button (`.btn-comment-toggle`) styled in monospace typography.
+   - When clicked, it smoothly expands the dedicated comment input field and highlights in solid blue/cyan (`.active` state).
+2. **Single Day Fill (PC & Mobile)**:
+   - On PC: Inside `#cellPopover`, the user can toggle `(+)` to add or edit a remark for that day. When saved, `comment: string` is attached strictly to `state.allocations[empId_YYYY-MM-DD]`.
+   - On Mobile: In `#mobileLoggerCard`, when Start Date equals End Date, the comment from `#mobileCommentInput` is assigned strictly to that single day.
+3. **Multi-Select Days on PC**:
+   - When multiple cells are selected via click-and-drag or shift-navigation, the floating multi-select bar (`#multiSelectBar`) presents a simple `(+)` button.
+   - Users can expand the comment drawer and click "Apply Comment" or use "Edit Selected", assigning the exact same comment across all selected days simultaneously.
+4. **Bulk Fill Date Range (PC & Mobile)**:
+   - On PC: In `#bulkFillModal`, users can toggle `(+)` under Hours per Workday to provide a comment. The comment is systematically applied to every calendar day assigned within that date range.
+   - On Mobile: In `#mobileLoggerCard`, when Start Date differs from End Date, the comment is systematically applied across all filled days in that range.
+5. **Visual Grid & Agenda Indicators**:
+   - On PC Desktop Grid: Allocated chips with comments feature a subtle, glowing cyan indicator dot (`.chip-comment-dot`) positioned at the top-right corner. Hovering over the cell displays the full comment inside the native browser tooltip title (`| Comment: ...`).
+   - On Mobile Agenda: Days with comments display a dedicated italicized comment note (`.mobile-agenda-comment`) beneath the date label with a miniature `(+)` icon.
+6. **Clearing & Deletion**:
+   - Using CLEAR/DELETE or the keyboard Delete key cleanly removes the entire allocation entry along with its comment.
 
 ---
 
@@ -830,6 +861,7 @@ The project maintains 16 automated test suites (2,220+ assertions) executed with
 | `test_pc_bulk_clear_integrity.js` | 15 tests | Bulk fill clear action normalization, star immunity, Projects List direct chooser |
 | `test_pc_week_view.js` | 19 tests | Topbar Week/Month view toggler, visual parity, seamless category separators, Sunday-Saturday anchoring |
 | `test_activity_log_reset.js` | 9 tests | Edit History & Device Audit Log Reset button; state.history clearing, KPI zeroing, sync trigger |
+| `test_day_comments_integrity.js` | 15 tests | Day comments engine on PC single cell, multi-select, bulk range, and mobile editor; zero emojis |
 | `test_device_directory_delete.js` | 10 tests | Device Directory select, multi-select checkboxes, single/bulk delete, KPI sync |
 | `test_dynamic_month_selection.js` | 8 tests | Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels |
 | `test_quick_pill_separation.js` | 6 tests | Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE |

@@ -219,6 +219,9 @@
     mobileRangeMonth: document.getElementById('mobileRangeMonth'),
     mobileProjectSelect: document.getElementById('mobileProjectSelect'),
     mobileHoursInput: document.getElementById('mobileHoursInput'),
+    mobileCommentToggleBtn: document.getElementById('mobileCommentToggleBtn'),
+    mobileCommentWrapper: document.getElementById('mobileCommentWrapper'),
+    mobileCommentInput: document.getElementById('mobileCommentInput'),
     mobileHolDayOffLabel: document.getElementById('mobileHolDayOffLabel'),
     mobileHolIncludeLabel: document.getElementById('mobileHolIncludeLabel'),
     mobileHolSkipLabel: document.getElementById('mobileHolSkipLabel'),
@@ -244,6 +247,9 @@
     popoverCategoryPills: document.getElementById('popoverCategoryPills'),
     popoverProjectList: document.getElementById('popoverProjectList'),
     popoverHoursInput: document.getElementById('popoverHoursInput'),
+    popoverCommentToggleBtn: document.getElementById('popoverCommentToggleBtn'),
+    popoverCommentRow: document.getElementById('popoverCommentRow'),
+    popoverCommentInput: document.getElementById('popoverCommentInput'),
     applyCellBtn: document.getElementById('applyCellBtn'),
     openBulkFillBtn: document.getElementById('openBulkFillBtn'),
 
@@ -279,6 +285,9 @@
     bulkToDate: document.getElementById('bulkToDate'),
     bulkProjectSelect: document.getElementById('bulkProjectSelect'),
     bulkHoursInput: document.getElementById('bulkHoursInput'),
+    bulkCommentToggleBtn: document.getElementById('bulkCommentToggleBtn'),
+    bulkCommentWrapper: document.getElementById('bulkCommentWrapper'),
+    bulkCommentInput: document.getElementById('bulkCommentInput'),
     confirmBulkFillBtn: document.getElementById('confirmBulkFillBtn'),
     holidayDayOffDetail: document.getElementById('holidayDayOffDetail'),
     holidayDayOffLabel: document.getElementById('holidayDayOffLabel'),
@@ -446,6 +455,10 @@
     multiQuickOffBtn: document.getElementById('multiQuickOffBtn'),
     multiQuickNoProjBtn: document.getElementById('multiQuickNoProjBtn'),
     multiQuickClearBtn: document.getElementById('multiQuickClearBtn'),
+    multiCommentBtn: document.getElementById('multiCommentBtn'),
+    multiSelectCommentDrawer: document.getElementById('multiSelectCommentDrawer'),
+    multiSelectCommentInput: document.getElementById('multiSelectCommentInput'),
+    multiApplyCommentBtn: document.getElementById('multiApplyCommentBtn'),
     multiSelectCancelBtn: document.getElementById('multiSelectCancelBtn'),
 
     // NO PROJECT Days Manager
@@ -1383,16 +1396,19 @@
           const displayLabel = (!isMobileInterface() && hasVal) ? `${shortLabel} (${hours}h)` : shortLabel;
 
           const isSelected = state.selectedCells.has(key);
+          const hasComment = Boolean(alloc && alloc.comment && alloc.comment.trim());
+          const commentText = hasComment ? alloc.comment.trim() : '';
 
           cellsHtml += `
             <td class="col-slot ${isWk ? 'is-weekend' : ''} ${d.isToday ? 'is-today' : ''} ${isUnfilledPast ? 'slot-unfilled-alert' : ''} ${isSelected ? 'is-selected-cell' : ''}" 
                 data-emp-id="${emp.id}" 
                 data-date="${d.dateStr}">
-              <button class="task-chip ${badgeClass}" 
+              <button class="task-chip ${badgeClass} ${hasComment ? 'has-comment' : ''}" 
                       data-emp-id="${emp.id}" 
                       data-date="${d.dateStr}"
-                      title="${emp.name} | ${formatDateDMY(d.dateStr)}: ${projectName || (isUnfilledPast ? 'Unfilled workday' : 'Empty')}">
+                      title="${emp.name} | ${formatDateDMY(d.dateStr)}: ${projectName || (isUnfilledPast ? 'Unfilled workday' : 'Empty')}${hasComment ? ` | Comment: ${commentText}` : ''}">
                 ${displayLabel}
+                ${hasComment ? `<span class="chip-comment-dot" aria-hidden="true" title="Comment: ${escapeHtml(commentText)}"></span>` : ''}
               </button>
             </td>
           `;
@@ -2604,6 +2620,9 @@
     document.querySelectorAll('.schedule-table td.is-selected-cell').forEach(td => {
       td.classList.remove('is-selected-cell');
     });
+    if (el.multiSelectCommentDrawer) el.multiSelectCommentDrawer.style.display = 'none';
+    if (el.multiSelectCommentInput) el.multiSelectCommentInput.value = '';
+    if (el.multiCommentBtn) el.multiCommentBtn.classList.remove('active');
     updateMultiSelectUI();
   }
 
@@ -2658,6 +2677,20 @@
     setPopoverCategory('all', false);
     renderPopoverProjectList('');
 
+    if (el.popoverCommentInput) {
+      const firstKey = Array.from(state.selectedCells)[0];
+      const firstAlloc = firstKey ? state.allocations[firstKey] : null;
+      const commonComment = (firstAlloc && firstAlloc.comment) ? firstAlloc.comment.trim() : '';
+      el.popoverCommentInput.value = commonComment;
+      if (commonComment) {
+        if (el.popoverCommentRow) el.popoverCommentRow.style.display = 'block';
+        if (el.popoverCommentToggleBtn) el.popoverCommentToggleBtn.classList.add('active');
+      } else {
+        if (el.popoverCommentRow) el.popoverCommentRow.style.display = 'none';
+        if (el.popoverCommentToggleBtn) el.popoverCommentToggleBtn.classList.remove('active');
+      }
+    }
+
     if (window.innerWidth <= 640) {
       el.cellPopover.style.left = '';
       el.cellPopover.style.top = '';
@@ -2707,7 +2740,7 @@
     return Math.round(h * 10) / 10;
   }
 
-  function batchApplyToSelectedCells(projectName, hours) {
+  function batchApplyToSelectedCells(projectName, hours, customComment) {
     if (state.isViewOnly) {
       showToast('View-only link: Editing is disabled.', 'warning');
       return;
@@ -2715,6 +2748,12 @@
     if (state.selectedCells.size === 0) return;
     const count = state.selectedCells.size;
     const uniqueEmps = getSelectedUniqueEmployees();
+
+    const commentToApply = (customComment !== undefined)
+      ? customComment
+      : (el.popoverCommentInput && el.popoverCommentInput.value.trim() 
+          ? el.popoverCommentInput.value.trim() 
+          : (el.multiSelectCommentInput ? el.multiSelectCommentInput.value.trim() : ''));
 
     state.selectedCells.forEach(key => {
       const lastUnder = key.lastIndexOf('_');
@@ -2729,7 +2768,8 @@
       } else {
         state.allocations[key] = {
           project: projectName.trim(),
-          hours: sanitizedHours
+          hours: sanitizedHours,
+          ...(commentToApply ? { comment: commentToApply } : {})
         };
       }
     });
@@ -2739,8 +2779,8 @@
       targetEmpName: uniqueEmps.length === 1 ? uniqueEmps[0].name : `${uniqueEmps.length} members`,
       dateStr: 'Multi-cell selection',
       actionType: 'batch_assign',
-      summary: `Batch applied '${projectName || 'Cleared'}' across ${count} cell(s)`,
-      details: `Applied to ${uniqueEmps.map(e => e.name).join(', ')}`
+      summary: `Batch applied '${projectName || 'Cleared'}' across ${count} cell(s)${commentToApply ? ` with comment "${commentToApply}"` : ''}`,
+      details: `Applied to ${uniqueEmps.map(e => e.name).join(', ')}${commentToApply ? ` | Comment: "${commentToApply}"` : ''}`
     });
 
     clearSelection();
@@ -2780,6 +2820,18 @@
     el.popoverHoursInput.value = Math.min(12, Math.max(1, Number(baseH) || 8));
     el.projectSearchInput.value = '';
     setPopoverCategory('all', false);
+
+    const existingComment = (alloc && alloc.comment) ? alloc.comment.trim() : '';
+    if (el.popoverCommentInput) {
+      el.popoverCommentInput.value = existingComment;
+      if (existingComment) {
+        if (el.popoverCommentRow) el.popoverCommentRow.style.display = 'block';
+        if (el.popoverCommentToggleBtn) el.popoverCommentToggleBtn.classList.add('active');
+      } else {
+        if (el.popoverCommentRow) el.popoverCommentRow.style.display = 'none';
+        if (el.popoverCommentToggleBtn) el.popoverCommentToggleBtn.classList.remove('active');
+      }
+    }
 
     renderPopoverProjectList('');
 
@@ -3322,20 +3374,24 @@
         }
       }
 
+      const commentVal = el.popoverCommentInput ? el.popoverCommentInput.value.trim() : '';
+
       state.allocations[key] = {
         project: projectName.trim(),
-        hours: hours
+        hours: hours,
+        ...(commentVal ? { comment: commentVal } : {})
       };
     }
 
+    const commentVal = el.popoverCommentInput ? el.popoverCommentInput.value.trim() : '';
     const newDesc = (!projectName || projectName.trim() === '') ? 'Cleared' : `${projectName.trim()} (${hours}h)`;
     logAuditEvent({
       targetEmpId: empId,
       targetEmpName: emp ? emp.name : empId,
       dateStr: dateStr,
       actionType: 'cell_assign',
-      summary: `Assigned '${newDesc}' on ${formatDateDMY(dateStr)}`,
-      details: `Changed from '${prevDesc}' to '${newDesc}'`
+      summary: `Assigned '${newDesc}' on ${formatDateDMY(dateStr)}${commentVal ? ` with comment "${commentVal}"` : ''}`,
+      details: `Changed from '${prevDesc}' to '${newDesc}'${commentVal ? ` | Comment: "${commentVal}"` : ''}`
     });
 
     closeCellPopover();
@@ -3348,8 +3404,31 @@
     el.cellPopover.classList.add('hidden');
     state.selectedCell = null;
     state.isMultiEditing = false;
+    if (el.popoverCommentInput) el.popoverCommentInput.value = '';
+    if (el.popoverCommentRow) el.popoverCommentRow.style.display = 'none';
+    if (el.popoverCommentToggleBtn) el.popoverCommentToggleBtn.classList.remove('active');
   }
   el.closePopoverBtn.addEventListener('click', closeCellPopover);
+
+  if (el.popoverCommentToggleBtn) {
+    el.popoverCommentToggleBtn.addEventListener('click', () => {
+      if (!el.popoverCommentRow) return;
+      const isHidden = el.popoverCommentRow.style.display === 'none';
+      el.popoverCommentRow.style.display = isHidden ? 'block' : 'none';
+      el.popoverCommentToggleBtn.classList.toggle('active', isHidden);
+      if (isHidden && el.popoverCommentInput) {
+        el.popoverCommentInput.focus();
+      }
+    });
+  }
+  if (el.popoverCommentInput) {
+    el.popoverCommentInput.addEventListener('input', () => {
+      if (el.popoverCommentToggleBtn) {
+        const hasText = el.popoverCommentInput.value.trim().length > 0;
+        el.popoverCommentToggleBtn.classList.toggle('active', hasText || (el.popoverCommentRow && el.popoverCommentRow.style.display !== 'none'));
+      }
+    });
+  }
 
   document.addEventListener('click', (e) => {
     if (
@@ -3390,6 +3469,76 @@
   if (el.multiSelectCancelBtn) {
     el.multiSelectCancelBtn.addEventListener('click', () => {
       clearSelection();
+    });
+  }
+
+  function applyCommentToSelectedCells() {
+    if (state.isViewOnly) {
+      showToast('View-only link: Editing is disabled.', 'warning');
+      return;
+    }
+    if (state.selectedCells.size === 0) return;
+    const commentVal = el.multiSelectCommentInput ? el.multiSelectCommentInput.value.trim() : '';
+    if (!commentVal) {
+      showToast('Please enter a comment to apply to selected cells.', 'warning');
+      return;
+    }
+    const uniqueEmps = getSelectedUniqueEmployees();
+    const count = state.selectedCells.size;
+
+    state.selectedCells.forEach(key => {
+      if (state.allocations[key]) {
+        state.allocations[key].comment = commentVal;
+      } else {
+        const lastUnder = key.lastIndexOf('_');
+        const cellEmpId = key.substring(0, lastUnder);
+        const cellEmp = state.employees.find(e => e.id === cellEmpId);
+        state.allocations[key] = {
+          project: 'NO PROJECT',
+          hours: cellEmp ? (cellEmp.defaultHoursPerDay || 8) : 8,
+          comment: commentVal
+        };
+      }
+    });
+
+    logAuditEvent({
+      targetEmpId: uniqueEmps.length === 1 ? uniqueEmps[0].id : 'multiple',
+      targetEmpName: uniqueEmps.length === 1 ? uniqueEmps[0].name : `${uniqueEmps.length} members`,
+      dateStr: 'Multi-cell selection',
+      actionType: 'batch_comment',
+      summary: `Assigned comment to ${count} cell(s)`,
+      details: `Comment: "${commentVal}" applied to ${uniqueEmps.map(e => e.name).join(', ')}`
+    });
+
+    clearSelection();
+    closeCellPopover();
+    renderSchedule();
+    syncToServer();
+    showToast(`Comment assigned across ${count} cell${count === 1 ? '' : 's'}`);
+  }
+
+  if (el.multiCommentBtn) {
+    el.multiCommentBtn.addEventListener('click', () => {
+      if (!el.multiSelectCommentDrawer) return;
+      const isHidden = el.multiSelectCommentDrawer.style.display === 'none';
+      el.multiSelectCommentDrawer.style.display = isHidden ? 'block' : 'none';
+      el.multiCommentBtn.classList.toggle('active', isHidden);
+      if (isHidden && el.multiSelectCommentInput) {
+        el.multiSelectCommentInput.focus();
+      }
+    });
+  }
+
+  if (el.multiApplyCommentBtn) {
+    el.multiApplyCommentBtn.addEventListener('click', applyCommentToSelectedCells);
+  }
+
+  if (el.multiSelectCommentInput) {
+    el.multiSelectCommentInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyCommentToSelectedCells();
+      }
     });
   }
 
@@ -3530,6 +3679,11 @@
 
     updateBulkOfficeDetails();
     updateBulkHolidayTreatmentVisibility();
+
+    if (el.bulkCommentInput) el.bulkCommentInput.value = '';
+    if (el.bulkCommentWrapper) el.bulkCommentWrapper.style.display = 'none';
+    if (el.bulkCommentToggleBtn) el.bulkCommentToggleBtn.classList.remove('active');
+
     openModal(el.bulkFillModal);
   }
 
@@ -3892,6 +4046,7 @@
         showToast(`Bulk hours adjusted to ${hours}h (allowed range: 1 to 12h for projects/tenders/special)`, 'info');
       }
     }
+    const bulkComment = el.bulkCommentInput ? el.bulkCommentInput.value.trim() : '';
     const holidayOption = document.querySelector('input[name="bulkHolidayOption"]:checked').value;
 
     if (!fromStr || !toStr) {
@@ -3930,15 +4085,15 @@
         delete state.allocations[key];
         clearedCount++;
       } else if (isExplicitDayOff) {
-        state.allocations[key] = { project: 'Day OFF', hours: 0 };
+        state.allocations[key] = { project: 'Day OFF', hours: 0, ...(bulkComment ? { comment: bulkComment } : {}) };
         holidaysDayOffCount++;
       } else if (isPeriodWithWeekend && isHoli) {
         if (holidayOption === 'dayoff') {
           // Consider holidays as DAY OFF option when bulk filling mixed period
-          state.allocations[key] = { project: 'Day OFF', hours: 0 };
+          state.allocations[key] = { project: 'Day OFF', hours: 0, ...(bulkComment ? { comment: bulkComment } : {}) };
           holidaysDayOffCount++;
         } else if (holidayOption === 'include') {
-          state.allocations[key] = { project: proj.trim(), hours: hours };
+          state.allocations[key] = { project: proj.trim(), hours: hours, ...(bulkComment ? { comment: bulkComment } : {}) };
           filledWorkdaysCount++;
         } else {
           // 'skip'
@@ -3946,7 +4101,7 @@
         }
       } else {
         // Normal workday, OR single day (even if weekend!), OR pure weekend days:
-        state.allocations[key] = { project: proj.trim(), hours: hours };
+        state.allocations[key] = { project: proj.trim(), hours: hours, ...(bulkComment ? { comment: bulkComment } : {}) };
         filledWorkdaysCount++;
       }
 
@@ -3963,11 +4118,11 @@
       summary: isClearAction
         ? `Bulk cleared allocations across ${clearedCount} days`
         : isExplicitDayOff
-          ? `Bulk marked ${holidaysDayOffCount} days as Day OFF`
+          ? `Bulk marked ${holidaysDayOffCount} days as Day OFF${bulkComment ? ` with comment "${bulkComment}"` : ''}`
           : (fromStr === toStr)
-            ? `Assigned '${proj}' (${hours}h) on ${formatDateDMY(fromStr)}`
-            : `Bulk filled ${filledWorkdaysCount} days with '${proj}' (${hours}h)`,
-      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}${isPeriodWithWeekend ? `, Holiday Option: ${holidayOption}` : ''}`
+            ? `Assigned '${proj}' (${hours}h) on ${formatDateDMY(fromStr)}${bulkComment ? ` with comment "${bulkComment}"` : ''}`
+            : `Bulk filled ${filledWorkdaysCount} days with '${proj}' (${hours}h)${bulkComment ? ` with comment "${bulkComment}"` : ''}`,
+      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}${isPeriodWithWeekend ? `, Holiday Option: ${holidayOption}` : ''}${bulkComment ? ` | Comment: "${bulkComment}"` : ''}`
     });
 
     closeModal(el.bulkFillModal);
@@ -3992,6 +4147,26 @@
       showToast(`Filled ${filledWorkdaysCount} workdays for ${emp.name} (left ${holidaysSkippedCount} holidays untouched).`);
     }
   });
+
+  if (el.bulkCommentToggleBtn) {
+    el.bulkCommentToggleBtn.addEventListener('click', () => {
+      if (!el.bulkCommentWrapper) return;
+      const isHidden = el.bulkCommentWrapper.style.display === 'none';
+      el.bulkCommentWrapper.style.display = isHidden ? 'block' : 'none';
+      el.bulkCommentToggleBtn.classList.toggle('active', isHidden);
+      if (isHidden && el.bulkCommentInput) {
+        el.bulkCommentInput.focus();
+      }
+    });
+  }
+  if (el.bulkCommentInput) {
+    el.bulkCommentInput.addEventListener('input', () => {
+      if (el.bulkCommentToggleBtn) {
+        const hasText = el.bulkCommentInput.value.trim().length > 0;
+        el.bulkCommentToggleBtn.classList.toggle('active', hasText || (el.bulkCommentWrapper && el.bulkCommentWrapper.style.display !== 'none'));
+      }
+    });
+  }
 
   // -------------------------------------------------------------
   // NO PROJECT Days Management (Request 2 & 15)
@@ -9117,7 +9292,8 @@
         isToday: d.isToday,
         hasVal,
         pName,
-        hours: h
+        hours: h,
+        comment: (alloc && alloc.comment) ? alloc.comment : ''
       });
     });
 
@@ -9160,11 +9336,19 @@
           badgeHtml = '<span class="badge badge-warning" style="font-size:9.5px; padding:2px 6px;">Unfilled</span>';
         }
 
+        const commentHtml = r.comment ? `
+          <div class="mobile-agenda-comment">
+            <span class="comment-icon">(+)</span>
+            <span class="comment-text">${escapeHtml(r.comment)}</span>
+          </div>
+        ` : '';
+
         return `
-          <div class="mobile-agenda-row ${r.isToday ? 'is-today' : ''}" data-date="${r.dateStr}" data-project="${r.pName}" data-hours="${r.hours}">
+          <div class="mobile-agenda-row ${r.isToday ? 'is-today' : ''}" data-date="${r.dateStr}" data-project="${r.pName}" data-hours="${r.hours}" data-comment="${escapeHtml(r.comment || '')}">
             <div class="mobile-agenda-date">
               <span>${formatDateDMY(r.dateStr)}</span>
               <span class="text-xs text-muted" style="margin-left:4px;">${r.dowName}</span>
+              ${commentHtml}
             </div>
             <div class="mobile-agenda-badge">
               ${badgeHtml}
@@ -9179,6 +9363,7 @@
           const dStr = row.getAttribute('data-date');
           const pName = row.getAttribute('data-project');
           const hVal = row.getAttribute('data-hours');
+          const cVal = row.getAttribute('data-comment') || '';
           if (el.mobileFromDate) el.mobileFromDate.value = formatDateDMY(dStr);
           if (el.mobileToDate) el.mobileToDate.value = formatDateDMY(dStr);
           updateMobileHolidayTreatmentVisibility();
@@ -9189,6 +9374,15 @@
             }
           }
           if (el.mobileHoursInput && hVal && Number(hVal) > 0) el.mobileHoursInput.value = hVal;
+
+          if (el.mobileCommentInput) el.mobileCommentInput.value = cVal;
+          if (cVal) {
+            if (el.mobileCommentWrapper) el.mobileCommentWrapper.style.display = 'block';
+            if (el.mobileCommentToggleBtn) el.mobileCommentToggleBtn.classList.add('active');
+          } else {
+            if (el.mobileCommentWrapper) el.mobileCommentWrapper.style.display = 'none';
+            if (el.mobileCommentToggleBtn) el.mobileCommentToggleBtn.classList.remove('active');
+          }
 
           if (el.mobileLoggerCard) {
             el.mobileLoggerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -9235,6 +9429,7 @@
     const rawHours = el.mobileHoursInput ? el.mobileHoursInput.value : '8';
     const roundedHours = Math.round(parseFloat(rawHours) || (emp ? emp.defaultHoursPerDay : 8));
     const hours = sanitizeDayHours(proj, roundedHours, emp ? emp.defaultHoursPerDay : 8);
+    const mobileComment = el.mobileCommentInput ? el.mobileCommentInput.value.trim() : '';
 
     const holidayOptionEl = document.querySelector('input[name="mobileHolidayOption"]:checked');
     const holidayOption = holidayOptionEl ? holidayOptionEl.value : 'dayoff';
@@ -9273,15 +9468,15 @@
         delete state.allocations[key];
         clearedCount++;
       } else if (isExplicitDayOff) {
-        state.allocations[key] = { project: 'Day OFF', hours: 0 };
+        state.allocations[key] = { project: 'Day OFF', hours: 0, ...(mobileComment ? { comment: mobileComment } : {}) };
         holidaysDayOffCount++;
       } else if (isPeriodWithWeekend && isHoli) {
         if (holidayOption === 'dayoff') {
           // Mark holidays as Day OFF only for multi-day bulk periods spanning workdays & weekend
-          state.allocations[key] = { project: 'Day OFF', hours: 0 };
+          state.allocations[key] = { project: 'Day OFF', hours: 0, ...(mobileComment ? { comment: mobileComment } : {}) };
           holidaysDayOffCount++;
         } else if (holidayOption === 'include') {
-          state.allocations[key] = { project: proj.trim(), hours: hours };
+          state.allocations[key] = { project: proj.trim(), hours: hours, ...(mobileComment ? { comment: mobileComment } : {}) };
           filledWorkdaysCount++;
         } else {
           // 'skip'
@@ -9289,7 +9484,7 @@
         }
       } else {
         // Normal workday, OR single day (even if weekend!), OR pure weekend days:
-        state.allocations[key] = { project: proj.trim(), hours: hours };
+        state.allocations[key] = { project: proj.trim(), hours: hours, ...(mobileComment ? { comment: mobileComment } : {}) };
         filledWorkdaysCount++;
       }
 
@@ -9305,11 +9500,11 @@
       summary: isClearAction 
         ? `Mobile cleared allocations across ${clearedCount} days`
         : isExplicitDayOff
-          ? `Mobile marked ${holidaysDayOffCount} days as Day OFF`
+          ? `Mobile marked ${holidaysDayOffCount} days as Day OFF${mobileComment ? ` with comment "${mobileComment}"` : ''}`
           : (fromStr === toStr)
-            ? `Mobile assigned '${proj}' (${hours}h) on ${formatDateDMY(fromStr)}`
-            : `Mobile filled ${filledWorkdaysCount} days with '${proj}' (${hours}h)`,
-      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}${isPeriodWithWeekend ? `, Holiday Option: ${holidayOption}` : ''}`
+            ? `Mobile assigned '${proj}' (${hours}h) on ${formatDateDMY(fromStr)}${mobileComment ? ` with comment "${mobileComment}"` : ''}`
+            : `Mobile filled ${filledWorkdaysCount} days with '${proj}' (${hours}h)${mobileComment ? ` with comment "${mobileComment}"` : ''}`,
+      details: `Range: ${formatDateDMY(fromStr)} - ${formatDateDMY(toStr)}${isPeriodWithWeekend ? `, Holiday Option: ${holidayOption}` : ''}${mobileComment ? ` | Comment: "${mobileComment}"` : ''}`
     });
 
     renderSchedule();
@@ -9341,6 +9536,27 @@
     dockMobileConnectionBadge(isMobileInterface());
     if (el.mobileApplyBtn) {
       el.mobileApplyBtn.addEventListener('click', handleMobileApply);
+    }
+
+    if (el.mobileCommentToggleBtn) {
+      el.mobileCommentToggleBtn.addEventListener('click', () => {
+        if (!el.mobileCommentWrapper) return;
+        const isHidden = el.mobileCommentWrapper.style.display === 'none';
+        el.mobileCommentWrapper.style.display = isHidden ? 'block' : 'none';
+        el.mobileCommentToggleBtn.classList.toggle('active', isHidden);
+        if (isHidden && el.mobileCommentInput) {
+          el.mobileCommentInput.focus();
+        }
+      });
+    }
+
+    if (el.mobileCommentInput) {
+      el.mobileCommentInput.addEventListener('input', () => {
+        if (el.mobileCommentToggleBtn) {
+          const hasText = el.mobileCommentInput.value.trim().length > 0;
+          el.mobileCommentToggleBtn.classList.toggle('active', hasText || (el.mobileCommentWrapper && el.mobileCommentWrapper.style.display !== 'none'));
+        }
+      });
     }
 
     if (el.mobileSwitchUserBtn) {

@@ -471,7 +471,17 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Unified Category Separator Rows:</strong> Employee section divider strips (<code>tr.group-header-row</code>) render as a single continuous unit of uniform dark slate (<code>#0d1322</code>, hover <code>#141c2e</code>) across all columns with zero internal vertical divider lines (<code>border-right: none</code>, <code>border-left: none</code>, <code>box-shadow: none</code>), framed exclusively by subtle 1px horizontal dividers.</li>
   </ul>
 
-  <h2>7. Role-Based Access Control & View-Only Defense</h2>
+  <h3>5.8 Day Comments Engine & Cross-Interface Workflows</h3>
+  <p>The Day Comments Engine enables team members and administrators to attach contextual remarks to allocations across PC and Mobile workflows:</p>
+  <ul>
+    <li><strong>Minimalist (+) Toggle Symbol:</strong> Represented uniformly by a simple, elegant <code>(+)</code> symbol button (<code>.btn-comment-toggle</code>) in monospace typography that expands an optional comment input field.</li>
+    <li><strong>Single Day Fill (PC &amp; Mobile):</strong> On PC cell popover (<code>#cellPopover</code>) and Mobile editor (<code>#mobileLoggerCard</code>) when Start Date equals End Date, assigns comment strictly to that single day.</li>
+    <li><strong>Multi-Select Days (PC):</strong> Floating multi-select bar (<code>#multiSelectBar</code>) and cell popover in multi-edit mode allow assigning a comment across all selected days simultaneously.</li>
+    <li><strong>Bulk Fill Date Range (PC &amp; Mobile):</strong> Bulk fill modal (<code>#bulkFillModal</code>) and Mobile range filling assign comment across all workdays in that date range.</li>
+    <li><strong>Visual Grid &amp; Agenda Indicators:</strong> Desktop grid chips feature a subtle glowing cyan dot indicator (<code>.chip-comment-dot</code>) and comment text in hover tooltip (<code>title</code>). Mobile agenda displays italicized comment notes (<code>.mobile-agenda-comment</code>) beneath day labels.</li>
+  </ul>
+
+<h2>7. Role-Based Access Control & View-Only Defense</h2>
   <table>
     <thead>
       <tr>
@@ -583,6 +593,11 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
         <td><code>test_activity_log_reset.js</code></td>
         <td>9</td>
         <td>Edit History & Device Audit Log Reset button; state.history clearing, KPI zeroing, sync trigger.</td>
+      </tr>
+      <tr>
+        <td><code>test_day_comments_integrity.js</code></td>
+        <td>15</td>
+        <td>Day comments engine on PC single cell, multi-select, bulk range, and mobile editor; zero emojis.</td>
       </tr>
       <tr>
         <td><code>test_device_directory_delete.js</code></td>

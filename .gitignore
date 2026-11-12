@@ -7,4 +7,5 @@ Thumbs.db
 cloudflared.exe
 firebase.exe
 .firebase/
+.vscode/
 

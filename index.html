@@ -661,6 +661,17 @@
             <input type="number" id="mobileHoursInput" class="form-control" value="8" min="1" max="12" step="1">
           </div>
 
+          <!-- Comment for Mobile Fill (Single Day or Date Range) -->
+          <div class="form-group" style="margin-top:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+              <label class="form-label" for="mobileCommentInput" style="margin-bottom:0;">Comment (Optional):</label>
+              <button type="button" class="btn-comment-toggle" id="mobileCommentToggleBtn" title="Add / edit comment for filled day(s)">(+)</button>
+            </div>
+            <div id="mobileCommentWrapper" style="display:none; margin-top:6px;">
+              <input type="text" id="mobileCommentInput" class="form-control form-control-sm" placeholder="Add comment for filled day(s)..." maxlength="250">
+            </div>
+          </div>
+
           <!-- Weekend & Holiday Treatment -->
           <div class="mobile-holiday-treatment" id="mobileHolidayTreatment">
             <label class="form-label" style="font-weight:700; margin-bottom:8px;">Weekend &amp; Holiday Treatment:</label>
@@ -782,6 +793,17 @@
         <button class="btn btn-primary btn-sm" id="applyCellBtn">Save Day</button>
       </div>
 
+      <!-- Comment Section for Single Day or Multi-Select Popover -->
+      <div class="popover-comment-section">
+        <div class="popover-comment-header">
+          <label class="popover-comment-label" for="popoverCommentInput">Comment (Optional):</label>
+          <button type="button" class="btn-comment-toggle" id="popoverCommentToggleBtn" title="Add / edit comment for this day">(+)</button>
+        </div>
+        <div class="popover-comment-row" id="popoverCommentRow" style="display:none;">
+          <input type="text" id="popoverCommentInput" class="form-control form-control-sm" placeholder="Add comment for this day..." maxlength="250">
+        </div>
+      </div>
+
       <div class="popover-footer-action">
         <button type="button" class="btn-bulk-refill btn-bulk-fill" id="openBulkFillBtn" title="Bulk Fill">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.85;">
@@ -898,6 +920,17 @@
         <div class="form-group">
           <label class="form-label">Hours per Workday (1 - 12h):</label>
           <input type="number" id="bulkHoursInput" class="form-control" value="8" min="1" max="12" step="1">
+        </div>
+
+        <!-- Comment for Bulk Fill Range -->
+        <div class="form-group" style="margin-top:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+            <label class="form-label" for="bulkCommentInput" style="margin-bottom:0;">Comment (Optional):</label>
+            <button type="button" class="btn-comment-toggle" id="bulkCommentToggleBtn" title="Add / edit comment for all days in this range">(+)</button>
+          </div>
+          <div id="bulkCommentWrapper" style="display:none; margin-top:6px;">
+            <input type="text" id="bulkCommentInput" class="form-control form-control-sm" placeholder="Add comment for all days in this range..." maxlength="250">
+          </div>
         </div>
 
         <!-- Holidays Handling: Consider as DAY OFF -->
@@ -2146,26 +2179,35 @@
 
   <!-- Floating Multi-Cell Selection Bar -->
   <div id="multiSelectBar" class="multi-select-bar hidden">
-    <div class="multi-select-info">
-      <span class="multi-select-count" id="multiSelectCount">0 cells</span>
-      <span class="multi-select-emp" id="multiSelectEmpName"></span>
+    <div class="multi-select-bar-main">
+      <div class="multi-select-info">
+        <span class="multi-select-count" id="multiSelectCount">0 cells</span>
+        <span class="multi-select-emp" id="multiSelectEmpName"></span>
+      </div>
+      <div class="multi-select-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="multiEditAssignBtn">
+          Edit Selected
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="multiQuickOffBtn" title="Set selected cells to DAY OFF">
+          DAY OFF
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="multiQuickNoProjBtn" title="Set selected cells to NO PROJECT">
+          NO PROJECT
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="multiQuickClearBtn" title="Clear allocations on selected cells">
+          CLEAR/DELETE
+        </button>
+        <button type="button" class="btn-comment-toggle" id="multiCommentBtn" title="Add / edit comment for selected cells">(+)</button>
+        <button type="button" class="btn btn-ghost btn-sm multi-select-cancel" id="multiSelectCancelBtn" title="Cancel selection (Esc)">
+          Done
+        </button>
+      </div>
     </div>
-    <div class="multi-select-actions">
-      <button type="button" class="btn btn-primary btn-sm" id="multiEditAssignBtn">
-        Edit Selected
-      </button>
-      <button type="button" class="btn btn-secondary btn-sm" id="multiQuickOffBtn" title="Set selected cells to DAY OFF">
-        DAY OFF
-      </button>
-      <button type="button" class="btn btn-secondary btn-sm" id="multiQuickNoProjBtn" title="Set selected cells to NO PROJECT">
-        NO PROJECT
-      </button>
-      <button type="button" class="btn btn-secondary btn-sm" id="multiQuickClearBtn" title="Clear allocations on selected cells">
-        CLEAR/DELETE
-      </button>
-      <button type="button" class="btn btn-ghost btn-sm multi-select-cancel" id="multiSelectCancelBtn" title="Cancel selection (Esc)">
-        Done
-      </button>
+    <div class="multi-select-comment-drawer" id="multiSelectCommentDrawer" style="display:none;">
+      <div class="multi-comment-inner">
+        <input type="text" id="multiSelectCommentInput" class="form-control form-control-sm" placeholder="Add comment for all selected days..." maxlength="250">
+        <button type="button" class="btn btn-primary btn-xs" id="multiApplyCommentBtn">Apply Comment</button>
+      </div>
     </div>
   </div>
 
