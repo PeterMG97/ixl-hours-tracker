@@ -6234,11 +6234,11 @@ body.mobile-readonly-grid .emp-no-proj-badge,
     margin-bottom: 0 !important;
   }
   .welcome-mobile-train-wrap {
-    width: clamp(210px, 68vw, 290px) !important;
+    width: clamp(218px, 70.6vw, 301px) !important;
     margin-top: clamp(18px, 2.8vh, 28px) !important;
     position: relative !important;
     overflow: visible !important;
-    transform: translateX(12px) !important;
+    transform: translateX(6px) !important; /* Head stays in exact position while tail reaches under letter A */
   }
   .welcome-mobile-footer {
     position: absolute !important;
