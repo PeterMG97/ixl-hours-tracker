@@ -861,7 +861,8 @@ The project maintains 16 automated test suites (2,220+ assertions) executed with
 | `test_pc_bulk_clear_integrity.js` | 15 tests | Bulk fill clear action normalization, star immunity, Projects List direct chooser |
 | `test_pc_week_view.js` | 19 tests | Topbar Week/Month view toggler, visual parity, seamless category separators, Sunday-Saturday anchoring |
 | `test_activity_log_reset.js` | 9 tests | Edit History & Device Audit Log Reset button; state.history clearing, KPI zeroing, sync trigger |
-| `test_day_comments_integrity.js` | 15 tests | Day comments engine on PC single cell, multi-select, bulk range, and mobile editor; zero emojis |
+| `test_pc_comment_functionality.js` | 18 tests | Dedicated PC comment functionality: popover single cell, floating bar multi-select, bulk range, and glowing chip dot indicator |
+| `test_mobile_comment_functionality.js` | 13 tests | Dedicated Mobile comment functionality: single day fill, range fill, agenda row remarks, and row tap pre-population |
 | `test_device_directory_delete.js` | 10 tests | Device Directory select, multi-select checkboxes, single/bulk delete, KPI sync |
 | `test_dynamic_month_selection.js` | 8 tests | Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels |
 | `test_quick_pill_separation.js` | 6 tests | Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE |

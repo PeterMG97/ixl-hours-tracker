@@ -442,17 +442,29 @@ if (Test-Path $devDirectoryTestScript) {
 }
 Assert-Test "6.65 Device Directory Select, Multi-Select, and Delete Integrity" $devDirectoryPass "Dedicated test verifying selection, multi-select checkboxes, single/batch device deletion, KPI updates, and zero emojis"
 
-$dayCommentsTestScript = Join-Path $AppDir "test_day_comments_integrity.js"
-$dayCommentsPass = $false
-if (Test-Path $dayCommentsTestScript) {
+$pcCommentTestScript = Join-Path $AppDir "test_pc_comment_functionality.js"
+$pcCommentPass = $false
+if (Test-Path $pcCommentTestScript) {
     if (Test-Path $nodePath) {
-        $nodeDayCommOutput = & $nodePath $dayCommentsTestScript 2>&1
-        $dayCommentsPass = ($LASTEXITCODE -eq 0) -and ($nodeDayCommOutput -match "DAY COMMENTS TEST COMPLETE: \d+ PASSED, 0 FAILED")
+        $nodePcCommOutput = & $nodePath $pcCommentTestScript 2>&1
+        $pcCommentPass = ($LASTEXITCODE -eq 0) -and ($nodePcCommOutput -match "PC COMMENT FUNCTIONALITY COMPLETE: \d+ PASSED, 0 FAILED")
     } else {
-        $dayCommentsPass = ($jsContent.Contains("popoverCommentToggleBtn")) -and ($htmlContent.Contains("popoverCommentToggleBtn"))
+        $pcCommentPass = ($jsContent.Contains("popoverCommentToggleBtn")) -and ($htmlContent.Contains("popoverCommentToggleBtn"))
     }
 }
-Assert-Test "6.66 Day Comments Engine Integrity across Single Day, Multi-Select, Bulk Fill, and Mobile" $dayCommentsPass "Dedicated test verifying (+) comment option on PC single cell, multi-select, bulk range, and mobile editor"
+Assert-Test "6.66 PC Interface Day Comment Functionality Integrity" $pcCommentPass "Dedicated test verifying PC (+) comment toggle, popover single cell, floating bar multi-select, bulk range, and glowing chip dot indicator"
+
+$mobCommentTestScript = Join-Path $AppDir "test_mobile_comment_functionality.js"
+$mobCommentPass = $false
+if (Test-Path $mobCommentTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeMobCommOutput = & $nodePath $mobCommentTestScript 2>&1
+        $mobCommentPass = ($LASTEXITCODE -eq 0) -and ($nodeMobCommOutput -match "MOBILE COMMENT FUNCTIONALITY COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $mobCommentPass = ($jsContent.Contains("mobileCommentToggleBtn")) -and ($htmlContent.Contains("mobileCommentToggleBtn"))
+    }
+}
+Assert-Test "6.67 Mobile Interface Day Comment Functionality Integrity" $mobCommentPass "Dedicated test verifying Mobile (+) comment toggle, single-day fill, range fill, agenda row remarks, and row tap pre-population"
 
 
 
