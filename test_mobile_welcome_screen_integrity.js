@@ -97,19 +97,19 @@ console.log('\n>>> MODULE 3: Mobile Welcome Screen Dismissal & Anti-Trap Contrac
 test('3.1 initMobileWelcomeScreen registers passive touchstart event listener for mobile finger tap', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
   assert(fnIdx !== -1, 'initMobileWelcomeScreen function missing in app.js');
-  const fnBlock = js.substring(fnIdx, fnIdx + 1600);
+  const fnBlock = js.substring(fnIdx, fnIdx + 2500);
   assert(fnBlock.includes("overlay.addEventListener('touchstart', dismissWelcome, { passive: true })"), 'Missing touchstart listener with passive: true');
 });
 
 test('3.2 initMobileWelcomeScreen registers click event listener for mobile taps', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
-  const fnBlock = js.substring(fnIdx, fnIdx + 1600);
+  const fnBlock = js.substring(fnIdx, fnIdx + 2500);
   assert(fnBlock.includes("overlay.addEventListener('click', dismissWelcome)"), 'Missing click listener in initMobileWelcomeScreen');
 });
 
 test('3.3 10-second auto-dismissal timeout contract protects against untouched devices', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
-  const fnBlock = js.substring(fnIdx, fnIdx + 1600);
+  const fnBlock = js.substring(fnIdx, fnIdx + 2500);
   assert(fnBlock.includes('setTimeout'), 'Missing setTimeout in initMobileWelcomeScreen');
   assert(fnBlock.includes('10000'), 'Timeout must be 10000ms');
 });

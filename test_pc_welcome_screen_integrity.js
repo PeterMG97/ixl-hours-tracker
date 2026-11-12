@@ -154,7 +154,7 @@ test('3.2 10-second timer (10000ms) is strictly enforced in app.js', () => {
 
 test('3.3 On PC interface, click and keydown early dismissal is strictly locked out', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
-  const fnBlock = js.substring(fnIdx, fnIdx + 1800);
+  const fnBlock = js.substring(fnIdx, fnIdx + 2500);
   assert(fnBlock.includes('isMobileInterface()'), 'Missing isMobileInterface check');
   // Confirm that on PC, click does not call dismissWelcome
   assert(fnBlock.includes('e.stopPropagation()'), 'PC overlay must absorb click events without dismissing');

@@ -9806,10 +9806,14 @@
       }
     }
 
-    // Dynamically synchronize the app version to the PC welcome screen
+    // Dynamically synchronize the app version to the PC and Mobile welcome screens
     const versionEl = document.getElementById('welcomeAppVersion');
     if (versionEl) {
       versionEl.textContent = APP_VERSION;
+    }
+    const versionElMob = document.getElementById('welcomeAppVersionMobile');
+    if (versionElMob) {
+      versionElMob.textContent = APP_VERSION;
     }
 
     overlay.classList.remove('hidden', 'hidden-permanently');

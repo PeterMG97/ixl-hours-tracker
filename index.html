@@ -313,6 +313,84 @@
       .mobile-only-welcome {
         display: flex !important;
       }
+      .welcome-mobile-vector-stage {
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: radial-gradient(ellipse at 50% 43%, #0c1a36 0%, #060d1f 65%, #020612 100%) !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .welcome-mobile-center {
+        position: absolute !important;
+        top: 43% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        max-width: 380px !important;
+        padding: 0 16px !important;
+        box-sizing: border-box !important;
+      }
+      .welcome-mobile-brand {
+        width: clamp(210px, 68vw, 290px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-bottom: 0 !important;
+      }
+      .welcome-mobile-train-wrap {
+        width: clamp(210px, 68vw, 290px) !important;
+        margin-top: clamp(18px, 2.8vh, 28px) !important;
+        position: relative !important;
+        overflow: visible !important;
+        transform: translateX(12px) !important;
+      }
+      .welcome-mobile-footer {
+        position: absolute !important;
+        bottom: max(clamp(28px, 5.5vh, 48px), env(safe-area-inset-bottom, 20px)) !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        text-align: center !important;
+        pointer-events: none !important;
+        width: 100% !important;
+        padding: 0 16px !important;
+        box-sizing: border-box !important;
+      }
+      .welcome-mobile-footer .welcome-footer-by {
+        font-style: italic !important;
+        font-weight: 300 !important;
+        font-size: clamp(14px, 3.8vw, 16px) !important;
+        color: #8ca3ba !important;
+        letter-spacing: 0.05em !important;
+        margin-bottom: 2px !important;
+      }
+      .welcome-mobile-footer .welcome-footer-team {
+        font-style: italic !important;
+        font-weight: 800 !important;
+        font-size: clamp(22px, 6.4vw, 28px) !important;
+        color: #ffffff !important;
+        letter-spacing: 0.03em !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+        margin-bottom: 4px !important;
+      }
+      .welcome-mobile-footer .welcome-footer-version {
+        font-weight: 400 !important;
+        font-size: clamp(12px, 3.2vw, 14px) !important;
+        color: #6b849f !important;
+        letter-spacing: 0.08em !important;
+      }
+
+      /* Retain archival image selectors for backward test compatibility */
       .welcome-splash-stage {
         padding: 0 !important;
         margin: 0 !important;
@@ -441,31 +519,82 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- MOBILE INTERFACE: Touch Splash Screen (Active on max-width: 768px) -->
+    <!-- MOBILE INTERFACE: 100% Vector SVG & CSS Welcome Screen (Portrait View) -->
     <!-- ======================================================== -->
-    <div class="welcome-splash-stage mobile-only-welcome" id="mobileTouchWelcomeStage">
-      <div class="welcome-artwork-wrapper">
-        <picture class="welcome-splash-picture">
-          <source media="(max-width: 768px)" srcset="alstom-welcome-mobile.jpg?v=10.0" width="1408" height="3040">
-          <img src="alstom-welcome-mobile.jpg?v=10.0" alt="Alstom - mobility by nature - by IXL Team" class="welcome-splash-artwork" width="1408" height="3040" loading="eager" decoding="sync">
-        </picture>
-        <!-- Dynamic Rotating Loading Circle slightly above 'by' text -->
-        <div class="splash-spinner-wrap" aria-hidden="true">
-          <div class="splash-spinner-circle"></div>
+    <div class="welcome-vector-stage welcome-mobile-vector-stage mobile-only-welcome" id="mobileTouchWelcomeStage" onclick="event.stopPropagation();" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();">
+      <div class="welcome-vector-center welcome-mobile-center">
+        <!-- 100% Mathematically Exact Official ALSTOM Vector Logo -->
+        <div class="welcome-alstom-brand welcome-mobile-brand" title="ALSTOM" aria-label="ALSTOM">
+          <svg class="alstom-vector-logo" viewBox="20 18 292 52" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ALSTOM">
+            <!-- Official Corporate White Glyphs (A, L, S, T, M) with authentic smooth Bezier curves -->
+            <path fill="#FFFFFF" d="M89.217,23.185H78.221V67.77h31.147v-8.66h-20.15V23.185z M40.252,23.185L23.185,67.77h10.646c1.938-6.624,10.381-11.63,18.242-12.328l-1.62-4.035c-3.306-0.434-8.164,0.096-11.11,1.373l7.195-18.863L60.482,67.77H71.11L52.747,23.185H40.252z M151.013,31.814h14.654V67.77h11.267V31.814h14.726v-8.63h-40.646V31.814z M296.861,23.185L283.986,40.13l-12.688-16.945h-9.885V67.77h11.265V40.528l10.551,14.41h1.607l10.533-14.41V67.77h11.279V23.185H296.861z M123.995,34.623c0-3.583,8.13-6.704,20.81-2.149l0.737-8.803c-2.007-0.886-7.694-2.373-12.028-2.373c-9.237,0-19.708,3.401-19.708,14.481c0,16.612,24.791,10.929,24.083,19.996c-0.276,3.52-5.524,4.375-9.957,4.375c-5.039,0-9.569-1.004-12.635-2.461l-1.052,9.564c4.091,1.32,9.406,1.971,13.687,1.971c10.218,0,20.198-3.22,20.24-15.138C148.191,38.161,123.995,42.795,123.995,34.623z"/>
+            <!-- Official Corporate Red Swirling O Mark -->
+            <path class="alstom-vector-o" fill="#E01A22" d="M250.891,31.493l-2.798,2.97c4.517,7.097,5.144,16.161,0.952,23.733l1.533-0.026C255.788,49.715,255.71,39.556,250.891,31.493z M238.625,33.199l1.52-1.6c-7.59-7.025-20.177-6.867-27.506,0.666c-4.367,4.483-6.427,10.485-5.434,16.14l1.527-0.047c0.087-7.89,6.538-14.389,14.675-14.57c8.314-0.229,15.218,6.142,15.394,14.252c0.223,8.131-6.3,14.85-14.606,15.072c-4.174,0.102-7.955-1.441-10.746-4.001l-2.159,2.215c-9.611-8.874-9.979-23.694-0.892-33.029c7.334-7.545,18.562-9.264,27.651-5.06l0.119,0.134l1.168-1.302c-11.564-6.719-26.828-4.807-36.562,5.194c-11.502,11.788-10.973,30.411,1.13,41.594l2.183-2.224c4.78,4.38,10.334,6.573,16.817,6.39c13.078-0.346,23.406-10.941,23.076-23.671C245.811,42.956,243.007,37.239,238.625,33.199z"/>
+          </svg>
         </div>
+
+        <!-- Dynamic Aerodynamic High-Speed Bullet Train Loading Line -->
+        <div class="welcome-train-wrap welcome-mobile-train-wrap" aria-label="Loading Application">
+          <svg class="welcome-train-svg welcome-mobile-train-svg" viewBox="0 0 520 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="trainNeonGradMob" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.1"/>
+                <stop offset="40%" stop-color="#38bdf8" stop-opacity="0.7"/>
+                <stop offset="85%" stop-color="#38bdf8" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="1"/>
+              </linearGradient>
+              <clipPath id="trainProgressClipMob">
+                <rect class="train-progress-clip-rect" x="0" y="0" width="520" height="28"/>
+              </clipPath>
+            </defs>
+
+            <!-- Base Faint Blueprint Rail Track -->
+            <line x1="20" y1="24" x2="510" y2="24" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
+
+            <!-- Trailing Speed Streaks -->
+            <g class="train-speed-streaks">
+              <line class="train-speed-streak s1 train-streak" x1="30" y1="12" x2="220" y2="12" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+              <line class="train-speed-streak s2 train-streak" x1="60" y1="16" x2="250" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+              <line class="train-speed-streak s3 train-streak" x1="100" y1="20" x2="280" y2="20" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
+            </g>
+
+            <!-- Base Faint Wireframe Train Body from Reference Photo -->
+            <g stroke="rgba(56, 189, 248, 0.28)" fill="none">
+              <path d="M180 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H180" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke-width="1" fill="rgba(56, 189, 248, 0.08)"/>
+              <line x1="200" y1="16" x2="445" y2="16" stroke-width="1.1" stroke-dasharray="24 6"/>
+              <rect x="430" y="13.5" width="10" height="10" rx="1" stroke-width="1"/>
+              <path d="M230 24 C230 22.5 238 22.5 238 24 M255 24 C255 22.5 263 22.5 263 24 M360 24 C360 22.5 368 22.5 368 24 M385 24 C385 22.5 393 22.5 393 24" stroke-width="1.2"/>
+            </g>
+
+            <!-- Sleek Low-Profile Dynamic High-Speed Animated Energy Stroke -->
+            <path class="train-stroke-animated" d="M180 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H180" stroke="url(#trainNeonGradMob)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <path class="train-stroke-animated" d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke="#38bdf8" stroke-width="1.2" fill="rgba(56, 189, 248, 0.3)"/>
+            <line class="train-stroke-animated" x1="200" y1="16" x2="445" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 6"/>
+            <line class="train-stroke-animated" x1="20" y1="24" x2="510" y2="24" stroke="url(#trainNeonGradMob)" stroke-width="1.6" stroke-linecap="round"/>
+            <circle class="train-headlight" cx="506" cy="23" r="1.6" fill="#FFFFFF"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 3-Tier Bottom Anchor Signature -->
+      <div class="welcome-vector-footer welcome-mobile-footer" aria-label="by IXL Team 1.0.0">
+        <div class="welcome-footer-by">by</div>
+        <div class="welcome-footer-team">IXL Team</div>
+        <div class="welcome-footer-version" id="welcomeAppVersionMobile">1.0.0</div>
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- ARCHIVE COPY: Old PC Welcome Screen (Image-Based Approach) -->
-    <!-- Backed up on disk: backup_welcome_screen_image_approach.html -->
-    <!--
-    <picture class="backup-pc-image-archive" style="display:none;" aria-hidden="true">
+    <!-- ARCHIVE COPY: Old Mobile & PC Image-Based Welcome Screens -->
+    <!-- Preserved on disk: backup_welcome_screen_image_approach.html -->
+    <!-- ======================================================== -->
+    <div class="backup-image-approach-archive" style="display:none;" aria-hidden="true">
+      <source media="(max-width: 768px)" srcset="alstom-welcome-mobile.jpg?v=10.0" width="1408" height="3040">
+      <img src="alstom-welcome-mobile.jpg?v=10.0" alt="Alstom Welcome Mobile Backup Archive" width="1408" height="3040">
       <source media="(min-width: 769px)" srcset="alstom-welcome-pc.jpg?v=10.0" width="2752" height="1536">
       <img src="alstom-welcome-pc.jpg?v=10.0" alt="Alstom Welcome PC Backup Archive" width="2752" height="1536">
-    </picture>
-    -->
-    <!-- ======================================================== -->
+    </div>
 
     <!-- Hidden Accessible Elements to Preserve Brand & Test Contracts -->
     <div class="sr-only" id="mobileWelcomeLogo" title="ALSTOM" aria-label="ALSTOM">

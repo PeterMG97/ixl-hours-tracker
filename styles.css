@@ -6198,6 +6198,82 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   .mobile-only-welcome {
     display: flex !important;
   }
+  .welcome-mobile-vector-stage {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: radial-gradient(ellipse at 50% 43%, #0c1a36 0%, #060d1f 65%, #020612 100%) !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .welcome-mobile-center {
+    position: absolute !important;
+    top: 43% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+  }
+  .welcome-mobile-brand {
+    width: clamp(210px, 68vw, 290px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 0 !important;
+  }
+  .welcome-mobile-train-wrap {
+    width: clamp(210px, 68vw, 290px) !important;
+    margin-top: clamp(18px, 2.8vh, 28px) !important;
+    position: relative !important;
+    overflow: visible !important;
+    transform: translateX(12px) !important;
+  }
+  .welcome-mobile-footer {
+    position: absolute !important;
+    bottom: max(clamp(28px, 5.5vh, 48px), env(safe-area-inset-bottom, 20px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+    pointer-events: none !important;
+    width: 100% !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+  }
+  .welcome-mobile-footer .welcome-footer-by {
+    font-style: italic !important;
+    font-weight: 300 !important;
+    font-size: clamp(14px, 3.8vw, 16px) !important;
+    color: #8ca3ba !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 2px !important;
+  }
+  .welcome-mobile-footer .welcome-footer-team {
+    font-style: italic !important;
+    font-weight: 800 !important;
+    font-size: clamp(22px, 6.4vw, 28px) !important;
+    color: #ffffff !important;
+    letter-spacing: 0.03em !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+    margin-bottom: 4px !important;
+  }
+  .welcome-mobile-footer .welcome-footer-version {
+    font-weight: 400 !important;
+    font-size: clamp(12px, 3.2vw, 14px) !important;
+    color: #6b849f !important;
+    letter-spacing: 0.08em !important;
+  }
 }
 
 .welcome-splash-stage {
