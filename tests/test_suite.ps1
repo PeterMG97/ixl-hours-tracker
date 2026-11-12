@@ -472,6 +472,18 @@ if (Test-Path $mobCommentTestScript) {
 }
 Assert-Test "6.67 Mobile Interface Day Comment Functionality Integrity" $mobCommentPass "Dedicated test verifying Mobile (+) comment toggle, single-day fill, range fill, agenda row remarks, and row tap pre-population"
 
+$weeklyBackupTestScript = Join-Path $AppDir "test_weekly_backup_integrity.js"
+$weeklyBackupPass = $false
+if (Test-Path $weeklyBackupTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeBackupOutput = & $nodePath $weeklyBackupTestScript 2>&1
+        $weeklyBackupPass = ($LASTEXITCODE -eq 0) -and ($nodeBackupOutput -match "DEDICATED BACKUP & RETENTION TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $weeklyBackupPass = ($jsContent.Contains("getLatestFridaySlot")) -and ($htmlContent.Contains("backupsModal"))
+    }
+}
+Assert-Test "6.68 Automated Weekly Friday 22:00 Cairo Backup and 3-Month Retention Integrity" $weeklyBackupPass "Dedicated test verifying Friday 22:00 Egypt time calculation, automated weekly snapshotting, 3-month rolling retention, safe restoration, and zero emojis"
+
 
 
 

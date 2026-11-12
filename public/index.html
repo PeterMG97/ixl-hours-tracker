@@ -1780,42 +1780,6 @@
     </div>
   </div>
 
-  <!-- Change Admin Password Modal (Admin Only, requires current password + identical new passwords) -->
-  <div id="changePasswordModal" class="modal hidden">
-    <div class="modal-dialog modal-sm">
-      <div class="modal-header">
-        <h3>Change Admin Password</h3>
-        <button class="modal-close-icon modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="text-xs text-muted" style="margin-bottom: 14px; line-height: 1.4;">
-          Provide your current Admin Password, then enter your new password twice for confirmation.
-        </p>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">Current Password</label>
-          <input type="password" id="currentAdminPinInput" class="form-control" placeholder="Enter current password" autocomplete="current-password">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">New Password</label>
-          <input type="password" id="newAdminPinInput1" class="form-control" placeholder="Enter new password" autocomplete="new-password">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">Confirm New Password</label>
-          <input type="password" id="newAdminPinInput2" class="form-control" placeholder="Re-enter new password" autocomplete="new-password">
-        </div>
-
-        <div id="changePinErrorMsg" class="text-danger text-xs hidden" style="margin-top: 6px; font-weight: 500;"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary modal-close" id="cancelChangePinBtn">Cancel</button>
-        <button type="button" class="btn btn-primary" id="saveChangePinBtn">Update Password</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Employee Monthly Contributions Modal (Triggered by double-clicking employee name) -->
   <div id="employeeContributionsModal" class="modal hidden">
     <div class="modal-dialog modal-xl">
@@ -2412,6 +2376,135 @@
     </div>
   </div>
 
+  <!-- Data Backups & Recovery Modal (Admin Only) -->
+  <div id="backupsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="backupsModalTitle">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);">
+            <path d="M4 6c0 1.66 3.58 3 8 3s8-1.34 8-3-3.58-3-8-3-8 1.34-8 3z"></path>
+            <path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"></path>
+            <path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"></path>
+          </svg>
+          <div>
+            <h3 id="backupsModalTitle" style="margin:0; font-size:16px;">Data Backups &amp; Recovery</h3>
+            <span class="text-xs text-muted">Automated Friday 10:00 PM snapshots (Cairo time) &bull; Rolling 3-month retention &bull; 1-click restore</span>
+          </div>
+        </div>
+        <button class="modal-close" id="closeBackupsModalBtn" aria-label="Close Backups Modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- KPI Summary Strip -->
+        <div class="audit-history-kpis backups-kpis">
+          <div class="hist-kpi-card backup-kpi-card">
+            <span class="hist-kpi-label">Available Snapshots</span>
+            <strong class="hist-kpi-val" id="backupKpiCount">0</strong>
+            <span class="hist-kpi-sub" id="backupKpiCountSub">Last 3 months rolling</span>
+          </div>
+          <div class="hist-kpi-card backup-kpi-card">
+            <span class="hist-kpi-label">Latest Snapshot</span>
+            <strong class="hist-kpi-val" id="backupKpiLatest" style="font-size:13px; font-weight:700;">Never</strong>
+            <span class="hist-kpi-sub" id="backupKpiLatestSub">Cairo Time (UTC+2)</span>
+          </div>
+          <div class="hist-kpi-card backup-kpi-card">
+            <span class="hist-kpi-label">Next Scheduled Backup</span>
+            <strong class="hist-kpi-val text-primary" id="backupKpiNext" style="font-size:13px; font-weight:700;">Calculating...</strong>
+            <span class="hist-kpi-sub">Every Friday at 22:00</span>
+          </div>
+          <div class="hist-kpi-card backup-kpi-card alert-card">
+            <span class="hist-kpi-label">Retention Policy</span>
+            <strong class="hist-kpi-val" id="backupKpiRetention" style="font-size:13px; font-weight:700;">90 Days Active</strong>
+            <span class="hist-kpi-sub">&ge; 3 months auto-purged</span>
+          </div>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="hist-controls-bar" style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn btn-primary btn-sm" id="createManualBackupBtn" style="display:inline-flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Backup Now</span>
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="refreshBackupsBtn" title="Refresh snapshots list">
+              <span>Refresh</span>
+            </button>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="text" id="backupFilterInput" class="form-control form-control-sm" placeholder="Filter by date (DD/MM/YYYY)..." style="width:210px;">
+            <span class="text-xs text-muted" id="backupStatusBadge">Auto-sync active</span>
+          </div>
+        </div>
+
+        <!-- Snapshots Table -->
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+          <table class="table table-sm hist-table" id="backupsTable" style="margin-bottom:0; width:100%;">
+            <thead>
+              <tr style="background:var(--bg-secondary); position:sticky; top:0; z-index:2;">
+                <th style="min-width: 170px;">Date &amp; Time (Cairo)</th>
+                <th style="min-width: 130px;">Type</th>
+                <th style="min-width: 110px;">Logged Hours</th>
+                <th style="min-width: 110px;">Contributors</th>
+                <th style="min-width: 150px;">Retention Status</th>
+                <th style="min-width: 190px; text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="backupsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="text-xs text-muted">Weekly automatic backups run every Friday at 10:00 PM Egypt time. Snapshots older than 3 months (90 days) are automatically deleted to optimize storage.</span>
+        <button type="button" class="btn btn-secondary modal-close" id="closeBackupsModalFooterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety Restore Confirmation Modal -->
+  <div id="confirmRestoreModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmRestoreTitle">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.3);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3 id="confirmRestoreTitle" style="margin:0; font-size:15px; color:#ef4444;">Restore Database Confirmation</h3>
+        </div>
+        <button class="modal-close" id="cancelRestoreModalBtn" aria-label="Cancel Restore">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-sm" style="line-height:1.5; margin-bottom:12px;">
+          You are about to restore the system state to the snapshot taken on:
+          <strong id="restoreTargetDateDisplay" style="color:var(--primary); display:block; margin:6px 0; font-size:14px;">--</strong>
+        </p>
+        <div style="background:var(--bg-secondary); border-left:4px solid #ef4444; padding:10px 12px; border-radius:4px; margin-bottom:14px;">
+          <strong style="display:block; font-size:12px; margin-bottom:4px; color:var(--text-main);">Notice:</strong>
+          <span class="text-xs text-muted" style="line-height:1.4;">
+            All current allocations, recorded hours, and project lists will be reverted to this exact point in time.
+          </span>
+        </div>
+        <div style="background:rgba(16, 185, 129, 0.1); border-left:4px solid #10b981; padding:10px 12px; border-radius:4px;">
+          <strong style="display:block; font-size:12px; margin-bottom:4px; color:#10b981;">Safety Guarantee:</strong>
+          <span class="text-xs text-muted" style="line-height:1.4;">
+            A safety pre-restore backup of your current database will be saved automatically before rolling back, so zero data will be lost.
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelRestoreBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="executeRestoreBtn" style="background:#ef4444; border-color:#dc2626; color:#ffffff;">Confirm &amp; Restore Database</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings & Tools Expandable Side Drawer (Right Side) -->
   <div id="settingsSidebarOverlay" class="settings-drawer-overlay hidden"></div>
   <aside id="settingsSidebar" class="settings-drawer">
@@ -2547,6 +2640,15 @@
           <div class="action-card-text">
             <strong>History</strong>
             <span>Admin only &bull; Track all changes &amp; device IDs</span>
+          </div>
+          <span class="action-card-arrow">&rarr;</span>
+        </button>
+
+        <button class="settings-action-card admin-card hidden" id="openBackupsBtn">
+          <span class="action-card-icon" id="backupsIcon"></span>
+          <div class="action-card-text">
+            <strong>Data Backups &amp; Recovery</strong>
+            <span>Admin only &bull; Weekly snapshots &amp; restore</span>
           </div>
           <span class="action-card-arrow">&rarr;</span>
         </button>

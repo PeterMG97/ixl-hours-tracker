@@ -63,6 +63,44 @@ app.post('/api/save', (req, res) => {
     }
 });
 
+// Weekly & Manual Backups Directory with 90-day auto-purge
+const WEEKLY_BACKUPS_DIR = path.join(BACKUPS_DIR, 'weekly');
+if (!fs.existsSync(WEEKLY_BACKUPS_DIR)) {
+    fs.mkdirSync(WEEKLY_BACKUPS_DIR, { recursive: true });
+}
+
+// Save backup snapshot
+app.post('/api/save-backup', (req, res) => {
+    try {
+        const snapshot = req.body;
+        if (!snapshot || !snapshot.id) {
+            return res.status(400).json({ error: 'Invalid snapshot payload' });
+        }
+        const safeId = snapshot.id.replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const filePath = path.join(WEEKLY_BACKUPS_DIR, `${safeId}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(snapshot, null, 2), 'utf8');
+
+        // Auto-delete files older than 90 days (3 months)
+        const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+        const files = fs.readdirSync(WEEKLY_BACKUPS_DIR);
+        files.forEach(f => {
+            try {
+                const fp = path.join(WEEKLY_BACKUPS_DIR, f);
+                const stats = fs.statSync(fp);
+                if (stats.mtimeMs < cutoff) {
+                    fs.unlinkSync(fp);
+                    console.log(`[BACKUP CLEANUP] Removed expired backup: ${f}`);
+                }
+            } catch (e) {}
+        });
+
+        res.json({ status: 'ok', file: `${safeId}.json` });
+    } catch (err) {
+        console.error('Error saving backup file:', err);
+        res.status(500).json({ error: 'Failed to save backup file' });
+    }
+});
+
 // Forgot Admin Password - Sends directly to official Outlook email
 app.post('/api/forgot-password', (req, res) => {
     try {

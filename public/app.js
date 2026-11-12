@@ -353,6 +353,26 @@
     saveChangePinBtn: document.getElementById('saveChangePinBtn'),
     cancelChangePinBtn: document.getElementById('cancelChangePinBtn'),
 
+    // Data Backups & Recovery Modal (Admin Only)
+    openBackupsBtn: document.getElementById('openBackupsBtn'),
+    backupsModal: document.getElementById('backupsModal'),
+    closeBackupsModalBtn: document.getElementById('closeBackupsModalBtn'),
+    closeBackupsModalFooterBtn: document.getElementById('closeBackupsModalFooterBtn'),
+    backupKpiCount: document.getElementById('backupKpiCount'),
+    backupKpiLatest: document.getElementById('backupKpiLatest'),
+    backupKpiNext: document.getElementById('backupKpiNext'),
+    backupKpiRetention: document.getElementById('backupKpiRetention'),
+    createManualBackupBtn: document.getElementById('createManualBackupBtn'),
+    refreshBackupsBtn: document.getElementById('refreshBackupsBtn'),
+    backupFilterInput: document.getElementById('backupFilterInput'),
+    backupStatusBadge: document.getElementById('backupStatusBadge'),
+    backupsTableBody: document.getElementById('backupsTableBody'),
+    confirmRestoreModal: document.getElementById('confirmRestoreModal'),
+    cancelRestoreModalBtn: document.getElementById('cancelRestoreModalBtn'),
+    cancelRestoreBtn: document.getElementById('cancelRestoreBtn'),
+    executeRestoreBtn: document.getElementById('executeRestoreBtn'),
+    restoreTargetDateDisplay: document.getElementById('restoreTargetDateDisplay'),
+
     // Employee Monthly Contributions Modal
     employeeContributionsModal: document.getElementById('employeeContributionsModal'),
     contribAvatar: document.getElementById('contribAvatar'),
@@ -4858,6 +4878,7 @@
       if (el.adminToggleBtn) el.adminToggleBtn.classList.add('hidden');
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
       if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.add('hidden');
+      if (el.openBackupsBtn) el.openBackupsBtn.classList.add('hidden');
       if (el.topbarAdminIndicator) el.topbarAdminIndicator.classList.add('hidden');
       return;
     }
@@ -4888,6 +4909,7 @@
     if (state.isAdmin) {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.remove('hidden');
       if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.remove('hidden');
+      if (el.openBackupsBtn) el.openBackupsBtn.classList.remove('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Active (Click to Lock)';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Full management unlocked';
       if (el.adminIcon) el.adminIcon.textContent = '';
@@ -4895,6 +4917,7 @@
     } else {
       if (el.openChangePasswordBtn) el.openChangePasswordBtn.classList.add('hidden');
       if (el.openAuditHistoryBtn) el.openAuditHistoryBtn.classList.add('hidden');
+      if (el.openBackupsBtn) el.openBackupsBtn.classList.add('hidden');
       if (el.adminToggleLabel) el.adminToggleLabel.textContent = 'Admin Mode';
       if (el.adminToggleSub) el.adminToggleSub.textContent = 'Enter PIN to unlock admin actions';
       if (el.adminIcon) el.adminIcon.textContent = '';
@@ -8658,6 +8681,631 @@
     }
   }
 
+  // =========================================================================
+  // Data Backups & 3-Month Retention Engine (Friday 10:00 PM Egypt Time)
+  // =========================================================================
+
+  const BACKUP_CATALOG_KEY = 'ixl_backup_catalog_v1';
+  let _pendingRestoreSnapshot = null;
+  let _cachedSnapshots = [];
+
+  function getCairoTime(date = new Date()) {
+    try {
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Africa/Cairo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      const parts = formatter.formatToParts(date);
+      const getVal = (type) => (parts.find(p => p.type === type) || {}).value;
+      const year = parseInt(getVal('year'), 10);
+      const month = parseInt(getVal('month'), 10);
+      const day = parseInt(getVal('day'), 10);
+      const hour = parseInt(getVal('hour'), 10);
+      const minute = parseInt(getVal('minute'), 10);
+      const second = parseInt(getVal('second'), 10);
+      const dow = new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).getUTCDay();
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+      return { year, month, day, hour, minute, second, dayOfWeek: dow, dateStr, timeStr };
+    } catch (e) {
+      const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+      const cairoDate = new Date(utc + 2 * 3600000);
+      const year = cairoDate.getFullYear();
+      const month = cairoDate.getMonth() + 1;
+      const day = cairoDate.getDate();
+      const hour = cairoDate.getHours();
+      const minute = cairoDate.getMinutes();
+      const second = cairoDate.getSeconds();
+      const dow = cairoDate.getDay();
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+      return { year, month, day, hour, minute, second, dayOfWeek: dow, dateStr, timeStr };
+    }
+  }
+
+  function getLatestFridaySlot(cairo) {
+    const dow = cairo.dayOfWeek;
+    let daysBack = 0;
+    if (dow === 5) {
+      daysBack = (cairo.hour >= 22) ? 0 : 7;
+    } else if (dow === 6) {
+      daysBack = 1;
+    } else {
+      daysBack = (dow + 2) % 7;
+    }
+    const targetUtc = new Date(Date.UTC(cairo.year, cairo.month - 1, cairo.day - daysBack, 12, 0, 0));
+    const y = targetUtc.getUTCFullYear();
+    const m = String(targetUtc.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(targetUtc.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function getNextFridaySlot(cairo) {
+    const dow = cairo.dayOfWeek;
+    let daysForward = 0;
+    if (dow === 5) {
+      daysForward = (cairo.hour < 22) ? 0 : 7;
+    } else {
+      daysForward = (5 - dow + 7) % 7;
+    }
+    const targetUtc = new Date(Date.UTC(cairo.year, cairo.month - 1, cairo.day + daysForward, 12, 0, 0));
+    const y = targetUtc.getUTCFullYear();
+    const m = String(targetUtc.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(targetUtc.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function getStoredCatalog() {
+    try {
+      const raw = getStoredItem(BACKUP_CATALOG_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function setStoredCatalog(catalog) {
+    try {
+      setStoredItem(BACKUP_CATALOG_KEY, JSON.stringify(catalog));
+    } catch (e) {}
+  }
+
+  function extractDatabaseSnapshotPayload() {
+    return {
+      sections: JSON.parse(JSON.stringify(state.sections || [])),
+      employees: JSON.parse(JSON.stringify(state.employees || [])),
+      projects: JSON.parse(JSON.stringify(state.projects || [])),
+      statuses: JSON.parse(JSON.stringify(state.statuses || [])),
+      allocations: JSON.parse(JSON.stringify(state.allocations || {})),
+      adminPin: state.adminPin || 'IXL2026',
+      userStarredProjects: JSON.parse(JSON.stringify(state.userStarredProjects || {})),
+      history: JSON.parse(JSON.stringify(state.history || [])),
+      deviceProfiles: JSON.parse(JSON.stringify(state.deviceProfiles || {})),
+      deviceNames: JSON.parse(JSON.stringify(state.deviceNames || {}))
+    };
+  }
+
+  function computeTotalLoggedHoursFromAllocations(allocations) {
+    let sum = 0;
+    if (!allocations) return 0;
+    Object.keys(allocations).forEach(k => {
+      const a = allocations[k];
+      if (a && typeof a.hours === 'number' && a.project !== 'Day OFF' && a.project !== 'NO PROJECT' && a.project !== 'NO STATUS') {
+        sum += a.hours;
+      }
+    });
+    return parseFloat(sum.toFixed(1));
+  }
+
+  function computeContributorsCountFromAllocations(allocations) {
+    const empSet = new Set();
+    if (!allocations) return 0;
+    Object.keys(allocations).forEach(k => {
+      const a = allocations[k];
+      if (a && a.project && a.project !== 'Day OFF' && a.project !== 'NO PROJECT' && a.project !== 'NO STATUS') {
+        const lastUnderscore = k.lastIndexOf('_');
+        if (lastUnderscore !== -1) {
+          empSet.add(k.substring(0, lastUnderscore));
+        }
+      }
+    });
+    return empSet.size;
+  }
+
+  async function purgeExpiredSnapshots() {
+    const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const cutoff = now - THREE_MONTHS_MS;
+
+    let catalog = getStoredCatalog();
+    const toKeep = [];
+    const toDeleteIds = [];
+
+    catalog.forEach(item => {
+      const itemTime = new Date(item.createdAt || 0).getTime();
+      if (itemTime >= cutoff) {
+        toKeep.push(item);
+      } else {
+        toDeleteIds.push(item.id);
+      }
+    });
+
+    if (toDeleteIds.length > 0) {
+      setStoredCatalog(toKeep);
+      toDeleteIds.forEach(delId => removeStoredItem(`ixl_snapshot_data_${delId}`));
+
+      if (_firebaseAvailable && _db) {
+        for (const delId of toDeleteIds) {
+          try {
+            await _db.collection('backups').doc(delId).delete();
+          } catch (e) {
+            console.warn('Firestore snapshot delete notice:', e);
+          }
+        }
+      }
+    }
+  }
+
+  async function createSnapshot(type = 'manual', slotDate = null) {
+    const cairo = getCairoTime();
+    let snapshotId = '';
+    let label = '';
+
+    if (type === 'auto_weekly') {
+      const targetSlot = slotDate || getLatestFridaySlot(cairo);
+      snapshotId = `backup_weekly_${targetSlot}`;
+      label = `Weekly Friday Backup (${formatDateDMY(targetSlot)} 22:00)`;
+    } else if (type === 'safety_pre_restore') {
+      snapshotId = `backup_safety_pre_restore_${Date.now()}`;
+      label = `Safety Checkpoint (Pre-Restore ${cairo.dateStr} ${cairo.timeStr})`;
+    } else {
+      snapshotId = `backup_manual_${Date.now()}`;
+      label = `Manual Snapshot (${cairo.dateStr} ${cairo.timeStr})`;
+    }
+
+    const payload = extractDatabaseSnapshotPayload();
+    const totalHours = computeTotalLoggedHoursFromAllocations(payload.allocations);
+    const contributors = computeContributorsCountFromAllocations(payload.allocations);
+    const count = Object.keys(payload.allocations || {}).length;
+
+    const snapshot = {
+      id: snapshotId,
+      type: type,
+      label: label,
+      slotFridayDate: (type === 'auto_weekly') ? (slotDate || getLatestFridaySlot(cairo)) : null,
+      createdAt: new Date().toISOString(),
+      cairoTimestamp: `${cairo.dateStr} ${cairo.timeStr}`,
+      totalHours: totalHours,
+      allocationsCount: count,
+      employeesCount: contributors,
+      data: payload
+    };
+
+    let catalog = getStoredCatalog();
+    catalog = catalog.filter(b => b.id !== snapshotId);
+    catalog.unshift({
+      id: snapshot.id,
+      type: snapshot.type,
+      label: snapshot.label,
+      createdAt: snapshot.createdAt,
+      cairoTimestamp: snapshot.cairoTimestamp,
+      totalHours: snapshot.totalHours,
+      allocationsCount: snapshot.allocationsCount,
+      employeesCount: snapshot.employeesCount
+    });
+    setStoredCatalog(catalog);
+
+    try {
+      setStoredItem(`ixl_snapshot_data_${snapshotId}`, JSON.stringify(snapshot));
+    } catch (e) {}
+
+    if (_firebaseAvailable && _db) {
+      try {
+        const cleanSnap = JSON.parse(JSON.stringify(snapshot));
+        await _db.collection('backups').doc(snapshotId).set(cleanSnap);
+      } catch (fbErr) {
+        console.warn('Firestore snapshot write notice:', fbErr);
+      }
+    }
+
+    try {
+      fetch('/api/save-backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(snapshot)
+      }).catch(() => {});
+    } catch (e) {}
+
+    if (type !== 'safety_pre_restore') {
+      showToast(`Snapshot created: ${label}`);
+    }
+
+    if (el.backupsModal && !el.backupsModal.classList.contains('hidden')) {
+      renderBackupsList();
+    }
+
+    return snapshot;
+  }
+
+  async function checkAndTriggerWeeklyBackup() {
+    if (!state.employees || state.employees.length === 0) return;
+
+    const cairo = getCairoTime();
+    const latestFriday = getLatestFridaySlot(cairo);
+    const weeklyDocId = `backup_weekly_${latestFriday}`;
+
+    let catalog = getStoredCatalog();
+    let alreadyExists = catalog.some(b => b.id === weeklyDocId);
+
+    if (!alreadyExists && _firebaseAvailable && _db) {
+      try {
+        const docRef = _db.collection('backups').doc(weeklyDocId);
+        const snap = await docRef.get();
+        if (snap.exists) {
+          alreadyExists = true;
+          const d = snap.data();
+          catalog.unshift({
+            id: d.id,
+            type: d.type || 'auto_weekly',
+            label: d.label,
+            createdAt: d.createdAt,
+            cairoTimestamp: d.cairoTimestamp,
+            totalHours: d.totalHours,
+            allocationsCount: d.allocationsCount,
+            employeesCount: d.employeesCount
+          });
+          setStoredCatalog(catalog);
+        }
+      } catch (err) {
+        console.warn('Firestore backup check notice:', err);
+      }
+    }
+
+    if (!alreadyExists) {
+      await createSnapshot('auto_weekly', latestFriday);
+    }
+
+    await purgeExpiredSnapshots();
+  }
+
+  async function fetchSnapshotsList() {
+    let list = getStoredCatalog();
+
+    if (_firebaseAvailable && _db) {
+      try {
+        const querySnap = await _db.collection('backups').get();
+        if (querySnap && !querySnap.empty) {
+          const cloudItems = [];
+          querySnap.forEach(doc => {
+            const d = doc.data();
+            cloudItems.push({
+              id: d.id || doc.id,
+              type: d.type || 'auto_weekly',
+              label: d.label || doc.id,
+              createdAt: d.createdAt,
+              cairoTimestamp: d.cairoTimestamp,
+              totalHours: d.totalHours || 0,
+              allocationsCount: d.allocationsCount || 0,
+              employeesCount: d.employeesCount || 0
+            });
+          });
+          const map = new Map();
+          cloudItems.forEach(i => map.set(i.id, i));
+          list.forEach(i => {
+            if (!map.has(i.id)) map.set(i.id, i);
+          });
+          list = Array.from(map.values());
+          list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          setStoredCatalog(list);
+        }
+      } catch (err) {
+        console.warn('Firestore fetch snapshots notice:', err);
+      }
+    }
+
+    const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - THREE_MONTHS_MS;
+    list = list.filter(i => new Date(i.createdAt || 0).getTime() >= cutoff);
+
+    _cachedSnapshots = list;
+    return list;
+  }
+
+  async function getFullSnapshotData(id) {
+    try {
+      const cached = getStoredItem(`ixl_snapshot_data_${id}`);
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+
+    if (_firebaseAvailable && _db) {
+      try {
+        const docRef = _db.collection('backups').doc(id);
+        const snap = await docRef.get();
+        if (snap.exists) {
+          const d = snap.data();
+          try {
+            setStoredItem(`ixl_snapshot_data_${id}`, JSON.stringify(d));
+          } catch (e) {}
+          return d;
+        }
+      } catch (err) {
+        console.warn('Firestore snapshot fetch notice:', err);
+      }
+    }
+    return null;
+  }
+
+  async function downloadSnapshotJson(id) {
+    const snap = await getFullSnapshotData(id);
+    if (!snap) {
+      showToast('Could not find snapshot data to download.', 'warning');
+      return;
+    }
+    const jsonStr = JSON.stringify(snap, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `IXL_Hours_Tracker_${snap.id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 150);
+    showToast(`Downloaded ${snap.id}.json`);
+  }
+
+  async function promptRestoreSnapshot(id) {
+    const snap = await getFullSnapshotData(id);
+    if (!snap || !snap.data) {
+      showToast('Snapshot payload could not be loaded.', 'warning');
+      return;
+    }
+    _pendingRestoreSnapshot = snap;
+
+    if (el.restoreTargetDateDisplay) {
+      el.restoreTargetDateDisplay.textContent = `${snap.label || snap.id} (${snap.cairoTimestamp || ''})`;
+    }
+    if (el.confirmRestoreModal) {
+      el.confirmRestoreModal.classList.remove('hidden');
+    }
+  }
+
+  async function executeRestore() {
+    if (!_pendingRestoreSnapshot || !_pendingRestoreSnapshot.data) return;
+    const snap = _pendingRestoreSnapshot;
+
+    await createSnapshot('safety_pre_restore');
+
+    const d = snap.data;
+    applyData(d);
+
+    await syncToServer();
+
+    if (el.confirmRestoreModal) el.confirmRestoreModal.classList.add('hidden');
+    _pendingRestoreSnapshot = null;
+
+    renderSchedule();
+    updateAdminUI();
+    populateSectionDropdowns();
+    renderBackupsList();
+
+    showToast(`Database restored to ${snap.label || snap.id}. Safety checkpoint saved!`);
+  }
+
+  async function deleteSnapshot(id) {
+    if (!confirm('Are you sure you want to delete this backup snapshot?')) return;
+
+    let catalog = getStoredCatalog();
+    catalog = catalog.filter(s => s.id !== id);
+    setStoredCatalog(catalog);
+
+    removeStoredItem(`ixl_snapshot_data_${id}`);
+
+    if (_firebaseAvailable && _db) {
+      try {
+        await _db.collection('backups').doc(id).delete();
+      } catch (e) {
+        console.warn('Firestore snapshot delete notice:', e);
+      }
+    }
+
+    renderBackupsList();
+    showToast('Snapshot deleted.');
+  }
+
+  async function renderBackupsList() {
+    if (!el.backupsTableBody) return;
+    const filterText = (el.backupFilterInput ? el.backupFilterInput.value : '').trim().toLowerCase();
+
+    const snapshots = await fetchSnapshotsList();
+    const cairo = getCairoTime();
+    const nextFridayDate = getNextFridaySlot(cairo);
+
+    if (el.backupKpiCount) el.backupKpiCount.textContent = snapshots.length;
+    if (el.backupKpiLatest) {
+      if (snapshots.length > 0) {
+        const latest = snapshots[0];
+        el.backupKpiLatest.textContent = latest.cairoTimestamp || formatDateDMY((latest.createdAt || '').slice(0, 10));
+      } else {
+        el.backupKpiLatest.textContent = 'None yet';
+      }
+    }
+    if (el.backupKpiNext) {
+      el.backupKpiNext.textContent = `Fri, ${formatDateDMY(nextFridayDate)} 22:00`;
+    }
+    if (el.backupKpiRetention) {
+      el.backupKpiRetention.textContent = '90 Days Active';
+    }
+
+    const filtered = snapshots.filter(s => {
+      if (!filterText) return true;
+      const haystack = `${s.label} ${s.cairoTimestamp} ${s.type} ${formatDateDMY((s.createdAt || '').slice(0, 10))}`.toLowerCase();
+      return haystack.includes(filterText);
+    });
+
+    if (filtered.length === 0) {
+      el.backupsTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; padding:32px 16px; color:var(--text-muted);">
+            <div style="font-weight:600; margin-bottom:4px;">No Snapshots Found</div>
+            <div style="font-size:12px;">Automated backups occur every Friday at 22:00 Egypt time. You can also click "Backup Now" to create one immediately.</div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const now = Date.now();
+    let html = '';
+    filtered.forEach(s => {
+      let typeBadgeClass = 'badge-manual';
+      let typeLabel = 'Manual';
+      if (s.type === 'auto_weekly') {
+        typeBadgeClass = 'badge-weekly';
+        typeLabel = 'Weekly Auto';
+      } else if (s.type === 'safety_pre_restore') {
+        typeBadgeClass = 'badge-safety';
+        typeLabel = 'Safety Checkpoint';
+      }
+
+      const itemTime = new Date(s.createdAt || 0).getTime();
+      const ageDays = Math.max(0, Math.floor((now - itemTime) / 86400000));
+      const remainingDays = Math.max(0, 90 - ageDays);
+      const retentionText = remainingDays > 0 ? `Kept (${remainingDays} days left)` : 'Pending Purge';
+
+      const timeDisplay = s.cairoTimestamp || s.createdAt || '--';
+
+      html += `
+        <tr data-snapshot-id="${s.id}">
+          <td style="font-weight:600; font-size:12px;">${escapeHtml(timeDisplay)}</td>
+          <td><span class="backup-type-badge ${typeBadgeClass}">${typeLabel}</span></td>
+          <td style="font-size:12px;">${typeof s.totalHours === 'number' ? s.totalHours.toFixed(1) : '0.0'}h</td>
+          <td style="font-size:12px; color:var(--text-muted);">${s.employeesCount || 0} members</td>
+          <td style="font-size:11px; color:var(--text-muted);">${retentionText}</td>
+          <td style="text-align:right;">
+            <div class="backup-action-group">
+              <button type="button" class="backup-btn-action backup-btn-download" data-action="download" data-id="${s.id}" title="Download JSON file">Download</button>
+              <button type="button" class="backup-btn-action backup-btn-restore" data-action="restore" data-id="${s.id}" title="Restore database to this snapshot">Restore</button>
+              <button type="button" class="backup-btn-action backup-btn-delete" data-action="delete" data-id="${s.id}" title="Delete snapshot">&times;</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    el.backupsTableBody.innerHTML = html;
+  }
+
+  function openBackupsModal() {
+    if (!isCurrentUserPeter() || !state.isAdmin) {
+      showToast('Admin mode required to access Data Backups & Recovery.', 'warning');
+      return;
+    }
+    if (el.backupsModal) {
+      el.backupsModal.classList.remove('hidden');
+      renderBackupsList();
+    }
+  }
+
+  function closeBackupsModal() {
+    if (el.backupsModal) {
+      el.backupsModal.classList.add('hidden');
+    }
+  }
+
+  function initBackupsEngine() {
+    if (el.openBackupsBtn) {
+      el.openBackupsBtn.addEventListener('click', openBackupsModal);
+    }
+    if (el.closeBackupsModalBtn) {
+      el.closeBackupsModalBtn.addEventListener('click', closeBackupsModal);
+    }
+    if (el.closeBackupsModalFooterBtn) {
+      el.closeBackupsModalFooterBtn.addEventListener('click', closeBackupsModal);
+    }
+
+    if (el.createManualBackupBtn) {
+      el.createManualBackupBtn.addEventListener('click', async () => {
+        el.createManualBackupBtn.disabled = true;
+        try {
+          await createSnapshot('manual');
+        } finally {
+          el.createManualBackupBtn.disabled = false;
+        }
+      });
+    }
+
+    if (el.refreshBackupsBtn) {
+      el.refreshBackupsBtn.addEventListener('click', () => {
+        renderBackupsList();
+        showToast('Backups list refreshed.');
+      });
+    }
+
+    if (el.backupFilterInput) {
+      el.backupFilterInput.addEventListener('input', () => {
+        renderBackupsList();
+      });
+    }
+
+    if (el.backupsTableBody) {
+      el.backupsTableBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+
+        if (action === 'download') {
+          downloadSnapshotJson(id);
+        } else if (action === 'restore') {
+          promptRestoreSnapshot(id);
+        } else if (action === 'delete') {
+          deleteSnapshot(id);
+        }
+      });
+    }
+
+    if (el.cancelRestoreModalBtn) {
+      el.cancelRestoreModalBtn.addEventListener('click', () => {
+        if (el.confirmRestoreModal) el.confirmRestoreModal.classList.add('hidden');
+        _pendingRestoreSnapshot = null;
+      });
+    }
+    if (el.cancelRestoreBtn) {
+      el.cancelRestoreBtn.addEventListener('click', () => {
+        if (el.confirmRestoreModal) el.confirmRestoreModal.classList.add('hidden');
+        _pendingRestoreSnapshot = null;
+      });
+    }
+    if (el.executeRestoreBtn) {
+      el.executeRestoreBtn.addEventListener('click', async () => {
+        el.executeRestoreBtn.disabled = true;
+        try {
+          await executeRestore();
+        } finally {
+          el.executeRestoreBtn.disabled = false;
+        }
+      });
+    }
+
+    setTimeout(() => {
+      checkAndTriggerWeeklyBackup();
+    }, 3000);
+
+    setInterval(() => {
+      checkAndTriggerWeeklyBackup();
+    }, 60000);
+  }
+
   // -------------------------------------------------------------
   // Dedicated Mobile Interface & Logic
   // -------------------------------------------------------------
@@ -9885,6 +10533,7 @@
   initDmyDateInputs();
   initAuditEvents();
   initAuditHistory();
+  initBackupsEngine();
   loadData();
 
 })();
