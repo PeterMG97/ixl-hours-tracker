@@ -323,6 +323,12 @@
     histResetFiltersBtn: document.getElementById('histResetFiltersBtn'),
     histLogTableBody: document.getElementById('histLogTableBody'),
     histDevicesTableBody: document.getElementById('histDevicesTableBody'),
+    histDeviceSearchInput: document.getElementById('histDeviceSearchInput'),
+    histDeviceSelectAll: document.getElementById('histDeviceSelectAll'),
+    histDeviceSelectionBadge: document.getElementById('histDeviceSelectionBadge'),
+    histSelectAllDevicesBtn: document.getElementById('histSelectAllDevicesBtn'),
+    histDeselectAllDevicesBtn: document.getElementById('histDeselectAllDevicesBtn'),
+    histDeleteDevicesBtn: document.getElementById('histDeleteDevicesBtn'),
     histKpiTotal: document.getElementById('histKpiTotal'),
     histKpiDevices: document.getElementById('histKpiDevices'),
     histKpiProfiles: document.getElementById('histKpiProfiles'),
@@ -777,7 +783,8 @@
         setStoredItem('ixl_user_starred_projects', JSON.stringify(state.userStarredProjects));
       } catch (e) {}
     }
-    if (!state.deviceProfiles['dev_2b155b6f80fd']) {
+    if (!data.deviceProfiles) {
+      state.deviceProfiles = {};
       state.deviceProfiles['dev_2b155b6f80fd'] = {
         deviceId: 'dev_2b155b6f80fd',
         deviceName: 'PeterWorkPC',
@@ -789,9 +796,14 @@
         totalEdits: 1
       };
     } else {
-      state.deviceProfiles['dev_2b155b6f80fd'].deviceName = 'PeterWorkPC';
-      if (!state.deviceProfiles['dev_2b155b6f80fd'].primaryUser || state.deviceProfiles['dev_2b155b6f80fd'].primaryUser === 'Unknown') {
-        state.deviceProfiles['dev_2b155b6f80fd'].primaryUser = 'Peter MOUNIR';
+      state.deviceProfiles = data.deviceProfiles;
+      if (state.deviceProfiles['dev_2b155b6f80fd']) {
+        if (!state.deviceProfiles['dev_2b155b6f80fd'].deviceName) {
+          state.deviceProfiles['dev_2b155b6f80fd'].deviceName = 'PeterWorkPC';
+        }
+        if (!state.deviceProfiles['dev_2b155b6f80fd'].primaryUser || state.deviceProfiles['dev_2b155b6f80fd'].primaryUser === 'Unknown') {
+          state.deviceProfiles['dev_2b155b6f80fd'].primaryUser = 'Peter MOUNIR';
+        }
       }
     }
 
@@ -7922,11 +7934,77 @@
       .replace(/'/g, '&#039;');
   }
 
+  const _selectedDeviceIds = new Set();
+
+  function updateDeviceSelectionControls(selectedCount, totalCount) {
+    if (el.histDeviceSelectionBadge) {
+      if (selectedCount > 0) {
+        el.histDeviceSelectionBadge.textContent = `${selectedCount} selected`;
+        el.histDeviceSelectionBadge.style.display = 'inline-flex';
+      } else {
+        el.histDeviceSelectionBadge.style.display = 'none';
+      }
+    }
+    if (el.histDeleteDevicesBtn) {
+      if (selectedCount > 0) {
+        el.histDeleteDevicesBtn.disabled = false;
+        el.histDeleteDevicesBtn.textContent = `Delete Selected (${selectedCount})`;
+        el.histDeleteDevicesBtn.style.opacity = '1';
+        el.histDeleteDevicesBtn.style.pointerEvents = 'auto';
+      } else {
+        el.histDeleteDevicesBtn.disabled = true;
+        el.histDeleteDevicesBtn.textContent = 'Delete Selected';
+        el.histDeleteDevicesBtn.style.opacity = '0.45';
+        el.histDeleteDevicesBtn.style.pointerEvents = 'none';
+      }
+    }
+    if (el.histDeselectAllDevicesBtn) {
+      el.histDeselectAllDevicesBtn.style.display = selectedCount > 0 ? 'inline-block' : 'none';
+    }
+  }
+
+  function deleteDevices(deviceIds) {
+    if (!deviceIds || deviceIds.length === 0) {
+      showToast('No devices selected for deletion', 'warning');
+      return false;
+    }
+    const count = deviceIds.length;
+    let confirmPrompt = '';
+    if (count === 1) {
+      const devId = deviceIds[0];
+      const devName = getDeviceName(devId) || devId;
+      confirmPrompt = `Are you sure you want to delete device "${devName}" from the Device Directory?`;
+    } else {
+      confirmPrompt = `Are you sure you want to delete ${count} selected devices from the Device Directory?`;
+    }
+
+    if (!confirm(confirmPrompt)) {
+      return false;
+    }
+
+    state.deviceProfiles = state.deviceProfiles || {};
+    state.deviceNames = state.deviceNames || {};
+
+    deviceIds.forEach(id => {
+      delete state.deviceProfiles[id];
+      if (state.deviceNames[id]) {
+        delete state.deviceNames[id];
+      }
+      _selectedDeviceIds.delete(id);
+    });
+
+    syncToServer();
+    renderAuditHistoryData();
+    showToast(count === 1 ? 'Device deleted successfully' : `${count} devices deleted successfully`);
+    return true;
+  }
+
   function openAuditHistoryModal() {
     if (!state.isAdmin) {
       showToast('Permission denied: Admin only', 'warning');
       return;
     }
+    _selectedDeviceIds.clear();
     openModal(el.auditHistoryModal);
     try {
       populateHistProfileDropdown();
@@ -8057,18 +8135,49 @@
 
     // 3. Render Tab 2: Device Directory
     if (el.histDevicesTableBody) {
-      const devList = Object.values(deviceProfiles).sort((a, b) => (b.totalEdits || 0) - (a.totalEdits || 0));
+      let devList = Object.values(deviceProfiles).sort((a, b) => (b.totalEdits || 0) - (a.totalEdits || 0));
+
+      const devSearchQuery = (el.histDeviceSearchInput && el.histDeviceSearchInput.value || '').trim().toLowerCase();
+      if (devSearchQuery) {
+        devList = devList.filter(dev => {
+          const devName = (getDeviceName(dev.deviceId) || '').toLowerCase();
+          const devId = (dev.deviceId || '').toLowerCase();
+          const owner = (dev.primaryUser || '').toLowerCase();
+          const info = (dev.deviceInfo || '').toLowerCase();
+          const logins = Object.keys(dev.userCounts || {}).join(' ').toLowerCase();
+          return devName.includes(devSearchQuery) || devId.includes(devSearchQuery) || owner.includes(devSearchQuery) || info.includes(devSearchQuery) || logins.includes(devSearchQuery);
+        });
+      }
 
       if (devList.length === 0) {
+        const noDevMsg = Object.keys(deviceProfiles).length === 0
+          ? 'No device fingerprints recorded yet. Devices are mapped automatically as edits are made.'
+          : 'No devices found matching your search filter.';
         el.histDevicesTableBody.innerHTML = `
           <tr>
-            <td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">
-              No device fingerprints recorded yet. Devices are mapped automatically as edits are made.
+            <td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">
+              ${noDevMsg}
             </td>
           </tr>
         `;
+        if (el.histDeviceSelectAll) {
+          el.histDeviceSelectAll.checked = false;
+          el.histDeviceSelectAll.disabled = true;
+          el.histDeviceSelectAll.indeterminate = false;
+        }
+        updateDeviceSelectionControls(0, 0);
       } else {
+        if (el.histDeviceSelectAll) {
+          el.histDeviceSelectAll.disabled = false;
+          const allSelected = devList.length > 0 && devList.every(d => _selectedDeviceIds.has(d.deviceId));
+          const someSelected = devList.some(d => _selectedDeviceIds.has(d.deviceId));
+          el.histDeviceSelectAll.checked = allSelected;
+          el.histDeviceSelectAll.indeterminate = someSelected && !allSelected;
+        }
+        updateDeviceSelectionControls(_selectedDeviceIds.size, devList.length);
+
         el.histDevicesTableBody.innerHTML = devList.map(dev => {
+          const isSelected = _selectedDeviceIds.has(dev.deviceId);
           const userCounts = dev.userCounts || {};
           const loginsSummary = Object.keys(userCounts).map(u => `${u} (${userCounts[u]}x)`).join(', ') || '-';
           const firstSeenStr = dev.firstSeen ? formatTimestampDMY(dev.firstSeen) : '-';
@@ -8078,14 +8187,20 @@
           const primaryUserDisplay = dev.primaryUser || (dev.deviceId === 'dev_2b155b6f80fd' ? 'Peter MOUNIR' : 'Unmapped');
 
           return `
-            <tr>
+            <tr class="${isSelected ? 'selected-device-row' : ''}" data-device-id="${escapeHtml(dev.deviceId)}" style="cursor:pointer;">
+              <td style="text-align:center; vertical-align:middle; padding:6px 4px;">
+                <input type="checkbox" class="hist-device-checkbox" data-device-id="${escapeHtml(dev.deviceId)}" ${isSelected ? 'checked' : ''} style="cursor:pointer;">
+              </td>
               <td>
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
                   <div>
                     ${devFriendlyName ? `<strong style="font-size:12px; color:var(--primary); display:block;">${escapeHtml(devFriendlyName)}</strong>` : ''}
                     <span class="hist-device-badge" style="font-size:10px;">${escapeHtml(dev.deviceId)}</span>
                   </div>
-                  <button type="button" class="btn btn-xs btn-outline-secondary btn-rename-device" data-device-id="${escapeHtml(dev.deviceId)}" title="Rename device" style="font-size:10px; padding:2px 6px; white-space:nowrap;">Rename</button>
+                  <div style="display:flex; align-items:center; gap:4px;">
+                    <button type="button" class="btn btn-xs btn-outline-secondary btn-rename-device" data-device-id="${escapeHtml(dev.deviceId)}" title="Rename device" style="font-size:10px; padding:2px 6px; white-space:nowrap;">Rename</button>
+                    <button type="button" class="btn btn-xs btn-outline-danger btn-delete-device" data-device-id="${escapeHtml(dev.deviceId)}" title="Delete device" style="font-size:10px; padding:2px 6px; white-space:nowrap;">Delete</button>
+                  </div>
                 </div>
               </td>
               <td>
@@ -8100,6 +8215,56 @@
           `;
         }).join('');
 
+        // Wire up row click & checkbox selection
+        el.histDevicesTableBody.querySelectorAll('tr[data-device-id]').forEach(row => {
+          const devId = row.getAttribute('data-device-id');
+          if (!devId) return;
+          const chk = row.querySelector('.hist-device-checkbox');
+
+          if (chk) {
+            chk.addEventListener('click', (e) => {
+              e.stopPropagation();
+            });
+            chk.addEventListener('change', () => {
+              if (chk.checked) {
+                _selectedDeviceIds.add(devId);
+                row.classList.add('selected-device-row');
+              } else {
+                _selectedDeviceIds.delete(devId);
+                row.classList.remove('selected-device-row');
+              }
+              const allSelected = devList.length > 0 && devList.every(d => _selectedDeviceIds.has(d.deviceId));
+              const someSelected = devList.some(d => _selectedDeviceIds.has(d.deviceId));
+              if (el.histDeviceSelectAll) {
+                el.histDeviceSelectAll.checked = allSelected;
+                el.histDeviceSelectAll.indeterminate = someSelected && !allSelected;
+              }
+              updateDeviceSelectionControls(_selectedDeviceIds.size, devList.length);
+            });
+          }
+
+          row.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('.hist-device-checkbox')) return;
+            if (_selectedDeviceIds.has(devId)) {
+              _selectedDeviceIds.delete(devId);
+              if (chk) chk.checked = false;
+              row.classList.remove('selected-device-row');
+            } else {
+              _selectedDeviceIds.add(devId);
+              if (chk) chk.checked = true;
+              row.classList.add('selected-device-row');
+            }
+            const allSelected = devList.length > 0 && devList.every(d => _selectedDeviceIds.has(d.deviceId));
+            const someSelected = devList.some(d => _selectedDeviceIds.has(d.deviceId));
+            if (el.histDeviceSelectAll) {
+              el.histDeviceSelectAll.checked = allSelected;
+              el.histDeviceSelectAll.indeterminate = someSelected && !allSelected;
+            }
+            updateDeviceSelectionControls(_selectedDeviceIds.size, devList.length);
+          });
+        });
+
+        // Wire up Rename buttons
         el.histDevicesTableBody.querySelectorAll('.btn-rename-device').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -8110,6 +8275,16 @@
             if (newName !== null) {
               setDeviceFriendlyName(devId, newName.trim());
             }
+          });
+        });
+
+        // Wire up Single Delete buttons
+        el.histDevicesTableBody.querySelectorAll('.btn-delete-device').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const devId = btn.getAttribute('data-device-id');
+            if (!devId) return;
+            deleteDevices([devId]);
           });
         });
       }
@@ -8216,6 +8391,47 @@
     }
     if (el.histCrossOnlyCheck) {
       el.histCrossOnlyCheck.addEventListener('change', () => renderAuditHistoryData());
+    }
+
+    // Device Directory Search & Multi-Selection Controls
+    if (el.histDeviceSearchInput) {
+      el.histDeviceSearchInput.addEventListener('input', () => {
+        renderAuditHistoryData();
+      });
+    }
+
+    if (el.histDeviceSelectAll) {
+      el.histDeviceSelectAll.addEventListener('change', () => {
+        const devList = Object.values(state.deviceProfiles || {});
+        if (el.histDeviceSelectAll.checked) {
+          devList.forEach(d => _selectedDeviceIds.add(d.deviceId));
+        } else {
+          devList.forEach(d => _selectedDeviceIds.delete(d.deviceId));
+        }
+        renderAuditHistoryData();
+      });
+    }
+
+    if (el.histSelectAllDevicesBtn) {
+      el.histSelectAllDevicesBtn.addEventListener('click', () => {
+        const devList = Object.values(state.deviceProfiles || {});
+        devList.forEach(d => _selectedDeviceIds.add(d.deviceId));
+        renderAuditHistoryData();
+      });
+    }
+
+    if (el.histDeselectAllDevicesBtn) {
+      el.histDeselectAllDevicesBtn.addEventListener('click', () => {
+        _selectedDeviceIds.clear();
+        renderAuditHistoryData();
+      });
+    }
+
+    if (el.histDeleteDevicesBtn) {
+      el.histDeleteDevicesBtn.addEventListener('click', () => {
+        if (_selectedDeviceIds.size === 0) return;
+        deleteDevices(Array.from(_selectedDeviceIds));
+      });
     }
   function clearActivityLog() {
     if (!state.history || state.history.length === 0) {

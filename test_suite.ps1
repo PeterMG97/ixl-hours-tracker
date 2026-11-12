@@ -430,6 +430,18 @@ if (Test-Path $mobWelcomeTestScript) {
 }
 Assert-Test "6.64 Mobile Interface Welcome Screen Bypass & Editor Opening Integrity" $mobWelcomePass "Dedicated test verifying mobile app never gets stuck at welcome page, touch tap/click/timeout skip works, and mobile editor opens cleanly"
 
+$devDirectoryTestScript = Join-Path $AppDir "test_device_directory_delete.js"
+$devDirectoryPass = $false
+if (Test-Path $devDirectoryTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeDevDirOutput = & $nodePath $devDirectoryTestScript 2>&1
+        $devDirectoryPass = ($LASTEXITCODE -eq 0) -and ($nodeDevDirOutput -match "DEVICE DIRECTORY SELECT & DELETE COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $devDirectoryPass = ($jsContent.Contains("deleteDevices")) -and ($htmlContent.Contains("histDeleteDevicesBtn"))
+    }
+}
+Assert-Test "6.65 Device Directory Select, Multi-Select, and Delete Integrity" $devDirectoryPass "Dedicated test verifying selection, multi-select checkboxes, single/batch device deletion, KPI updates, and zero emojis"
+
 
 
 

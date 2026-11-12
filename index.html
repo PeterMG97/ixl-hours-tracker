@@ -1955,11 +1955,25 @@
 
         <!-- Tab 2: Device Directory Content -->
         <div id="histDevicesTabContent" class="hist-tab-pane hidden">
-          <div class="audit-table-wrapper" style="max-height: 480px; overflow: auto;">
+          <!-- Device Actions & Search Bar -->
+          <div class="hist-filters-bar hist-devices-bar">
+            <input type="text" id="histDeviceSearchInput" class="form-input hist-search-input" placeholder="Search devices by name, ID, owner, or platform...">
+            <div class="hist-device-selection-controls">
+              <span id="histDeviceSelectionBadge" class="hist-selection-badge" style="display:none;">0 selected</span>
+              <button type="button" class="btn btn-xs btn-outline-secondary" id="histSelectAllDevicesBtn" title="Select All Devices">Select All</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" id="histDeselectAllDevicesBtn" title="Deselect All Devices" style="display:none;">Deselect All</button>
+              <button type="button" class="btn btn-xs btn-danger" id="histDeleteDevicesBtn" title="Delete selected devices" disabled>Delete Selected</button>
+            </div>
+          </div>
+
+          <div class="audit-table-wrapper" style="max-height: 440px; overflow: auto;">
             <table class="audit-table hist-devices-table">
               <thead>
                 <tr>
-                  <th style="min-width: 130px;">Device ID</th>
+                  <th style="width: 40px; text-align: center; padding: 6px 4px;">
+                    <input type="checkbox" id="histDeviceSelectAll" title="Select All Devices">
+                  </th>
+                  <th style="min-width: 140px;">Device ID</th>
                   <th style="min-width: 160px;">Primary Detected Owner</th>
                   <th>Known Profile Logins</th>
                   <th style="min-width: 170px;">Hardware / Platform</th>

@@ -118,6 +118,7 @@ C:\Users\511878\Desktop\Working\Hours APP
     ├── test_cell_click_hold_sequence.js # PC standing vs hold-to-multiselect sequence (77 tests)
     ├── test_pc_week_view.js             # PC Week & Month visual parity & week navigation (19 tests)
     ├── test_activity_log_reset.js       # Activity Log reset button & audit log clearing (9 tests)
+    ├── test_device_directory_delete.js  # Device Directory select, multi-select & delete (10 tests)
     ├── test_mobile_welcome_screen_integrity.js # Dedicated mobile opening & welcome bypass (31 tests)
     ├── test_pc_welcome_screen_integrity.js # Dedicated PC opening & welcome bypass (30 tests)
     ├── test_mobile_view_only_integrity.js # Mobile read-only protection & defense (27 tests)
@@ -636,6 +637,20 @@ To monitor cross-profile edits and detect unauthorized machine sharing:
    - Screen resolution & pixel ratio.
 3. The Device Directory (`#histDevicesTabContent`) tallies total edits, primary detected owner, known logins, first seen timestamp, and last active timestamp per hardware device.
 
+### 9.4 Device Directory Selection & Deletion Engine
+To allow administrators to prune obsolete, duplicate, or decommissioned hardware records from the audit trail:
+1. **Interactive Multi-Selection Interface**:
+   - Master checkbox (`#histDeviceSelectAll`) in the table header allows selecting all visible devices with one click.
+   - Individual checkboxes (`.hist-device-checkbox`) on each device row enable multi-selection with row highlight (`.selected-device-row`).
+   - Action controls provide instant "Select All", "Deselect All", and live selection count badge (`#histDeviceSelectionBadge`).
+   - Quick search input (`#histDeviceSearchInput`) filters devices by friendly name, hardware ID, detected owner, platform, or login history.
+2. **Deletion & State Synchronization (`deleteDevices`)**:
+   - Prompts confirmation specifying the device name (single delete) or selected count (bulk delete).
+   - Purges targets from `state.deviceProfiles` and `state.deviceNames`.
+   - Automatically recalculates directory KPIs (`UNIQUE DEVICES`, `IDENTIFIED PROFILES`).
+   - Persists changes immediately to cloud storage via `syncToServer()`.
+   - Each row also provides a direct single-click "Delete" button (`.btn-delete-device`) beside the "Rename" action.
+
 ### 9.2 Audit Log Event Data Structure
 Every administrative or schedule change appends an immutable event record:
 ```json
@@ -815,6 +830,7 @@ The project maintains 16 automated test suites (2,220+ assertions) executed with
 | `test_pc_bulk_clear_integrity.js` | 15 tests | Bulk fill clear action normalization, star immunity, Projects List direct chooser |
 | `test_pc_week_view.js` | 19 tests | Topbar Week/Month view toggler, visual parity, seamless category separators, Sunday-Saturday anchoring |
 | `test_activity_log_reset.js` | 9 tests | Edit History & Device Audit Log Reset button; state.history clearing, KPI zeroing, sync trigger |
+| `test_device_directory_delete.js` | 10 tests | Device Directory select, multi-select checkboxes, single/bulk delete, KPI sync |
 | `test_dynamic_month_selection.js` | 8 tests | Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels |
 | `test_quick_pill_separation.js` | 6 tests | Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE |
 

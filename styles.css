@@ -4328,6 +4328,90 @@ body.view-only .task-chip {
   color: #f1f5f9;
 }
 
+/* Device Directory Multi-Select & Delete Styling */
+.hist-devices-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.hist-device-selection-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hist-selection-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(14, 165, 233, 0.12);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  font-family: var(--font-mono, monospace);
+}
+
+[data-theme="dark"] .hist-selection-badge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.audit-table tr.selected-device-row {
+  background: rgba(14, 165, 233, 0.08) !important;
+}
+
+[data-theme="dark"] .audit-table tr.selected-device-row {
+  background: rgba(56, 189, 248, 0.12) !important;
+}
+
+.btn-delete-device {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  background: transparent !important;
+  transition: all 0.15s ease;
+}
+
+.btn-delete-device:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+}
+
+#histDeleteDevicesBtn {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+#histDeleteDevicesBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+#histDeleteDevicesBtn:not(:disabled):hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.hist-device-checkbox, #histDeviceSelectAll {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #0284c7;
+  margin: 0;
+  vertical-align: middle;
+}
+
 /* -------------------------------------------------------------
    Mobile & Small Screen Ergonomic Layout Engine
    ------------------------------------------------------------- */
