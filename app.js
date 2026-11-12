@@ -1229,17 +1229,17 @@
 
   function getCompactLabel(projectName) {
     if (!projectName) return '';
-    if (projectName === 'Day OFF') return (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Day OFF' : 'OFF';
+    if (projectName === 'Day OFF') return !isMobileInterface() ? 'Day OFF' : 'OFF';
     if (projectName === 'Different Team Support') return 'Support';
-    if (projectName === 'NO PROJECT') return (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'NO PROJECT' : 'NO PROJ';
+    if (projectName === 'NO PROJECT') return !isMobileInterface() ? 'NO PROJECT' : 'NO PROJ';
     let clean = projectName
       .replace(/^Project - /, '')
       .replace(/^GP - /, 'GP: ')
-      .replace(/^Tender - /, (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Tender: ' : 'T: ')
-      .replace(/^Training - /, (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Training: ' : 'Tr: ')
-      .replace(/^Academy - /, (state.scheduleViewMode === 'week' && !isMobileInterface()) ? 'Academy: ' : 'Acad: ');
+      .replace(/^Tender - /, !isMobileInterface() ? 'Tender: ' : 'T: ')
+      .replace(/^Training - /, !isMobileInterface() ? 'Training: ' : 'Tr: ')
+      .replace(/^Academy - /, !isMobileInterface() ? 'Academy: ' : 'Acad: ');
     
-    if (state.scheduleViewMode === 'week' && !isMobileInterface()) {
+    if (!isMobileInterface()) {
       return clean;
     }
     const colWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--day-col-width')) || 48;
@@ -1263,8 +1263,14 @@
 
     const tableScrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
     const scheduleTable = el.scheduleTable || document.getElementById('scheduleTable');
-    if (tableScrollArea) tableScrollArea.classList.toggle('is-week-view', isWeek);
-    if (scheduleTable) scheduleTable.classList.toggle('is-week-view', isWeek);
+    if (tableScrollArea) {
+      tableScrollArea.classList.toggle('is-week-view', isWeek);
+      tableScrollArea.classList.toggle('is-month-view', !isWeek);
+    }
+    if (scheduleTable) {
+      scheduleTable.classList.toggle('is-week-view', isWeek);
+      scheduleTable.classList.toggle('is-month-view', !isWeek);
+    }
 
     el.monthSelect.value = state.currentMonth;
     const isAllCollapsed = state.sections.length > 0 && state.collapsedSections.size >= state.sections.length;
@@ -1362,7 +1368,7 @@
 
           const badgeClass = getProjectBadgeClass(projectName);
           const shortLabel = getCompactLabel(projectName);
-          const displayLabel = (isWeek && hasVal) ? `${shortLabel} (${hours}h)` : shortLabel;
+          const displayLabel = (!isMobileInterface() && hasVal) ? `${shortLabel} (${hours}h)` : shortLabel;
 
           const isSelected = state.selectedCells.has(key);
 

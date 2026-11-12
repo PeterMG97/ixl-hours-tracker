@@ -116,7 +116,7 @@ C:\Users\511878\Desktop\Working\Hours APP
     ├── test_calculation_integrity.ps1   # Double-entry balance & math validation (39 tests)
     ├── test_all_users_integrity.js      # Row edit isolation across all 26 users (1,822 tests)
     ├── test_cell_click_hold_sequence.js # PC standing vs hold-to-multiselect sequence (77 tests)
-    ├── test_pc_week_view.js             # PC Week view aesthetic & 7-day range navigation (12 tests)
+    ├── test_pc_week_view.js             # PC Week & Month visual parity & week navigation (18 tests)
     ├── test_activity_log_reset.js       # Activity Log reset button & audit log clearing (9 tests)
     ├── test_mobile_welcome_screen_integrity.js # Dedicated mobile opening & welcome bypass (31 tests)
     ├── test_pc_welcome_screen_integrity.js # Dedicated PC opening & welcome bypass (30 tests)
@@ -496,18 +496,18 @@ flowchart TD
 4. **Ergonomic Wide-Cell Layout**:
    - Unlike the compact 48px columns of the 31-day month view, Week View assigns generous column widths (`width: calc((100% - 250px) / 7)`, `min-width: 120px`).
    - Task chips expand to `height: 28px` with `font-size: 11.5px`, displaying full project and tender titles cleanly without truncation.
-5. **Zero Modification to Monthly Grid & Complete Parity**:
-   - The traditional monthly grid is 100% preserved with its exact original groups, colors, and layouts.
+5. **Visual Parity across Both Week and Month Views**:
+   - Per user specification, the exact same 4 visual enhancements designed for the Week View are extended to the Month Grid View on PC:
+     - **Reduced Visual Noise**: Heavy table gridlines are replaced with ultra-subtle, low-contrast 1px dividers on a clean dark slate palette (`#0b0f19` to `#111827`), reducing eye strain during extended scheduling sessions.
+     - **Refined Typography & Sticky Left Column**: Modern grotesque sans typography (`Inter` / `SF Pro` aesthetic) with clear hierarchical weight. The employee left column (`.col-user`) remains sticky with subtle depth shadows (`box-shadow: 3px 0 10px rgba(0, 0, 0, 0.35)`).
+     - **Restyled Allocation Pills (`border-radius: 8px`)**:
+       - *Projects*: Refined deep sapphire / indigo (`linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(37, 99, 235, 0.8))`).
+       - *Special Training / Academy & Support*: Fresh emerald mint green (`linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(5, 150, 105, 0.8))`).
+       - *Tenders*: Modern cyan / teal (`linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8))`).
+       - *Weekends & Day OFF*: Quiet neutral slate (`#1e293b` / `#334155`) with subtle 45-degree diagonal striped background shading.
+       - *Desktop Hours Suffix*: All allocated task chips on PC format clean titles with `(hours)h` suffix.
+     - **Crisp Glowing Focus Indicator**: High-contrast, radiant cyan/blue cursor ring (`outline: 2px solid #38bdf8`, `box-shadow: 0 0 16px rgba(56, 189, 248, 0.55)`) that clearly identifies the active cell cursor without obscuring underlying text.
    - All interactive capabilities—single click standing, double-click popover edit, left-click hold and drag multi-select, keyboard arrow navigation, Delete key cell clearing, section expand/collapse, employee hazing, and Admin 2D selection—operate identically across both views.
-6. **Dedicated Week-Only Aesthetics Engine**:
-   - **Reduced Visual Noise**: Heavy table gridlines are replaced with ultra-subtle, low-contrast 1px dividers on a clean dark slate palette (`#0b0f19` to `#111827`), reducing eye strain during extended scheduling sessions.
-   - **Refined Typography & Sticky Left Column**: Modern grotesque sans typography (`Inter` / `SF Pro` aesthetic) with clear hierarchical weight. The employee left column (`.col-user`) remains sticky with subtle depth shadows (`box-shadow: 3px 0 10px rgba(0, 0, 0, 0.35)`).
-   - **Restyled Allocation Pills (`border-radius: 8px`)**:
-     - *Projects*: Refined deep sapphire / indigo (`linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(37, 99, 235, 0.8))`).
-     - *Special Training / Academy & Support*: Fresh emerald mint green (`linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(5, 150, 105, 0.8))`).
-     - *Tenders*: Modern cyan / teal (`linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8))`).
-     - *Weekends & Day OFF*: Quiet neutral slate (`#1e293b` / `#334155`) with subtle 45-degree diagonal striped background shading.
-   - **Crisp Glowing Focus Indicator**: High-contrast, radiant cyan/blue cursor ring (`outline: 2px solid #38bdf8`, `box-shadow: 0 0 16px rgba(56, 189, 248, 0.55)`) that clearly identifies the active cell cursor without obscuring underlying text.
 
 ---
 
@@ -813,7 +813,7 @@ The project maintains 16 automated test suites (2,220+ assertions) executed with
 | `test_mobile_project_browser.js` | 25 tests | Mobile agenda selection, integer hour bounds (1-12h), special project naming |
 | `test_mobile_list_scroll_alignment.js`| 23 tests | Mobile table min-widths, 2-axis touch physics, Add Member form horizontal baseline alignment |
 | `test_pc_bulk_clear_integrity.js` | 15 tests | Bulk fill clear action normalization, star immunity, Projects List direct chooser |
-| `test_pc_week_view.js` | 12 tests | Topbar Week/Month view toggler, current week Sunday-to-Saturday anchoring, week step navigation, Week view CSS |
+| `test_pc_week_view.js` | 18 tests | Topbar Week/Month view toggler, week & month visual parity, Sunday-Saturday anchoring |
 | `test_activity_log_reset.js` | 9 tests | Edit History & Device Audit Log Reset button; state.history clearing, KPI zeroing, sync trigger |
 | `test_dynamic_month_selection.js` | 8 tests | Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels |
 | `test_quick_pill_separation.js` | 6 tests | Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE |

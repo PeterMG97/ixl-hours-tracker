@@ -73,6 +73,42 @@ assert(stylesCss.includes('rgba(56, 189, 248, 0.55)'), 'Glowing box shadow missi
 pass('2.4 Week view implements glowing cyan/blue focus ring without obscuring cell text');
 
 // -----------------------------------------------------------------------------
+// MODULE 2B: Month Grid View Visual Parity Contracts (styles.css & app.js)
+// -----------------------------------------------------------------------------
+console.log('\n>>> MODULE 2B: Month Grid View Visual Parity Contracts (styles.css & app.js)');
+
+// 2B.1 Month View Class Toggling in app.js
+assert(appJs.includes("tableScrollArea.classList.toggle('is-month-view', !isWeek)"), 'is-month-view toggle missing on tableScrollArea');
+assert(appJs.includes("scheduleTable.classList.toggle('is-month-view', !isWeek)"), 'is-month-view toggle missing on scheduleTable');
+pass('2B.1 app.js toggles is-month-view class on scheduleTable and tableScrollArea');
+
+// 2B.2 Month View Dark Slate Palette & Dividers
+assert(stylesCss.includes('.schedule-table.is-month-view'), 'is-month-view table class missing in styles.css');
+assert(stylesCss.includes('.table-scroll-area.is-month-view'), 'is-month-view scroll area class missing in styles.css');
+pass('2B.2 Month grid view enforces dark slate palette (#0b0f19 to #111827) and subtle 1px dividers matching week view');
+
+// 2B.3 Month View Sticky Column & Typography
+assert(stylesCss.includes('.schedule-table.is-month-view td.col-user'), 'Sticky column missing for month view in styles.css');
+assert(stylesCss.includes('.schedule-table.is-month-view .user-name-text'), 'Typography rule for month view user-name-text missing');
+pass('2B.3 Month grid view enforces refined typography and sticky left employee column with depth shadow');
+
+// 2B.4 Month View Restyled Allocation Pills (border-radius: 8px)
+assert(stylesCss.includes('.schedule-table.is-month-view .task-chip.proj'), 'Projects restyled rule missing in month view');
+assert(stylesCss.includes('.schedule-table.is-month-view .task-chip.training'), 'Training restyled rule missing in month view');
+assert(stylesCss.includes('.schedule-table.is-month-view .task-chip.tender'), 'Tenders restyled rule missing in month view');
+assert(stylesCss.includes('.schedule-table.is-month-view .task-chip.off'), 'Day off restyled rule missing in month view');
+pass('2B.4 Month grid view allocation pills restyled with border-radius: 8px and sapphire/indigo, emerald, cyan, and neutral slate');
+
+// 2B.5 Month View Glowing Focus Ring
+assert(stylesCss.includes('.schedule-table.is-month-view .keyboard-focused-cell'), 'Focused cell rule for month view missing');
+assert(stylesCss.includes('.schedule-table.is-month-view td.col-slot.is-selected-cell'), 'Selected cell rule for month view missing');
+pass('2B.5 Month grid view implements glowing cyan/blue focus indicator and selection halo');
+
+// 2B.6 Desktop Hours Suffix on Month View Pills
+assert(appJs.includes("const displayLabel = (!isMobileInterface() && hasVal) ? `${shortLabel} (${hours}h)` : shortLabel;"), 'Desktop hours suffix formatting missing in app.js');
+pass('2B.6 Desktop task chips in month view format unclipped titles with (hours)h suffix matching week view');
+
+// -----------------------------------------------------------------------------
 // MODULE 3: Behavioral Week Calculation & Date Navigation
 // -----------------------------------------------------------------------------
 console.log('\n>>> MODULE 3: Behavioral Week Calculation & Date Navigation');
