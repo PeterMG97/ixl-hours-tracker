@@ -108,17 +108,18 @@
       overflow: visible;
     }
     .welcome-train-wrap {
-      width: clamp(280px, 32vw, 480px);
-      margin-top: clamp(20px, 2.5vh, 32px);
+      width: clamp(280px, 32vw, 460px);
+      margin-top: clamp(24px, 3vh, 36px);
       position: relative;
       overflow: visible;
-      transform: translateX(18px); /* Shifted slightly right for forward momentum */
+      transform: translateX(22px); /* Shifted right for forward momentum */
     }
     .welcome-train-svg {
       width: 100%;
       height: auto;
       display: block;
       overflow: visible;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.65));
     }
     .welcome-vector-footer {
       position: absolute;
@@ -152,31 +153,36 @@
       letter-spacing: 0.08em;
     }
 
-    /* Dynamic Train Loading Progress Animations */
-    @keyframes trainProgressFill {
+    /* Dynamic Train Loading Progress Animations (Pure Fluid Stroke Flow - 0 Box Artifacts) */
+    @keyframes trainDashProgress {
       0% {
-        width: 0%;
+        stroke-dashoffset: 650;
+        opacity: 0.35;
       }
-      20% {
-        width: 28%;
-      }
-      45% {
-        width: 52%;
-      }
-      75% {
-        width: 80%;
+      25% {
+        opacity: 0.75;
       }
       100% {
-        width: 100%;
+        stroke-dashoffset: 0;
+        opacity: 1;
       }
     }
+    .train-stroke-animated {
+      stroke-dasharray: 650;
+      stroke-dashoffset: 650;
+      animation: trainDashProgress 10s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+    }
+    @keyframes trainProgressFill {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
     .train-progress-clip-rect {
-      animation: trainProgressFill 10s cubic-bezier(0.25, 0.9, 0.3, 1) forwards;
+      animation: trainProgressFill 10s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
     }
 
     @keyframes speedStreakShimmer {
       0%, 100% {
-        opacity: 0.5;
+        opacity: 0.45;
         transform: translateX(0);
       }
       50% {
@@ -184,29 +190,27 @@
         transform: translateX(-3px);
       }
     }
-    .train-speed-streak {
-      animation: speedStreakShimmer 1.4s ease-in-out infinite;
+    .train-speed-streak, .train-streak {
+      animation: speedStreakShimmer 1.5s ease-in-out infinite;
     }
-    .train-speed-streak.s2 {
+    .train-speed-streak.s2, .train-streak.s2 {
       animation-delay: 0.25s;
     }
-    .train-speed-streak.s3 {
+    .train-speed-streak.s3, .train-streak.s3 {
       animation-delay: 0.5s;
     }
 
-    @keyframes headlightPulse {
+    @keyframes noseGlow {
       0%, 85% {
         opacity: 0.4;
-        transform: scale(0.9);
       }
       100% {
         opacity: 1;
-        transform: scale(1.4);
         filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 16px #38bdf8);
       }
     }
-    .train-headlight {
-      animation: headlightPulse 10s ease-out forwards;
+    .train-headlight, .train-nose-glow {
+      animation: noseGlow 10s ease-out forwards;
     }
 
     /* Mobile Splash Stage & Responsive Toggle */
@@ -374,87 +378,56 @@
     <!-- ======================================================== -->
     <div class="welcome-vector-stage pc-only-welcome" id="pcVectorWelcomeStage" onclick="event.stopPropagation();" onmousedown="event.stopPropagation();">
       <div class="welcome-vector-center">
-        <!-- Scalable Vector ALSTOM Logo -->
+        <!-- 100% Mathematically Exact Official ALSTOM Vector Logo -->
         <div class="welcome-alstom-brand" title="ALSTOM" aria-label="ALSTOM">
-          <svg class="alstom-vector-logo" viewBox="0 0 540 85" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ALSTOM">
-            <!-- A -->
-            <path d="M14 80L44 6H66L96 80H74L67 62H43L36 80H14ZM48 46H62L55 26L48 46Z" fill="#FFFFFF"/>
-            <!-- L -->
-            <path d="M116 6H140V61H180V80H116V6Z" fill="#FFFFFF"/>
-            <!-- S -->
-            <path d="M248 25C245 13 234 6 219 6C203 6 193 14 193 24C193 34 202 39 217 43L227 46C245 50 256 57 256 69C256 81 243 89 224 89C204 89 191 80 189 64H212C214 71 220 74 226 74C233 74 238 70 238 64C238 57 231 53 219 49L209 46C193 42 181 35 181 24C181 10 195 2 218 2C240 2 251 11 254 25H248Z" fill="#FFFFFF"/>
-            <!-- T -->
-            <path d="M266 6H334V24H312V80H288V24H266V6Z" fill="#FFFFFF"/>
-            <!-- Signature Corporate Red Graphic Accent O -->
-            <g class="alstom-vector-o">
-              <circle cx="372" cy="42" r="32" stroke="#E01A22" stroke-width="11" fill="none"/>
-              <path d="M356 26C368 18 388 20 398 32C407 45 402 61 389 67" stroke="#FF333D" stroke-width="5" stroke-linecap="round" fill="none"/>
-              <path d="M388 58C376 66 356 64 346 52C337 39 342 23 355 17" stroke="#B81219" stroke-width="5" stroke-linecap="round" fill="none"/>
-            </g>
-            <!-- M -->
-            <path d="M424 6H450L470 45L490 6H516V80H494V32L475 69H465L446 32V80H424V6Z" fill="#FFFFFF"/>
+          <svg class="alstom-vector-logo" viewBox="20 18 292 52" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ALSTOM">
+            <!-- Official Corporate White Glyphs (A, L, S, T, M) with authentic smooth Bezier curves -->
+            <path fill="#FFFFFF" d="M89.217,23.185H78.221V67.77h31.147v-8.66h-20.15V23.185z M40.252,23.185L23.185,67.77h10.646c1.938-6.624,10.381-11.63,18.242-12.328l-1.62-4.035c-3.306-0.434-8.164,0.096-11.11,1.373l7.195-18.863L60.482,67.77H71.11L52.747,23.185H40.252z M151.013,31.814h14.654V67.77h11.267V31.814h14.726v-8.63h-40.646V31.814z M296.861,23.185L283.986,40.13l-12.688-16.945h-9.885V67.77h11.265V40.528l10.551,14.41h1.607l10.533-14.41V67.77h11.279V23.185H296.861z M123.995,34.623c0-3.583,8.13-6.704,20.81-2.149l0.737-8.803c-2.007-0.886-7.694-2.373-12.028-2.373c-9.237,0-19.708,3.401-19.708,14.481c0,16.612,24.791,10.929,24.083,19.996c-0.276,3.52-5.524,4.375-9.957,4.375c-5.039,0-9.569-1.004-12.635-2.461l-1.052,9.564c4.091,1.32,9.406,1.971,13.687,1.971c10.218,0,20.198-3.22,20.24-15.138C148.191,38.161,123.995,42.795,123.995,34.623z"/>
+            <!-- Official Corporate Red Swirling O Mark -->
+            <path class="alstom-vector-o" fill="#E01A22" d="M250.891,31.493l-2.798,2.97c4.517,7.097,5.144,16.161,0.952,23.733l1.533-0.026C255.788,49.715,255.71,39.556,250.891,31.493z M238.625,33.199l1.52-1.6c-7.59-7.025-20.177-6.867-27.506,0.666c-4.367,4.483-6.427,10.485-5.434,16.14l1.527-0.047c0.087-7.89,6.538-14.389,14.675-14.57c8.314-0.229,15.218,6.142,15.394,14.252c0.223,8.131-6.3,14.85-14.606,15.072c-4.174,0.102-7.955-1.441-10.746-4.001l-2.159,2.215c-9.611-8.874-9.979-23.694-0.892-33.029c7.334-7.545,18.562-9.264,27.651-5.06l0.119,0.134l1.168-1.302c-11.564-6.719-26.828-4.807-36.562,5.194c-11.502,11.788-10.973,30.411,1.13,41.594l2.183-2.224c4.78,4.38,10.334,6.573,16.817,6.39c13.078-0.346,23.406-10.941,23.076-23.671C245.811,42.956,243.007,37.239,238.625,33.199z"/>
           </svg>
         </div>
 
-        <!-- Dynamic Aerodynamic High-Speed Bullet Train Loading Line -->
+        <!-- Dynamic Aerodynamic High-Speed Bullet Train Loading Line (Zero Boxes, Pure Fluid Speed Line) -->
         <div class="welcome-train-wrap" aria-label="Loading Application">
-          <svg class="welcome-train-svg" viewBox="0 0 540 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="welcome-train-svg" viewBox="0 0 520 28" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0"/>
-                <stop offset="30%" stop-color="#38bdf8" stop-opacity="0.5"/>
-                <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.95"/>
+              <linearGradient id="trainNeonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.1"/>
+                <stop offset="40%" stop-color="#38bdf8" stop-opacity="0.7"/>
+                <stop offset="85%" stop-color="#38bdf8" stop-opacity="1"/>
                 <stop offset="100%" stop-color="#ffffff" stop-opacity="1"/>
               </linearGradient>
-              <filter id="trainNeonGlow" x="-20%" y="-40%" width="140%" height="180%">
-                <feGaussianBlur stdDeviation="2.5" result="blur"/>
-                <feMerge>
-                  <feMergeNode in="blur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-              <!-- 10-Second Dynamic Progress Clip Path -->
               <clipPath id="trainProgressClip">
-                <rect class="train-progress-clip-rect" x="0" y="0" width="540" height="38"/>
+                <rect class="train-progress-clip-rect" x="0" y="0" width="520" height="28"/>
               </clipPath>
             </defs>
 
-            <!-- Base Blueprint Rail Track -->
-            <line x1="20" y1="33" x2="525" y2="33" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Base Faint Blueprint Rail Track -->
+            <line x1="20" y1="24" x2="510" y2="24" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
 
-            <!-- Trailing Speed Streaks -->
+            <!-- Trailing Speed Streaks (Fading to the Left under A & L) -->
             <g class="train-speed-streaks">
-              <line class="train-speed-streak s1" x1="25" y1="19" x2="220" y2="19" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
-              <line class="train-speed-streak s2" x1="60" y1="23" x2="245" y2="23" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
-              <line class="train-speed-streak s3" x1="95" y1="27" x2="260" y2="27" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
+              <line class="train-speed-streak s1 train-streak" x1="30" y1="12" x2="220" y2="12" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+              <line class="train-speed-streak s2 train-streak" x1="60" y1="16" x2="250" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+              <line class="train-speed-streak s3 train-streak" x1="100" y1="20" x2="280" y2="20" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
             </g>
 
-            <!-- Base Wireframe Train Body -->
-            <g class="train-wireframe-layer" stroke="rgba(56, 189, 248, 0.35)">
-              <path d="M180 17H410C442 17 472 20 493 25C504 27.5 510 30 514 32H180V17Z" stroke-width="1.4" fill="rgba(56, 189, 248, 0.04)"/>
-              <path d="M466 20C479 21 489 23.5 498 26L490 27.5H460L466 20Z" stroke-width="1" fill="rgba(56, 189, 248, 0.15)"/>
-              <line x1="210" y1="22" x2="446" y2="22" stroke-width="1.2" stroke-dasharray="24 5"/>
-              <rect x="432" y="19" width="9" height="12" rx="1" stroke-width="1" fill="none"/>
-              <path d="M225 33C225 31 235 31 235 33 M255 33C255 31 265 31 265 33 M375 33C375 31 385 31 385 33 M405 33C405 31 415 31 415 33" stroke-width="1.2" fill="none"/>
+            <!-- Base Faint Wireframe Train Body from Reference Photo -->
+            <g stroke="rgba(56, 189, 248, 0.28)" fill="none">
+              <path d="M180 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H180" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke-width="1" fill="rgba(56, 189, 248, 0.08)"/>
+              <line x1="200" y1="16" x2="445" y2="16" stroke-width="1.1" stroke-dasharray="24 6"/>
+              <rect x="430" y="13.5" width="10" height="10" rx="1" stroke-width="1"/>
+              <path d="M230 24 C230 22.5 238 22.5 238 24 M255 24 C255 22.5 263 22.5 263 24 M360 24 C360 22.5 368 22.5 368 24 M385 24 C385 22.5 393 22.5 393 24" stroke-width="1.2"/>
             </g>
 
-            <!-- Dynamic Active Layer (Driven by 10s Progress Clip) -->
-            <g class="train-active-layer" clip-path="url(#trainProgressClip)" filter="url(#trainNeonGlow)">
-              <!-- Active Glowing Rail -->
-              <line x1="20" y1="33" x2="525" y2="33" stroke="url(#beamGradient)" stroke-width="1.5" stroke-linecap="round"/>
-              <!-- Active Glowing Train Contour -->
-              <path d="M180 17H410C442 17 472 20 493 25C504 27.5 510 30 514 32H180V17Z" stroke="#38bdf8" stroke-width="1.5" fill="rgba(56, 189, 248, 0.1)"/>
-              <!-- Active Cockpit Glass -->
-              <path d="M466 20C479 21 489 23.5 498 26L490 27.5H460L466 20Z" stroke="#ffffff" stroke-width="1.2" fill="rgba(56, 189, 248, 0.4)"/>
-              <!-- Active Window Strip -->
-              <line x1="210" y1="22" x2="446" y2="22" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 5"/>
-              <!-- Active Door -->
-              <rect x="432" y="19" width="9" height="12" rx="1" stroke="#38bdf8" stroke-width="1.2" fill="none"/>
-              <!-- Active Bogies -->
-              <path d="M225 33C225 31 235 31 235 33 M255 33C255 31 265 31 265 33 M375 33C375 31 385 31 385 33 M405 33C405 31 415 31 415 33" stroke="#38bdf8" stroke-width="1.4" fill="none"/>
-              <!-- Dynamic Forward Headlight -->
-              <circle class="train-headlight" cx="512" cy="31" r="1.6" fill="#FFFFFF"/>
-            </g>
+            <!-- Sleek Low-Profile Dynamic High-Speed Animated Energy Stroke -->
+            <path class="train-stroke-animated" d="M180 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H180" stroke="url(#trainNeonGrad)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <path class="train-stroke-animated" d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke="#38bdf8" stroke-width="1.2" fill="rgba(56, 189, 248, 0.3)"/>
+            <line class="train-stroke-animated" x1="200" y1="16" x2="445" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 6"/>
+            <line class="train-stroke-animated" x1="20" y1="24" x2="510" y2="24" stroke="url(#trainNeonGrad)" stroke-width="1.6" stroke-linecap="round"/>
+            <circle class="train-headlight" cx="506" cy="23" r="1.6" fill="#FFFFFF"/>
           </svg>
         </div>
       </div>
