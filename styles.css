@@ -5892,9 +5892,11 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   padding: 0 !important;
 }
 
-.mobile-welcome-overlay.fade-out {
-  opacity: 0;
-  pointer-events: none;
+.mobile-welcome-overlay.fade-out,
+#mobileWelcomeOverlay.fade-out {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s ease-out;
 }
 
 .welcome-splash-stage {
@@ -6046,8 +6048,11 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 }
 
 .mobile-welcome-overlay.hidden,
-.mobile-welcome-overlay.hidden-permanently {
+.mobile-welcome-overlay.hidden-permanently,
+#mobileWelcomeOverlay.hidden,
+#mobileWelcomeOverlay.hidden-permanently {
   display: none !important;
+  pointer-events: none !important;
 }
 
 /* Accessible / Screen Reader Only Utility */

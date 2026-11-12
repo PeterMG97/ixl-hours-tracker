@@ -32,7 +32,7 @@
     })();
   </script>
   <style id="mobileLaunchCritical">
-    #mobileWelcomeOverlay:not(.hidden-permanently) {
+    #mobileWelcomeOverlay:not(.hidden-permanently):not(.hidden) {
       display: flex !important;
       position: fixed !important;
       inset: 0 !important;
@@ -48,6 +48,16 @@
       padding: 0 !important;
       box-sizing: border-box !important;
       cursor: pointer;
+    }
+    #mobileWelcomeOverlay.hidden,
+    #mobileWelcomeOverlay.hidden-permanently {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    #mobileWelcomeOverlay.fade-out {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.4s ease-out !important;
     }
     .welcome-splash-stage {
       width: 100vw;

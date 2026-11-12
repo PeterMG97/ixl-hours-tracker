@@ -111,19 +111,22 @@ C:\Users\511878\Desktop\Working\Hours APP
 ├── welcome_pic_mob/                     # Original uncompressed Mobile artwork baseline
 │   └── 2026-11-10 17.06.jpg
 │
-└── test_*.js & test_*.ps1               # 12 Comprehensive Automated Test Suites
-    ├── test_suite.ps1                   # Core system regressions & database integrity (92 tests)
+└── test_*.js & test_*.ps1               # 15 Comprehensive Automated Test Suites
+    ├── test_suite.ps1                   # Core system regressions & database integrity (94 tests)
     ├── test_calculation_integrity.ps1   # Double-entry balance & math validation (39 tests)
     ├── test_all_users_integrity.js      # Row edit isolation across all 26 users (1,822 tests)
-    ├── test_cell_click_hold_sequence.js # PC standing vs hold-to-multiselect sequence (47 tests)
+    ├── test_cell_click_hold_sequence.js # PC standing vs hold-to-multiselect sequence (77 tests)
+    ├── test_pc_week_view.js             # PC Week view aesthetic & 7-day range navigation (12 tests)
+    ├── test_activity_log_reset.js       # Activity Log reset button & audit log clearing (9 tests)
+    ├── test_mobile_welcome_screen_integrity.js # Dedicated mobile opening & welcome bypass (31 tests)
+    ├── test_pc_welcome_screen_integrity.js # Dedicated PC opening & welcome bypass (30 tests)
+    ├── test_mobile_view_only_integrity.js # Mobile read-only protection & defense (27 tests)
+    ├── test_pc_view_only_integrity.js   # PC read-only protection & DOM immunity (27 tests)
     ├── test_mobile_project_browser.js   # Mobile logger & hours step contracts (25 tests)
     ├── test_mobile_list_scroll_alignment.js # Mobile table scroll & form alignment (23 tests)
-    ├── test_mobile_view_only_integrity.js # Mobile read-only protection & defense (27 tests)
-    ├── test_pc_bulk_clear_integrity.js  # Bulk fill clear actions & star protection (15 tests)
-    ├── test_pc_view_only_integrity.js   # PC read-only protection & DOM immunity (27 tests)
-    ├── test_pc_welcome_screen_integrity.js # Full-bleed artwork & splash contracts (11 tests)
     ├── test_starred_projects_integrity.js # Per-profile isolated starred favorites (52 tests)
-    └── test_weekend_hours_assignment.js # Cairo vs Istanbul weekend allocation logic (28 tests)
+    ├── test_weekend_hours_assignment.js # Cairo vs Istanbul weekend allocation logic (28 tests)
+    └── test_pc_bulk_clear_integrity.js  # Bulk fill clear actions & star protection (15 tests)
 ```
 
 ---
@@ -766,27 +769,52 @@ The application features a dedicated, zero-letterboxing welcome screen (`#mobile
 - **Tier 2 (Inline HTML Handler)**: `#mobileWelcomeOverlay` declares an inline `onclick` handler directly in `index.html`. Even in cases of catastrophic script interruptions or delayed bundle parsing, any user touch or click instantly dismisses the overlay.
 - **Tier 3 (Inline HTML Fallback Timer)**: A lightweight inline script guarantees dismissal after 6000ms if no interaction occurs.
 - **Tier 4 (10-Second Auto-Dismiss)**: The internal JavaScript timer automatically clears the screen after 10 seconds.
+- **Tier 5 (Anti-Trap Critical CSS Specificity)**: Critical CSS enforces `display: none !important; pointer-events: none !important;` on `#mobileWelcomeOverlay.hidden` and `#mobileWelcomeOverlay.hidden-permanently`, while `#mobileWelcomeOverlay.fade-out` instantly drops opacity and disables pointer events (`pointer-events: none !important`) so user interaction reaches underlying UI components without waiting for CSS transition completion.
+
+### 11.4 Separate Dedicated Welcome Screen Bypass & Opening Integrity Suites (PC vs. Mobile)
+To guarantee the application never gets stuck on the welcome page or fails to open during feature updates, the test infrastructure maintains two dedicated, strictly isolated test suites:
+
+#### 1. PC Dedicated Test Suite (`test_pc_welcome_screen_integrity.js` - 30 tests):
+- Validates desktop viewport classification (`isMobileInterface() === false` across 1024px to 3840px).
+- Verifies mouse click, keyboard keydown, and 10s timer dismissal paths.
+- Tests unhiding of `.schedule-card` (`#scheduleCard`) and hiding of `#mobileAppContainer`.
+- Verifies schedule grid table structure (`#scheduleTable`, `#scheduleHead`, `#scheduleBody`).
+- Validates cold boot, stored profile resolution, and stale/deleted profile ID recovery without throwing exceptions.
+- Verifies Week View vs Month View toggle integrity, ensuring neither view hangs or produces blank screens.
+- Runs simulated end-to-end boot lifecycle asserting 0 unhandled exceptions.
+
+#### 2. Mobile Dedicated Test Suite (`test_mobile_welcome_screen_integrity.js` - 31 tests):
+- Validates mobile phone viewport classification (`isMobileInterface() === true` across 360px to 768px and coarse touch pointers).
+- Verifies passive `touchstart` finger tap, click, and 10s auto-dismissal paths.
+- Tests unhiding of `#mobileAppContainer` and hiding of `.schedule-card` in default `'form'` mode.
+- Validates mobile profile bar, project dropdown, summary card, and agenda rendering.
+- Tests mobile view-only launch (`?mode=view`), ensuring form is locked, notice banner displays, and compact 38px grid renders.
+- Verifies mobile grid toggle (`#toggleMobileDesktopGridViewBtn` <-> `#mobileReturnToLoggerBtn`) and debounced orientation change resizing.
+- Runs simulated end-to-end mobile boot lifecycle asserting 0 unhandled exceptions.
 
 ---
 
 ## 12. Comprehensive Automated Test Suites Catalog
 
-The project maintains 14 automated test suites (2,160+ assertions) executed with zero external test runner packages:
+The project maintains 16 automated test suites (2,220+ assertions) executed with zero external test runner packages:
 
 | Test Suite Script | Assertion Count | Primary Contracts Tested |
 |---|---|---|
 | `test_all_users_integrity.js` | 1,822 tests | Row edit permission isolation across all 26 users; popovers, delete keys, audit events |
-| `test_suite.ps1` | 92 tests | Database schema, Cairo/Istanbul holiday rules, timezone rollover, DOM elements, PIN hashing |
+| `test_suite.ps1` | 94 tests | Database schema, Cairo/Istanbul holiday rules, timezone rollover, DOM elements, PIN hashing |
 | `test_cell_click_hold_sequence.js` | 77 tests | 380ms hold timer, 8px micro-jitter deadband, single click standing focus, arrow navigation |
 | `test_starred_projects_integrity.js` | 52 tests | Profile isolation of starred favorites, star toggle persistence, special items immunity |
 | `test_calculation_integrity.ps1` | 39 tests | Double-entry project vs employee reconciliation, baseline hour additions, 1h-12h clamps |
+| `test_mobile_welcome_screen_integrity.js` | 31 tests | Dedicated mobile opening & welcome screen bypass; touch tap/click/timeout skip, profile recovery, editor unhide |
+| `test_pc_welcome_screen_integrity.js` | 30 tests | Dedicated PC opening & welcome screen bypass; timer/click/key skip, anti-trap CSS, desktop grid unhide |
 | `test_weekend_hours_assignment.js` | 28 tests | Cairo vs Istanbul multi-day period vs single-day weekend overtime logging |
 | `test_pc_view_only_integrity.js` | 27 tests | PC read-only URL mode, DOM button suppression, cell double click / hold defenses |
 | `test_mobile_view_only_integrity.js` | 27 tests | Mobile read-only mode, form-to-grid lockdown, apply mutations blocker |
 | `test_mobile_project_browser.js` | 25 tests | Mobile agenda selection, integer hour bounds (1-12h), special project naming |
 | `test_mobile_list_scroll_alignment.js`| 23 tests | Mobile table min-widths, 2-axis touch physics, Add Member form horizontal baseline alignment |
 | `test_pc_bulk_clear_integrity.js` | 15 tests | Bulk fill clear action normalization, star immunity, Projects List direct chooser |
-| `test_pc_welcome_screen_integrity.js` | 11 tests | PC and mobile welcome splash full-bleed fit, spinner centering, byte-for-byte asset parity |
+| `test_pc_week_view.js` | 12 tests | Topbar Week/Month view toggler, current week Sunday-to-Saturday anchoring, week step navigation, Week view CSS |
+| `test_activity_log_reset.js` | 9 tests | Edit History & Device Audit Log Reset button; state.history clearing, KPI zeroing, sync trigger |
 | `test_dynamic_month_selection.js` | 8 tests | Dynamic month engine (Nov 2026 to 2040+), boundary clamps, responsive PC/mobile labels |
 | `test_quick_pill_separation.js` | 6 tests | Exclusive top quick-pill-row placement for DAY OFF, NO PROJECT, CLEAR/DELETE |
 
