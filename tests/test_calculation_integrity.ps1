@@ -16,8 +16,12 @@
 # =====================================================================
 
 $ErrorActionPreference = "Stop"
-$originalDataPath = "C:\Users\511878\Desktop\Working\Hours APP\data.json"
-$backupDataPath   = "C:\Users\511878\Desktop\Working\Hours APP\data.json.bak_integrity_test"
+$TestsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $TestsDir) { $TestsDir = Get-Location }
+$ProjectRoot = if (Test-Path (Join-Path $TestsDir "public")) { $TestsDir } else { Split-Path -Parent $TestsDir }
+
+$originalDataPath = Join-Path $ProjectRoot "public\data.json"
+$backupDataPath   = Join-Path $ProjectRoot "backups\data.json.bak_integrity_test"
 
 # 1. Compute original hash and create physical backup
 $originalHash = (Get-FileHash $originalDataPath -Algorithm SHA256).Hash
@@ -391,7 +395,7 @@ try {
     Assert-Check "10.1 data.json restored to exact byte-for-byte SHA256 hash" $isIdentical "Pre: $originalHash, Post: $postHash"
     
     # Verify file state was not mutated or diverged by test run
-    $gitStatusRaw = git status --porcelain data.json
+    $gitStatusRaw = git status --porcelain public/data.json
     $gitClean = ($null -eq $gitStatusRaw -or [string]::IsNullOrWhiteSpace($gitStatusRaw) -or $isIdentical)
     Assert-Check "10.2 File state verified pristine with zero post-test divergence" $gitClean "Git status: '$gitStatusRaw'"
 }

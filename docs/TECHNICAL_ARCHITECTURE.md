@@ -76,58 +76,80 @@ graph TD
 
 ## 3. Repository Directory & Complete File Map
 
-Every file in the repository serves a distinct, validated purpose:
+Every file in the repository serves a distinct, validated purpose within its designated category folder:
 
 ```
 C:\Users\511878\Desktop\Working\Hours APP
-├── .firebaserc                          # Firebase project binding ('ixl-hours-tracker')
-├── .gitignore                           # Git hygiene (ignores node_modules, .firebase, *.exe)
-├── README.md                            # High-level overview and team orientation
-├── package.json                         # Node.js project manifest (Express & CORS)
+├── public/                              # Client Web Application & Web Assets
+│   ├── index.html                       # Single-Page Application markup shell
+│   ├── app.js                           # Master Client Architecture & State Machine
+│   ├── styles.css                       # Unified Design System & Responsive Stylesheet
+│   ├── data.json                        # Master Database (Single Source of Truth)
+│   ├── favicon.ico                      # Multi-resolution Windows / Browser favicon
+│   ├── favicon.svg                      # Scalable Vector Graphics favicon
+│   ├── alstom-logo-light.png            # Alstom Brand Wordmark (Light Mode)
+│   ├── alstom-logo-dark.png             # Alstom Brand Wordmark (Dark Mode)
+│   ├── alstom-welcome-pc.jpg            # PC Welcome / Loading Splash Screen (Fallback)
+│   └── alstom-welcome-mobile.jpg        # Mobile Welcome / Loading Splash Screen (Fallback)
+│
+├── server/                              # Backend Server Implementations
+│   ├── server.js                        # Local Node.js Express Server
+│   └── server.ps1                       # Local Windows PowerShell HTTP Server (Zero-install)
+│
+├── tests/                               # Comprehensive Automated Test Suites
+│   ├── test_suite.ps1                   # Core system regressions & database integrity (97 tests)
+│   ├── test_calculation_integrity.ps1   # Double-entry balance & math validation (39 tests)
+│   ├── test_activity_log_reset.js       # Activity Log reset button & audit log clearing
+│   ├── test_all_users_integrity.js      # Row edit isolation across all 26 users
+│   ├── test_cell_click_hold_sequence.js # PC standing vs hold-to-multiselect sequence
+│   ├── test_day_comments_integrity.js   # PC & Mobile day comment contracts and popover
+│   ├── test_device_directory_delete.js  # Device Directory select, multi-select & delete
+│   ├── test_dynamic_month_selection.js  # Dynamic month picker & calendar jump logic
+│   ├── test_mobile_comment_functionality.js # Dedicated mobile comment functionality
+│   ├── test_mobile_list_scroll_alignment.js # Mobile table scroll & form alignment
+│   ├── test_mobile_project_browser.js   # Mobile logger & hours step contracts
+│   ├── test_mobile_vector_welcome_screen.js # Mobile 100% vector SVG welcome screen
+│   ├── test_mobile_view_only_integrity.js   # Mobile read-only protection & defense
+│   ├── test_mobile_welcome_screen_integrity.js # Mobile opening & welcome bypass
+│   ├── test_pc_bulk_clear_integrity.js  # Bulk fill clear actions & star protection
+│   ├── test_pc_calendar_popover.js      # PC calendar popover & quick day jump
+│   ├── test_pc_comment_functionality.js # PC interface comment toggle & popover
+│   ├── test_pc_view_only_integrity.js   # PC read-only protection & DOM immunity
+│   ├── test_pc_week_view.js             # PC Week & Month visual parity & week navigation
+│   ├── test_pc_welcome_screen_integrity.js # PC 100% vector SVG welcome screen & bypass
+│   ├── test_quick_pill_separation.js    # Quick pill chips separation across devices
+│   ├── test_starred_projects_integrity.js # Per-profile isolated starred favorites
+│   └── test_weekend_hours_assignment.js # Cairo vs Istanbul weekend allocation logic
+│
+├── docs/                                # Technical & Architectural Documentation
+│   ├── TECHNICAL_ARCHITECTURE.md        # Comprehensive technical architecture
+│   ├── TECHNICAL_ARCHITECTURE.html      # HTML printable documentation
+│   └── TECHNICAL_ARCHITECTURE.pdf       # Formal compiled PDF specification
+│
+├── backups/                             # Historical Backups & Baseline Reference Assets
+│   ├── backup_welcome_screen_image_approach.html # Legacy bitmap-based welcome screen
+│   ├── data.backup.json                 # Automatic database backup snapshot
+│   ├── welcome_pic/                     # Original uncompressed PC artwork baseline
+│   │   └── 1.jpg
+│   └── welcome_pic_mob/                 # Original uncompressed Mobile artwork baseline
+│       └── 2026-11-10 17.06.jpg
+│
+├── tools/                               # Utilities & External Binaries
+│   └── cloudflared.exe                  # Standalone Cloudflare Tunnel binary
+│
+├── scripts/                             # Operational Launch Scripts
+│   ├── Start-App.bat                    # Start server and launch browser
+│   ├── Run-Tests.bat                    # Execute test suite
+│   └── Share-Public-Link.bat            # Launch Cloudflare tunnel for external access
+│
+├── Start-App.bat                        # Desktop root 1-click launcher
+├── Run-Tests.bat                        # Desktop root 1-click test runner
+├── Share-Public-Link.bat                # Desktop root 1-click public cloud link
 ├── firebase.json                        # Firebase Hosting CDN rewrites, cache rules & ignore list
-│
-├── index.html                           # Single-Page Application markup shell (109 KB)
-├── app.js                              # Master Client Architecture & State Machine (368 KB)
-├── styles.css                           # Unified Design System & Responsive Stylesheet (141 KB)
-├── data.json                            # Master Database (Single Source of Truth) (20 KB)
-├── data.backup.json                     # Immutable Cold-Start Recovery Image (14 KB)
-│
-├── server.js                            # Local Node.js Express Server
-├── server.ps1                           # Local Windows PowerShell HTTP Server
-├── Start-App.bat                        # 1-Click Windows Batch launcher for local server
-├── Share-Public-Link.bat                # 1-Click Cloudflare tunnel launcher for remote sharing
-├── Run-Tests.bat                        # 1-Click test runner execution script
-├── cloudflared.exe                      # Standalone Cloudflare Tunnel binary (55.3 MB)
-│
-├── alstom-welcome-pc.jpg                # PC Welcome / Loading Splash Screen (2752x1536)
-├── alstom-welcome-mobile.jpg            # Mobile Welcome / Loading Splash Screen (1408x3040)
-├── alstom-logo-light.png                # Alstom Brand Wordmark (Light Mode)
-├── alstom-logo-dark.png                 # Alstom Brand Wordmark (Dark Mode)
-├── favicon.ico                          # Multi-resolution Windows / Browser favicon
-├── favicon.svg                          # Scalable Vector Graphics favicon
-│
-├── welcome_pic/                         # Original uncompressed PC artwork baseline
-│   └── 1.jpg
-├── welcome_pic_mob/                     # Original uncompressed Mobile artwork baseline
-│   └── 2026-11-10 17.06.jpg
-│
-└── test_*.js & test_*.ps1               # 15 Comprehensive Automated Test Suites
-    ├── test_suite.ps1                   # Core system regressions & database integrity (94 tests)
-    ├── test_calculation_integrity.ps1   # Double-entry balance & math validation (39 tests)
-    ├── test_all_users_integrity.js      # Row edit isolation across all 26 users (1,822 tests)
-    ├── test_cell_click_hold_sequence.js # PC standing vs hold-to-multiselect sequence (77 tests)
-    ├── test_pc_week_view.js             # PC Week & Month visual parity & week navigation (19 tests)
-    ├── test_activity_log_reset.js       # Activity Log reset button & audit log clearing (9 tests)
-    ├── test_device_directory_delete.js  # Device Directory select, multi-select & delete (10 tests)
-    ├── test_mobile_welcome_screen_integrity.js # Dedicated mobile opening & welcome bypass (31 tests)
-    ├── test_pc_welcome_screen_integrity.js # Dedicated PC opening & welcome bypass (30 tests)
-    ├── test_mobile_view_only_integrity.js # Mobile read-only protection & defense (27 tests)
-    ├── test_pc_view_only_integrity.js   # PC read-only protection & DOM immunity (27 tests)
-    ├── test_mobile_project_browser.js   # Mobile logger & hours step contracts (25 tests)
-    ├── test_mobile_list_scroll_alignment.js # Mobile table scroll & form alignment (23 tests)
-    ├── test_starred_projects_integrity.js # Per-profile isolated starred favorites (52 tests)
-    ├── test_weekend_hours_assignment.js # Cairo vs Istanbul weekend allocation logic (28 tests)
-    └── test_pc_bulk_clear_integrity.js  # Bulk fill clear actions & star protection (15 tests)
+├── .firebaserc                          # Firebase project binding ('ixl-hours-tracker')
+├── package.json                         # Node.js project manifest (Express & CORS)
+├── .gitignore                           # Git hygiene rules
+└── README.md                            # High-level overview and team orientation
 ```
 
 ---

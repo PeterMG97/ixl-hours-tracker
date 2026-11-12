@@ -21,13 +21,19 @@ Write-Host "==========================================================" -Foregro
 
 $AppDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (-not $AppDir) { $AppDir = Get-Location }
+$ProjectRoot = if (Test-Path (Join-Path $AppDir "public")) { $AppDir } else { Split-Path -Parent $AppDir }
+$PublicDir = Join-Path $ProjectRoot "public"
+$ServerDir = Join-Path $ProjectRoot "server"
+$BackupsDir = Join-Path $ProjectRoot "backups"
+$DocsDir = Join-Path $ProjectRoot "docs"
+$ToolsDir = Join-Path $ProjectRoot "tools"
 
 # -------------------------------------------------------------
 # TEST GROUP 1: Database Integrity
 # -------------------------------------------------------------
 Write-Host "`n>>> GROUP 1: Database & Data Integrity (data.json)" -ForegroundColor Yellow
 
-$dbRaw = [System.IO.File]::ReadAllText((Join-Path $AppDir "data.json"))
+$dbRaw = [System.IO.File]::ReadAllText((Join-Path $PublicDir "data.json"))
 $db = $dbRaw | ConvertFrom-Json
 
 Assert-Test "1.1 Database contains all Team Members (25+ items)" ($db.employees.Count -ge 25) "Found: $($db.employees.Count)"
@@ -204,11 +210,11 @@ Assert-Test "5.4 Nighttime 03:00 AM resolves to Dark theme" ((Get-AutoTheme 3) -
 # -------------------------------------------------------------
 Write-Host "`n>>> GROUP 6: Frontend File & Element Verification" -ForegroundColor Yellow
 
-$htmlContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "index.html"))
-$jsContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "app.js"))
-$cssContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "styles.css"))
-$serverContent = [System.IO.File]::ReadAllText((Join-Path $AppDir "server.js"))
-$serverPs1Content = [System.IO.File]::ReadAllText((Join-Path $AppDir "server.ps1"))
+$htmlContent = [System.IO.File]::ReadAllText((Join-Path $PublicDir "index.html"))
+$jsContent = [System.IO.File]::ReadAllText((Join-Path $PublicDir "app.js"))
+$cssContent = [System.IO.File]::ReadAllText((Join-Path $PublicDir "styles.css"))
+$serverContent = [System.IO.File]::ReadAllText((Join-Path $ServerDir "server.js"))
+$serverPs1Content = [System.IO.File]::ReadAllText((Join-Path $ServerDir "server.ps1"))
 
 Assert-Test "6.1 index.html contains Theme Selector (themeSelect)" ($htmlContent.Contains('id="themeSelect"')) "Theme control found"
 Assert-Test "6.2 index.html contains Bulk Fill Modal & Controls" ($htmlContent.Contains('id="bulkFillModal"')) "Bulk Fill modal found"

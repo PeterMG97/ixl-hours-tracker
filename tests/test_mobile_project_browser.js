@@ -18,9 +18,12 @@ function test(msg, fn) {
   }
 }
 
-const html = fs.readFileSync('index.html', 'utf8');
-const css = fs.readFileSync('styles.css', 'utf8');
-const js = fs.readFileSync('app.js', 'utf8');
+const path = require('path');
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
+
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
+const js = fs.readFileSync(resolvePath('app.js'), 'utf8');
 
 test('1.1 Zero emojis across all files', () => {
   const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;

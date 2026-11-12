@@ -30,9 +30,12 @@ console.log('==========================================================');
 console.log(' RUNNING MOBILE INTERFACE VIEW-ONLY INTEGRITY TEST SUITE');
 console.log('==========================================================\n');
 
-const html = fs.readFileSync('index.html', 'utf8');
-const js = fs.readFileSync('app.js', 'utf8');
-const css = fs.readFileSync('styles.css', 'utf8');
+const path = require('path');
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
+
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const js = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
 
 // ========================================================
 // MODULE 1: Static Code Contracts & Zero Emojis

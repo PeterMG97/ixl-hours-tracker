@@ -12,8 +12,11 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const assert = require('assert');
 const crypto = require('crypto');
+
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
 
 let passCount = 0;
 let failCount = 0;
@@ -34,10 +37,10 @@ console.log('==========================================================');
 console.log(' RUNNING MOBILE WELCOME SCREEN BYPASS & OPENING TEST SUITE');
 console.log('==========================================================\n');
 
-const html = fs.readFileSync('index.html', 'utf8');
-const js = fs.readFileSync('app.js', 'utf8');
-const css = fs.readFileSync('styles.css', 'utf8');
-const dataJson = JSON.parse(fs.readFileSync('data.json', 'utf8'));
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const js = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
+const dataJson = JSON.parse(fs.readFileSync(resolvePath('data.json'), 'utf8'));
 
 // ========================================================
 // MODULE 1: Static Code Contracts & Zero Emojis
@@ -57,8 +60,8 @@ test('1.2 Cache buster bumped to v=10.0 in index.html', () => {
 });
 
 test('1.3 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic_mob/2026-11-10 17.06.jpg', () => {
-  const origMobBuf = fs.readFileSync('welcome_pic_mob/2026-11-10 17.06.jpg');
-  const mobBuf = fs.readFileSync('alstom-welcome-mobile.jpg');
+  const origMobBuf = fs.readFileSync(resolvePath('welcome_pic_mob/2026-11-10 17.06.jpg'));
+  const mobBuf = fs.readFileSync(resolvePath('alstom-welcome-mobile.jpg'));
   assert.strictEqual(mobBuf.length, 320123, 'Mobile welcome image must be exactly 320,123 bytes');
   const origHash = crypto.createHash('sha256').update(origMobBuf).digest('hex');
   const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');

@@ -4,8 +4,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const css = fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf8');
-const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
+
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
 
 let passed = 0;
 let failed = 0;

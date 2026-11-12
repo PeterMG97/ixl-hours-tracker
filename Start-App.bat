@@ -8,5 +8,5 @@ echo ==========================================================
 
 start "" "http://localhost:8080/"
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0server.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0server\server.ps1"
 pause

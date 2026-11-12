@@ -31,13 +31,11 @@ function runTest(name, fn) {
   }
 }
 
-const htmlPath = path.join(__dirname, 'index.html');
-const appPath = path.join(__dirname, 'app.js');
-const cssPath = path.join(__dirname, 'styles.css');
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
 
-const html = fs.readFileSync(htmlPath, 'utf8');
-const js = fs.readFileSync(appPath, 'utf8');
-const css = fs.readFileSync(cssPath, 'utf8');
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const js = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
 
 // 1. Emoji check
 runTest('1.1 Zero emojis across test and implementation', () => {

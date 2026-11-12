@@ -1,13 +1,16 @@
 const fs = require('fs');
+const path = require('path');
 const assert = require('assert');
+
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
 
 console.log('==========================================================');
 console.log(' RUNNING DEDICATED PC WEEK VIEW & VIEW TOGGLE TEST SUITE');
 console.log('==========================================================');
 
-const indexHtml = fs.readFileSync('index.html', 'utf8');
-const appJs = fs.readFileSync('app.js', 'utf8');
-const stylesCss = fs.readFileSync('styles.css', 'utf8');
+const indexHtml = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const appJs = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const stylesCss = fs.readFileSync(resolvePath('styles.css'), 'utf8');
 
 let passCount = 0;
 function pass(msg) {

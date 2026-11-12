@@ -2,9 +2,10 @@
   "name": "ixl-hours-tracker",
   "version": "1.0.0",
   "description": "IXL Team Hours Tracker & Project Allocation System for Cairo & Istanbul offices",
-  "main": "server.js",
+  "main": "server/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server/server.js",
+    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/test_suite.ps1"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -14,4 +15,3 @@
     "node": ">=18.0.0"
   }
 }
-

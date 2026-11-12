@@ -22,18 +22,15 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
+
 console.log('==========================================================');
 console.log(' RUNNING DEDICATED PC CELL CLICK & HOLD SEQUENCE TEST SUITE');
 console.log('==========================================================\n');
 
-const repoDir = path.resolve(__dirname);
-const appJsPath = path.join(repoDir, 'app.js');
-const indexHtmlPath = path.join(repoDir, 'index.html');
-const dataJsonPath = path.join(repoDir, 'data.json');
-
-const appJs = fs.readFileSync(appJsPath, 'utf8');
-const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
-const dataJson = JSON.parse(fs.readFileSync(dataJsonPath, 'utf8'));
+const appJs = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const indexHtml = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const dataJson = JSON.parse(fs.readFileSync(resolvePath('data.json'), 'utf8'));
 
 let passed = 0;
 let failed = 0;

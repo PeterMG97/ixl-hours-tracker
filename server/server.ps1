@@ -10,10 +10,13 @@ param(
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (-not $ScriptDir) { $ScriptDir = Get-Location }
+$ProjectRoot = if (Test-Path (Join-Path $ScriptDir "public")) { $ScriptDir } else { Split-Path -Parent $ScriptDir }
+$PublicDir = Join-Path $ProjectRoot "public"
+$BackupsDir = Join-Path $ProjectRoot "backups"
 
-$DataFilePath = Join-Path $ScriptDir "data.json"
+$DataFilePath = Join-Path $PublicDir "data.json"
 if (-not (Test-Path $DataFilePath)) {
-    $InitialPath = Join-Path $ScriptDir "initial_data.json"
+    $InitialPath = Join-Path $PublicDir "initial_data.json"
     if (Test-Path $InitialPath) {
         Copy-Item -Path $InitialPath -Destination $DataFilePath
     }
@@ -112,7 +115,7 @@ while ($listener.IsListening) {
             if ($body -and $body.Trim().Length -gt 10) {
                 # Create backup
                 if (Test-Path $DataFilePath) {
-                    $backupPath = Join-Path $ScriptDir "data.backup.json"
+                    $backupPath = Join-Path $BackupsDir "data.backup.json"
                     Copy-Item -Path $DataFilePath -Destination $backupPath -Force
                 }
                 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -169,7 +172,7 @@ while ($listener.IsListening) {
             $localRel = "index.html"
         }
 
-        $localFilePath = Join-Path $ScriptDir $localRel
+        $localFilePath = Join-Path $PublicDir $localRel
         if (Test-Path $localFilePath -PathType Leaf) {
             $ext = [System.IO.Path]::GetExtension($localFilePath).ToLower()
             $cType = if ($mimeTypes.ContainsKey($ext)) { $mimeTypes[$ext] } else { "application/octet-stream" }

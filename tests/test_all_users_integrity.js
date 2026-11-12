@@ -16,7 +16,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
+
+const data = JSON.parse(fs.readFileSync(resolvePath('data.json'), 'utf8'));
 
 let totalPassed = 0;
 let totalFailed = 0;

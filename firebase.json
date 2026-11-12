@@ -1,22 +1,10 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "public",
     "ignore": [
       "firebase.json",
       ".firebaserc",
-      "**/.*",
-      "*.exe",
-      "*.ps1",
-      "*.bat",
-      "*.xlsx",
-      "*.md",
-      "*.yaml",
-      "server.js",
-      "data.backup.json",
-      "test_*.js",
-      "welcome_pic/**",
-      "welcome_pic_mob/**",
-      "*.pdf"
+      "**/.*"
     ],
     "rewrites": [
       {

@@ -14,8 +14,11 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const assert = require('assert');
 const crypto = require('crypto');
+
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
 
 let passCount = 0;
 let failCount = 0;
@@ -36,10 +39,10 @@ console.log('==========================================================');
 console.log(' RUNNING PC WELCOME SCREEN VECTOR & INTEGRITY TEST SUITE');
 console.log('==========================================================\n');
 
-const html = fs.readFileSync('index.html', 'utf8');
-const js = fs.readFileSync('app.js', 'utf8');
-const css = fs.readFileSync('styles.css', 'utf8');
-const dataJson = JSON.parse(fs.readFileSync('data.json', 'utf8'));
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const js = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
+const dataJson = JSON.parse(fs.readFileSync(resolvePath('data.json'), 'utf8'));
 
 // ========================================================
 // MODULE 1: Static Code Contracts, Zero Emojis, & Backups
@@ -59,16 +62,16 @@ test('1.2 Cache buster bumped to v=10.0 in index.html', () => {
 });
 
 test('1.3 Archival backup of image-based approach exists in backup_welcome_screen_image_approach.html', () => {
-  assert(fs.existsSync('backup_welcome_screen_image_approach.html'), 'backup_welcome_screen_image_approach.html missing');
-  const backupHtml = fs.readFileSync('backup_welcome_screen_image_approach.html', 'utf8');
+  assert(fs.existsSync(resolvePath('backup_welcome_screen_image_approach.html')), 'backup_welcome_screen_image_approach.html missing');
+  const backupHtml = fs.readFileSync(resolvePath('backup_welcome_screen_image_approach.html'), 'utf8');
   assert(backupHtml.includes('alstom-welcome-pc.jpg?v=10.0'), 'Backup missing PC welcome image reference');
   assert(backupHtml.includes('alstom-welcome-mobile.jpg?v=10.0'), 'Backup missing mobile welcome image reference');
   assert(backupHtml.includes('splash-spinner-circle'), 'Backup missing splash spinner');
 });
 
 test('1.4 Original PC and Mobile image assets preserved intact on disk', () => {
-  const origBuf = fs.readFileSync('welcome_pic/1.jpg');
-  const pcBuf = fs.readFileSync('alstom-welcome-pc.jpg');
+  const origBuf = fs.readFileSync(resolvePath('welcome_pic/1.jpg'));
+  const pcBuf = fs.readFileSync(resolvePath('alstom-welcome-pc.jpg'));
   assert.strictEqual(origBuf.length, 268506, 'Original image file size must be exactly 268,506 bytes');
   assert.strictEqual(pcBuf.length, 268506, 'PC welcome image must be exactly 268,506 bytes');
   
@@ -76,8 +79,8 @@ test('1.4 Original PC and Mobile image assets preserved intact on disk', () => {
   const pcHash = crypto.createHash('sha256').update(pcBuf).digest('hex');
   assert.strictEqual(pcHash, origHash, 'PC welcome image SHA256 must match welcome_pic/1.jpg byte-for-byte');
 
-  const origMobBuf = fs.readFileSync('welcome_pic_mob/2026-11-10 17.06.jpg');
-  const mobBuf = fs.readFileSync('alstom-welcome-mobile.jpg');
+  const origMobBuf = fs.readFileSync(resolvePath('welcome_pic_mob/2026-11-10 17.06.jpg'));
+  const mobBuf = fs.readFileSync(resolvePath('alstom-welcome-mobile.jpg'));
   assert.strictEqual(mobBuf.length, 320123, 'Mobile welcome image must be exactly 320,123 bytes');
   const origMobHash = crypto.createHash('sha256').update(origMobBuf).digest('hex');
   const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');

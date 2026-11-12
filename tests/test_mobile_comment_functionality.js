@@ -12,7 +12,10 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const assert = require('assert');
+
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
 
 let passCount = 0;
 let failCount = 0;
@@ -33,9 +36,9 @@ console.log('==========================================================');
 console.log(' RUNNING DEDICATED MOBILE COMMENT FUNCTIONALITY TEST SUITE');
 console.log('==========================================================\n');
 
-const html = fs.readFileSync('index.html', 'utf8');
-const js = fs.readFileSync('app.js', 'utf8');
-const css = fs.readFileSync('styles.css', 'utf8');
+const html = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const js = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const css = fs.readFileSync(resolvePath('styles.css'), 'utf8');
 
 // ========================================================
 // MODULE 1: Static Code Contracts for Mobile Interface

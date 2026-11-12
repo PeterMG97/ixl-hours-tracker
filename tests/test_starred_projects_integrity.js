@@ -30,11 +30,13 @@ console.log('==========================================================');
 console.log(' RUNNING DEDICATED PER-PROFILE STARRED PROJECTS TEST SUITE');
 console.log('==========================================================\n');
 
+const resolvePath = (f) => [path.join(__dirname, '../public', f), path.join(__dirname, '../backups', f), path.join(__dirname, '..', f), f].find(fs.existsSync) || f;
+
 // Load files
-const htmlContent = fs.readFileSync('index.html', 'utf8');
-const jsContent = fs.readFileSync('app.js', 'utf8');
-const cssContent = fs.readFileSync('styles.css', 'utf8');
-const dataJson = JSON.parse(fs.readFileSync('data.json', 'utf8'));
+const htmlContent = fs.readFileSync(resolvePath('index.html'), 'utf8');
+const jsContent = fs.readFileSync(resolvePath('app.js'), 'utf8');
+const cssContent = fs.readFileSync(resolvePath('styles.css'), 'utf8');
+const dataJson = JSON.parse(fs.readFileSync(resolvePath('data.json'), 'utf8'));
 
 // -------------------------------------------------------------
 // MODULE 1: Static Code Contracts & Zero Emojis

@@ -5,14 +5,17 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const DATA_FILE = path.join(__dirname, 'data.json');
-const BACKUP_FILE = path.join(__dirname, 'data.backup.json');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public');
+const BACKUPS_DIR = path.join(PROJECT_ROOT, 'backups');
+const DATA_FILE = path.join(PUBLIC_DIR, 'data.json');
+const BACKUP_FILE = path.join(BACKUPS_DIR, 'data.backup.json');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Static frontend assets
-app.use(express.static(__dirname));
+app.use(express.static(PUBLIC_DIR));
 
 // Healthcheck
 app.get('/api/ping', (req, res) => {
@@ -91,7 +94,7 @@ app.post('/api/forgot-password', (req, res) => {
 
 // SPA Fallback
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 app.listen(PORT, () => {
