@@ -10664,21 +10664,21 @@
       }
     }
 
-    // Automatically dismiss after loading screen holds for 10s (strictly enforced)
+    // Automatically dismiss after loading screen holds for 5s (strictly enforced)
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
-    }, 10000);
+    }, 5000);
 
     // On Mobile interface: allow touch tap dismissal
     if (isMobileInterface()) {
       overlay.addEventListener('click', dismissWelcome);
       overlay.addEventListener('touchstart', dismissWelcome, { passive: true });
     } else {
-      // On PC Interface: Strict 10-Second Lockout
+      // On PC Interface: Strict 5-Second Lockout
       // Background mouse clicks and keyboard presses are strictly prevented
-      // from dismissing the welcome screen early before the 10s timer and train loader finish.
+      // from dismissing the welcome screen early before the 5s timer and train loader finish.
       overlay.addEventListener('click', function(e) {
         e.stopPropagation();
       });

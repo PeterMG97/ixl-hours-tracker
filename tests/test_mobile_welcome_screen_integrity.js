@@ -110,11 +110,11 @@ test('3.2 initMobileWelcomeScreen registers click event listener for mobile taps
   assert(fnBlock.includes("overlay.addEventListener('click', dismissWelcome)"), 'Missing click listener in initMobileWelcomeScreen');
 });
 
-test('3.3 10-second auto-dismissal timeout contract protects against untouched devices', () => {
+test('3.3 5-second auto-dismissal timeout contract protects against untouched devices', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
   const fnBlock = js.substring(fnIdx, fnIdx + 2500);
   assert(fnBlock.includes('setTimeout'), 'Missing setTimeout in initMobileWelcomeScreen');
-  assert(fnBlock.includes('10000'), 'Timeout must be 10000ms');
+  assert(fnBlock.includes('5000'), 'Timeout must be 5000ms');
 });
 
 test('3.4 Inline HTML onclick fallback exists on #mobileWelcomeOverlay for immediate mobile dismissal', () => {

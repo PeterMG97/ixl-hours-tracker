@@ -5,7 +5,7 @@
  * 2. Features the official scalable ALSTOM wordmark with corporate red circular accent on the 'O'.
  * 3. Features the dynamic aerodynamic bullet train loading line with cyan neon glow and speed trails.
  * 4. Displays the 3-tier bottom signature ('by', 'IXL Team', and dynamic app version '1.0.0').
- * 5. Strictly enforces the 10-second loading duration on PC: background mouse clicks and keyboard presses are locked out.
+ * 5. Strictly enforces the 5-second loading duration on PC: background mouse clicks and keyboard presses are locked out.
  * 6. Completely covers 100% of any display resolution and aspect ratio without distortion or pixelation.
  * 7. Preserves the archival backup of the old image-based approach in backup_welcome_screen_image_approach.html.
  * 8. Desktop viewport routing strictly detects desktop resolutions (isMobileInterface === false) and unhides the PC grid card.
@@ -135,9 +135,9 @@ test('2.5 Responsive toggle between PC vector welcome and mobile touch stage', (
 });
 
 // ========================================================
-// MODULE 3: Strict 10-Second Lockout & Fullscreen Display
+// MODULE 3: Strict 5-Second Lockout & Fullscreen Display
 // ========================================================
-console.log('\n>>> MODULE 3: Strict 10-Second Lockout & Fullscreen Display');
+console.log('\n>>> MODULE 3: Strict 5-Second Lockout & Fullscreen Display');
 
 test('3.1 initMobileWelcomeScreen unhides overlay on boot for PC and mobile', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
@@ -147,12 +147,12 @@ test('3.1 initMobileWelcomeScreen unhides overlay on boot for PC and mobile', ()
   assert(fnBlock.includes("overlay.style.display = 'flex'"), 'Missing display:flex call');
 });
 
-test('3.2 10-second timer (10000ms) is strictly enforced in app.js', () => {
+test('3.2 5-second timer (5000ms) is strictly enforced in app.js', () => {
   const fnIdx = js.indexOf('function initMobileWelcomeScreen()');
   const fnBlock = js.substring(fnIdx, fnIdx + 1600);
   assert(fnBlock.includes('dismissWelcome'), 'Missing dismissWelcome function');
   assert(fnBlock.includes('setTimeout'), 'Missing auto-dismiss timer');
-  assert(fnBlock.includes('10000'), 'Auto-dismiss timer must be set to 10 seconds (10000ms)');
+  assert(fnBlock.includes('5000'), 'Auto-dismiss timer must be set to 5 seconds (5000ms)');
 });
 
 test('3.3 On PC interface, click and keydown early dismissal is strictly locked out', () => {
@@ -255,7 +255,7 @@ test('5.4 Topbar navigation controls (User Picker, Month Select, Week/Month Togg
 // ========================================================
 console.log('\n>>> MODULE 6: Behavioral State Simulation (Never Stuck / Always Opens)');
 
-test('6.1 Timer-based dismiss simulation: after 10s timeout, overlay is fully hidden', () => {
+test('6.1 Timer-based dismiss simulation: after 5s timeout, overlay is fully hidden', () => {
   let dismissed = false;
   const overlay = {
     classes: new Set(['mobile-welcome-overlay']),
@@ -276,7 +276,7 @@ test('6.1 Timer-based dismiss simulation: after 10s timeout, overlay is fully hi
     overlay.classList.remove('fade-out');
   }
 
-  // Simulate timeout triggering dismiss at 10s
+  // Simulate timeout triggering dismiss at 5s
   dismissWelcome();
 
   assert.strictEqual(dismissed, true, 'Dismissed flag must be set to true');
@@ -286,7 +286,7 @@ test('6.1 Timer-based dismiss simulation: after 10s timeout, overlay is fully hi
   assert.strictEqual(overlay.classList.contains('fade-out'), false, 'fade-out class must be cleaned up');
 });
 
-test('6.2 Lockout simulation: background mouse clicks on PC do NOT dismiss early before 10s', () => {
+test('6.2 Lockout simulation: background mouse clicks on PC do NOT dismiss early before 5s', () => {
   let dismissed = false;
   let clickAbsorbed = false;
   const overlay = {

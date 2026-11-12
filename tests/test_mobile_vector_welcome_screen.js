@@ -7,7 +7,7 @@
  * 2. Mobile welcome stage contains 0% bitmap images/photos (no img or picture in active stage).
  * 3. Exact official ALSTOM corporate vector glyphs (A, L, S, T, M) and trademark red swirl O aperture.
  * 4. High-speed aerodynamic bullet train dynamic loading line styled for mobile portrait.
- * 5. Strict 10-second lockout: touch and mouse clicks are absorbed without early dismissal.
+ * 5. Strict 5-second lockout: touch and mouse clicks are absorbed without early dismissal.
  * 6. Dynamic version synchronization: APP_VERSION constant updates mobile footer version element.
  * 7. Mobile portrait layout: vertical positioning at 43% golden ratio sweet spot and responsive clamping.
  */
@@ -114,9 +114,9 @@ test('2.4 Mobile portrait layout styling in critical CSS and styles.css', () => 
 });
 
 // ========================================================
-// MODULE 3: Strict 10-Second Lockout on Mobile
+// MODULE 3: Strict 5-Second Lockout on Mobile
 // ========================================================
-console.log('\n>>> MODULE 3: Strict 10-Second Lockout on Mobile');
+console.log('\n>>> MODULE 3: Strict 5-Second Lockout on Mobile');
 
 test('3.1 Mobile welcome stage stops click and touch propagation to prevent early dismissal', () => {
   const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');

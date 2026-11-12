@@ -6522,7 +6522,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 .train-stroke-animated {
   stroke-dasharray: 650;
   stroke-dashoffset: 650;
-  animation: trainDashProgress 10s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+  animation: trainDashProgress 5s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
 }
 
 @keyframes trainProgressFill {
@@ -6535,7 +6535,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 }
 
 .train-progress-clip-rect {
-  animation: trainProgressFill 10s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+  animation: trainProgressFill 5s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
 }
 
 @keyframes speedStreakShimmer {
@@ -6570,7 +6570,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 }
 
 .train-headlight, .train-nose-glow {
-  animation: noseGlow 10s ease-out forwards;
+  animation: noseGlow 5s ease-out forwards;
 }
 
 @media (min-width: 769px) {
