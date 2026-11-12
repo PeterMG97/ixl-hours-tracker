@@ -6064,11 +6064,11 @@ body.mobile-readonly-grid .emp-no-proj-badge,
 }
 
 .welcome-train-wrap {
-  width: clamp(280px, 32vw, 460px);
+  width: clamp(290px, 33vw, 491px);
   margin-top: clamp(24px, 3vh, 36px);
   position: relative;
   overflow: visible;
-  transform: translateX(22px); /* Shifted right for forward momentum */
+  transform: translateX(7px); /* Head stays in exact position while tail reaches under letter A */
 }
 
 .welcome-train-svg {
