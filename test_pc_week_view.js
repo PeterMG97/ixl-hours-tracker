@@ -108,6 +108,12 @@ pass('2B.5 Month grid view implements glowing cyan/blue focus indicator and sele
 assert(appJs.includes("const displayLabel = (!isMobileInterface() && hasVal) ? `${shortLabel} (${hours}h)` : shortLabel;"), 'Desktop hours suffix formatting missing in app.js');
 pass('2B.6 Desktop task chips in month view format unclipped titles with (hours)h suffix matching week view');
 
+// 2B.7 Employee Category Separator Seamless Single-Unit Styling (Dark Mode)
+assert(stylesCss.includes('[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td'), 'Month view group-header-row td rule missing in styles.css');
+assert(stylesCss.includes('[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td'), 'Week view group-header-row td rule missing in styles.css');
+assert(stylesCss.includes('border-inline: none !important;'), 'border-inline: none missing for group header separator');
+pass('2B.7 Employee category separator rows enforce seamless single-unit styling with zero vertical borders in dark mode');
+
 // -----------------------------------------------------------------------------
 // MODULE 3: Behavioral Week Calculation & Date Navigation
 // -----------------------------------------------------------------------------

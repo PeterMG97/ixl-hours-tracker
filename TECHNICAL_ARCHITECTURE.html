@@ -468,6 +468,7 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
     <li><strong>Clean Topbar Key (<code>#viewModeToggleBtn</code>):</strong> Styled segmented button displaying <code>View: Week / Month</code> with responsive active highlight.</li>
     <li><strong>Untouched Monthly Grid & Full Feature Parity:</strong> The monthly grid remains completely untouched. Cell editing, drag/hold multi-selection, keyboard navigation, section collapsing, and admin features function with 100% parity across both views.</li>
     <li><strong>Dedicated Week-Only Aesthetics:</strong> Ultra-subtle 1px dividers on dark slate palette (<code>#0b0f19</code> to <code>#111827</code>), sticky left column with hierarchical typography, restyled 8px rounded pills (sapphire/indigo projects, emerald mint training, cyan tenders, neutral slate weekends), and a glowing cyan/blue focus ring (<code>#38bdf8</code>).</li>
+    <li><strong>Unified Category Separator Rows:</strong> Employee section divider strips (<code>tr.group-header-row</code>) render as a single continuous unit of uniform dark slate (<code>#0d1322</code>, hover <code>#141c2e</code>) across all columns with zero internal vertical divider lines (<code>border-right: none</code>, <code>border-left: none</code>, <code>box-shadow: none</code>), framed exclusively by subtle 1px horizontal dividers.</li>
   </ul>
 
   <h2>7. Role-Based Access Control & View-Only Defense</h2>
@@ -575,8 +576,8 @@ const dateStr = key.substring(lastUnderscore + 1);</code></pre>
       </tr>
       <tr>
         <td><code>test_pc_week_view.js</code></td>
-        <td>18</td>
-        <td>Topbar Week/Month view toggler, week & month visual parity, Sunday-Saturday anchoring, subtle dark dividers, pill styling.</td>
+        <td>19</td>
+        <td>Topbar Week/Month view toggler, week & month visual parity, unified category separators without vertical borders, Sunday-Saturday anchoring, subtle dark dividers, pill styling.</td>
       </tr>
       <tr>
         <td><code>test_activity_log_reset.js</code></td>

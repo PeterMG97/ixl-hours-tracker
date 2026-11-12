@@ -870,26 +870,30 @@ body {
   color: #f8fafc;
 }
 [data-theme="dark"] .group-header-row td {
-  background: #1e293b !important;
+  background: #0d1322 !important;
   color: #f8fafc;
-  border-top: 1px solid var(--border-medium);
-  border-bottom: 1px solid var(--border-medium);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   border-left: none !important;
   border-right: none !important;
+  border-inline: none !important;
+  box-shadow: none !important;
 }
 [data-theme="dark"] .group-header-label-cell,
 [data-theme="dark"] .group-header-metric-cell,
 [data-theme="dark"] .group-header-slot {
-  background: #1e293b !important;
+  background: #0d1322 !important;
   border-left: none !important;
   border-right: none !important;
+  border-inline: none !important;
+  box-shadow: none !important;
   color: #f8fafc;
 }
 [data-theme="dark"] .group-header-row:hover td,
 [data-theme="dark"] .group-header-row:hover .group-header-label-cell,
 [data-theme="dark"] .group-header-row:hover .group-header-metric-cell,
 [data-theme="dark"] .group-header-row:hover .group-header-slot {
-  background: #334155 !important;
+  background: #141c2e !important;
 }
 [data-theme="dark"] .group-toggle-icon {
   background: rgba(255, 255, 255, 0.1);
@@ -6741,16 +6745,78 @@ body.modal-open {
   background: #172033 !important;
 }
 
-/* Group Headers in Week & Month View */
+/* Group Headers in Week & Month View: Seamless Single-Unit Category Separator */
+.schedule-table.is-week-view tr.group-header-row td,
+.schedule-table.is-week-view tr.group-header-row th,
+.schedule-table.is-month-view tr.group-header-row td,
+.schedule-table.is-month-view tr.group-header-row th,
+.schedule-table tr.group-header-row td,
+.schedule-table tr.group-header-row th {
+  background: #e2e8f0 !important;
+  border-top: 1px solid var(--border-medium) !important;
+  border-bottom: 1px solid var(--border-medium) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-inline: none !important;
+  box-shadow: none !important;
+}
+
+.schedule-table.is-week-view tr.group-header-row:hover td,
+.schedule-table.is-week-view tr.group-header-row:hover th,
+.schedule-table.is-month-view tr.group-header-row:hover td,
+.schedule-table.is-month-view tr.group-header-row:hover th,
+.schedule-table tr.group-header-row:hover td {
+  background: #cbd5e1 !important;
+}
+
 [data-theme="dark"] .schedule-table.is-week-view tr.group-header-row,
-[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row {
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row,
+[data-theme="dark"] .schedule-table tr.group-header-row {
+  background: #0d1322 !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row th,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row th,
+[data-theme="dark"] .schedule-table tr.group-header-row td,
+[data-theme="dark"] .schedule-table tr.group-header-row th,
+[data-theme="dark"] .schedule-table tr.group-header-row .group-header-cell,
+[data-theme="dark"] .schedule-table tr.group-header-row .group-header-label-cell,
+[data-theme="dark"] .schedule-table tr.group-header-row .group-header-metric-cell,
+[data-theme="dark"] .schedule-table tr.group-header-row .group-header-slot,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td.col-user,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td.col-user,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td.col-metric,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td.col-metric,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td.group-header-slot,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td.group-header-slot {
   background: #0d1322 !important;
   border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-inline: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover,
-[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover {
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover td,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover th,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover td,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover th,
+[data-theme="dark"] .schedule-table tr.group-header-row:hover td,
+[data-theme="dark"] .schedule-table tr.group-header-row:hover th,
+[data-theme="dark"] .schedule-table tr.group-header-row:hover .group-header-cell,
+[data-theme="dark"] .schedule-table tr.group-header-row:hover .group-header-label-cell,
+[data-theme="dark"] .schedule-table tr.group-header-row:hover .group-header-metric-cell,
+[data-theme="dark"] .schedule-table tr.group-header-row:hover .group-header-slot,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover td.col-user,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover td.col-user,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover td.col-metric,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover td.col-metric,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover td.group-header-slot,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover td.group-header-slot {
   background: #141c2e !important;
 }
 
@@ -6825,6 +6891,36 @@ body.modal-open {
 [data-theme="dark"] .schedule-table.is-month-view .col-metric {
   background: #0d1424 !important;
   color: #38bdf8 !important;
+}
+
+/* Category Separator Sticky Anchor Uniformity */
+.schedule-table.is-week-view tr.group-header-row td.col-user,
+.schedule-table.is-month-view tr.group-header-row td.col-user,
+.schedule-table.is-week-view tr.group-header-row td.col-metric,
+.schedule-table.is-month-view tr.group-header-row td.col-metric {
+  background: #e2e8f0 !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-inline: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td.col-user,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td.col-user,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row td.col-metric,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row td.col-metric {
+  background: #0d1322 !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-inline: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover td.col-user,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover td.col-user,
+[data-theme="dark"] .schedule-table.is-week-view tr.group-header-row:hover td.col-metric,
+[data-theme="dark"] .schedule-table.is-month-view tr.group-header-row:hover td.col-metric {
+  background: #141c2e !important;
 }
 
 /* Day Header Cells */
