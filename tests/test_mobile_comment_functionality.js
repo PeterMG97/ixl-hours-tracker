@@ -182,7 +182,7 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-test('4.1 Mobile agenda row renders .mobile-agenda-comment with (+) icon and escaped comment text', () => {
+test('4.1 Mobile agenda row renders .mobile-agenda-comment with + icon and escaped comment text', () => {
   const row = {
     dateStr: '2026-11-08',
     dowName: 'Sun',
@@ -193,7 +193,7 @@ test('4.1 Mobile agenda row renders .mobile-agenda-comment with (+) icon and esc
 
   const commentHtml = row.comment ? `
     <div class="mobile-agenda-comment">
-      <span class="comment-icon">(+)</span>
+      <span class="comment-icon">+</span>
       <span class="comment-text">${escapeHtml(row.comment)}</span>
     </div>
   ` : '';
@@ -209,7 +209,7 @@ test('4.1 Mobile agenda row renders .mobile-agenda-comment with (+) icon and esc
   `;
 
   assert(agendaRowHtml.includes('class="mobile-agenda-comment"'), 'Must have mobile-agenda-comment class');
-  assert(agendaRowHtml.includes('<span class="comment-icon">(+)</span>'), 'Must contain (+) icon');
+  assert(agendaRowHtml.includes('<span class="comment-icon">+</span>'), 'Must contain + icon');
   assert(agendaRowHtml.includes('Track circuit field commissioning'), 'Must contain comment text');
   assert(agendaRowHtml.includes('data-comment="Track circuit field commissioning"'), 'Must preserve data-comment attribute');
 });

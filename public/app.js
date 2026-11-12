@@ -9338,7 +9338,7 @@
 
         const commentHtml = r.comment ? `
           <div class="mobile-agenda-comment">
-            <span class="comment-icon">(+)</span>
+            <span class="comment-icon">+</span>
             <span class="comment-text">${escapeHtml(r.comment)}</span>
           </div>
         ` : '';
