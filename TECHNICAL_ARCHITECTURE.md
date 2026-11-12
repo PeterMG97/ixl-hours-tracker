@@ -852,7 +852,7 @@ The project maintains 16 automated test suites (2,220+ assertions) executed with
 | `test_starred_projects_integrity.js` | 52 tests | Profile isolation of starred favorites, star toggle persistence, special items immunity |
 | `test_calculation_integrity.ps1` | 39 tests | Double-entry project vs employee reconciliation, baseline hour additions, 1h-12h clamps |
 | `test_mobile_welcome_screen_integrity.js` | 31 tests | Dedicated mobile opening & welcome screen bypass; touch tap/click/timeout skip, profile recovery, editor unhide |
-| `test_pc_welcome_screen_integrity.js` | 30 tests | Dedicated PC opening & welcome screen bypass; timer/click/key skip, anti-trap CSS, desktop grid unhide |
+| `test_pc_welcome_screen_integrity.js` | 29 tests | Dedicated PC vector welcome screen & 10s lockout; 100% SVG/CSS, 0% images, train loader, version sync |
 | `test_weekend_hours_assignment.js` | 28 tests | Cairo vs Istanbul multi-day period vs single-day weekend overtime logging |
 | `test_pc_view_only_integrity.js` | 27 tests | PC read-only URL mode, DOM button suppression, cell double click / hold defenses |
 | `test_mobile_view_only_integrity.js` | 27 tests | Mobile read-only mode, form-to-grid lockdown, apply mutations blocker |

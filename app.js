@@ -9785,6 +9785,14 @@
 
     
   // -------------------------------------------------------------
+  // Application Version (Single Source of Truth)
+  // -------------------------------------------------------------
+  const APP_VERSION = '1.0.0';
+  if (typeof state !== 'undefined') {
+    state.appVersion = APP_VERSION;
+  }
+
+  // -------------------------------------------------------------
   // Mobile & PC Welcome Splash Screen
   // -------------------------------------------------------------
   function initMobileWelcomeScreen() {
@@ -9796,6 +9804,12 @@
         state.mobileViewMode = 'form';
         updateDeviceViewMode();
       }
+    }
+
+    // Dynamically synchronize the app version to the PC welcome screen
+    const versionEl = document.getElementById('welcomeAppVersion');
+    if (versionEl) {
+      versionEl.textContent = APP_VERSION;
     }
 
     overlay.classList.remove('hidden', 'hidden-permanently');
@@ -9816,22 +9830,28 @@
       }
     }
 
-    // Automatically dismiss after loading screen holds for 10s
+    // Automatically dismiss after loading screen holds for 10s (strictly enforced)
     setTimeout(() => {
       if (!dismissed) {
         dismissWelcome();
       }
     }, 10000);
 
-    // Tap, click, or keypress skips immediately
-    overlay.addEventListener('click', dismissWelcome);
-    overlay.addEventListener('touchstart', dismissWelcome, { passive: true });
-    window.addEventListener('keydown', function handleKey() {
-      if (!dismissed) {
-        dismissWelcome();
-        window.removeEventListener('keydown', handleKey);
-      }
-    });
+    // On Mobile interface: allow touch tap dismissal
+    if (isMobileInterface()) {
+      overlay.addEventListener('click', dismissWelcome);
+      overlay.addEventListener('touchstart', dismissWelcome, { passive: true });
+    } else {
+      // On PC Interface: Strict 10-Second Lockout
+      // Background mouse clicks and keyboard presses are strictly prevented
+      // from dismissing the welcome screen early before the 10s timer and train loader finish.
+      overlay.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+      overlay.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+      });
+    }
   }
 
   // Boot Application
