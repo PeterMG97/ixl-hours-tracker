@@ -1299,6 +1299,166 @@
   }
 
   // -------------------------------------------------------------
+  // Mobile Transposed Grid View (Portrait Read-Only Mode)
+  // Columns = Employees, Rows = Dates
+  // 1. Removes category/section header rows
+  // 2. Removes shrink/expand options
+  // 3. Strictly view-only cells
+  // 4. Wider comfortable cell width (~115px)
+  // -------------------------------------------------------------
+
+  function renderMobileTransposedSchedule() {
+    ensureMonthInSelect(state.currentMonth);
+    updateMainCalendarTriggerDisplay();
+    updateScheduleViewToggleUI();
+
+    const tableScrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
+    const scheduleTable = el.scheduleTable || document.getElementById('scheduleTable');
+    if (tableScrollArea) {
+      tableScrollArea.classList.add('is-mobile-transposed');
+      tableScrollArea.classList.remove('is-week-view');
+      tableScrollArea.classList.add('is-month-view');
+    }
+    if (scheduleTable) {
+      scheduleTable.classList.add('is-mobile-transposed');
+      scheduleTable.classList.remove('is-week-view');
+      scheduleTable.classList.add('is-month-view');
+    }
+
+    el.monthSelect.value = state.currentMonth;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const [y, m] = state.currentMonth.split('-').map(Number);
+    const mName = monthNames[m - 1] || 'Month';
+    const days = getDaysInMonth(state.currentMonth);
+
+    // 1. Gather all active employees across all sections without section header rows
+    const activeEmps = [];
+    const empMonthHoursMap = new Map();
+
+    state.sections.forEach(sec => {
+      const secEmployees = state.employees.filter(e => e.sectionId === sec.id && e.active !== false);
+      secEmployees.sort((a,b) => a.name.localeCompare(b.name));
+      secEmployees.forEach(emp => {
+        activeEmps.push({
+          emp,
+          secLocation: sec.location || 'Cairo',
+          secName: sec.name
+        });
+
+        let totalH = 0;
+        const empDefHours = emp.defaultHoursPerDay || 8;
+        days.forEach(d => {
+          const key = `${emp.id}_${d.dateStr}`;
+          const alloc = state.allocations[key];
+          const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
+          const projectName = hasVal ? alloc.project.trim() : '';
+          const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empDefHours) : 0;
+          if (hasVal && projectName !== 'Day OFF' && projectName !== 'NO PROJECT' && projectName !== 'NO STATUS') {
+            totalH += Number(hours);
+          }
+        });
+        empMonthHoursMap.set(emp.id, totalH);
+      });
+    });
+
+    // 2. Render Sticky <thead> with Date Corner & Employee Column Headers
+    let headHtml = `
+      <tr>
+        <th class="col-transposed-date-header" scope="col">
+          <div class="transposed-date-corner-cell">Date</div>
+        </th>
+        ${activeEmps.map(item => {
+          const emp = item.emp;
+          const hours = empMonthHoursMap.get(emp.id) || 0;
+          const isChosen = (state.currentUserId === emp.id);
+          return `
+            <th class="col-transposed-emp-header" scope="col" data-emp-id="${emp.id}" title="${escapeHtml(emp.name)} (${escapeHtml(item.secName)}): ${hours}h">
+              <div class="transposed-emp-header-cell">
+                <div class="user-mini-avatar">${getInitials(emp.name)}</div>
+                <span class="transposed-emp-name-text ${isChosen ? 'chosen-profile-bold' : ''}">${escapeHtml(emp.name)}</span>
+                <span class="transposed-emp-hours-pill">${hours}h</span>
+              </div>
+            </th>
+          `;
+        }).join('')}
+      </tr>
+    `;
+    el.scheduleHead.innerHTML = headHtml;
+
+    // 3. Render <tbody> with Dates as Rows and Wide Read-Only Slot Cells
+    let bodyHtml = '';
+    days.forEach(d => {
+      let cellsHtml = '';
+      activeEmps.forEach(item => {
+        const emp = item.emp;
+        const key = `${emp.id}_${d.dateStr}`;
+        const alloc = state.allocations[key];
+        const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
+        const projectName = hasVal ? alloc.project.trim() : '';
+        const empDefHours = emp.defaultHoursPerDay || 8;
+        const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empDefHours) : 0;
+        const isWk = isWeekendForLocation(d.dow, item.secLocation);
+        const badgeClass = getProjectBadgeClass(projectName);
+        const shortLabel = getCompactLabel(projectName);
+        const hasComment = Boolean(alloc && alloc.comment && alloc.comment.trim());
+        const commentText = hasComment ? alloc.comment.trim() : '';
+
+        let chipHtml = '';
+        if (hasVal) {
+          chipHtml = `
+            <div class="task-chip transposed-task-chip ${badgeClass} ${hasComment ? 'has-comment' : ''}"
+                 title="${escapeHtml(emp.name)} | ${formatDateDMY(d.dateStr)}: ${escapeHtml(projectName)} (${hours}h)${hasComment ? ` | Comment: ${escapeHtml(commentText)}` : ''}">
+              <span class="transposed-chip-label">${escapeHtml(shortLabel)} (${hours}h)</span>
+              ${hasComment ? `<span class="chip-comment-dot" aria-hidden="true" title="Comment: ${escapeHtml(commentText)}"></span>` : ''}
+            </div>
+          `;
+        } else {
+          chipHtml = `
+            <div class="transposed-task-chip is-empty-slot" title="${escapeHtml(emp.name)} | ${formatDateDMY(d.dateStr)}: Unallocated">
+              <span class="transposed-unfilled-indicator">-</span>
+            </div>
+          `;
+        }
+
+        cellsHtml += `
+          <td class="col-transposed-slot ${isWk ? 'is-weekend' : ''} ${d.isToday ? 'is-today' : ''}" 
+              data-emp-id="${emp.id}" 
+              data-date="${d.dateStr}">
+            ${chipHtml}
+          </td>
+        `;
+      });
+
+      bodyHtml += `
+        <tr class="transposed-day-row" data-date="${d.dateStr}">
+          <td class="col-transposed-date ${d.isToday ? 'is-today' : ''}" data-date="${d.dateStr}" title="${formatDateDMY(d.dateStr)}">
+            <div class="transposed-date-cell-content">
+              <span class="transposed-date-num">${d.num}</span>
+              <span class="transposed-date-dow">${d.name}</span>
+            </div>
+          </td>
+          ${cellsHtml}
+        </tr>
+      `;
+    });
+
+    el.scheduleBody.innerHTML = bodyHtml;
+
+    if (el.statActiveEmployees) el.statActiveEmployees.textContent = activeEmps.length;
+    const teamModalCount = document.getElementById('teamModalActiveMembersCount');
+    if (teamModalCount) teamModalCount.textContent = activeEmps.length;
+    const settingsActiveCount = document.getElementById('settingsTeamActiveCount');
+    if (settingsActiveCount) settingsActiveCount.textContent = activeEmps.length;
+
+    const currentEmp = state.employees.find(e => e.id === state.currentUserId);
+    if (currentEmp) {
+      const userMonthHours = empMonthHoursMap.get(currentEmp.id) || 0;
+      if (el.statCurrentMonthHours) el.statCurrentMonthHours.textContent = `${userMonthHours}h`;
+      if (el.statCurrentMonthHours) el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
+    }
+  }
+
+  // -------------------------------------------------------------
   // Render Schedule Matrix Table (Requirements 5, 7, 8, 9)
   // -------------------------------------------------------------
 
@@ -1306,6 +1466,11 @@
     ensureMonthInSelect(state.currentMonth);
     updateMainCalendarTriggerDisplay();
     updateScheduleViewToggleUI();
+
+    if (isMobileInterface()) {
+      renderMobileTransposedSchedule();
+      return;
+    }
 
     const isWeek = (state.scheduleViewMode === 'week') && !isMobileInterface();
     const days = isWeek
@@ -1315,10 +1480,12 @@
     const tableScrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
     const scheduleTable = el.scheduleTable || document.getElementById('scheduleTable');
     if (tableScrollArea) {
+      tableScrollArea.classList.remove('is-mobile-transposed');
       tableScrollArea.classList.toggle('is-week-view', isWeek);
       tableScrollArea.classList.toggle('is-month-view', !isWeek);
     }
     if (scheduleTable) {
+      scheduleTable.classList.remove('is-mobile-transposed');
       scheduleTable.classList.toggle('is-week-view', isWeek);
       scheduleTable.classList.toggle('is-month-view', !isWeek);
     }
@@ -9478,7 +9645,7 @@
         document.body.classList.add('is-mobile-device');
         document.body.classList.remove('is-desktop-device');
         if (notice) notice.classList.remove('hidden');
-        setDayColumnWidth(38, true);
+        renderSchedule();
       } else {
         document.body.classList.add('is-desktop-device');
         document.body.classList.remove('is-mobile-device');
@@ -9519,8 +9686,7 @@
       document.body.classList.add('mobile-readonly-grid');
       if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Mobile Editor';
       if (el.toggleMobileDesktopGridSub) el.toggleMobileDesktopGridSub.textContent = 'Mobile Editor mode';
-      // Default to minimum cell width when opening grid view on mobile
-      setDayColumnWidth(38, true);
+      renderSchedule();
     } else {
       // Default mobile interface: show mobile app container, hide grid
       if (container) container.classList.remove('hidden');

@@ -484,6 +484,18 @@ if (Test-Path $weeklyBackupTestScript) {
 }
 Assert-Test "6.68 Automated Weekly Friday 22:00 Cairo Backup and 3-Month Retention Integrity" $weeklyBackupPass "Dedicated test verifying Friday 22:00 Egypt time calculation, automated weekly snapshotting, 3-month rolling retention, safe restoration, and zero emojis"
 
+$mobTransposedGridTestScript = Join-Path $AppDir "test_mobile_transposed_grid.js"
+$mobTransposedGridPass = $false
+if (Test-Path $mobTransposedGridTestScript) {
+    if (Test-Path $nodePath) {
+        $nodeTransOutput = & $nodePath $mobTransposedGridTestScript 2>&1
+        $mobTransposedGridPass = ($LASTEXITCODE -eq 0) -and ($nodeTransOutput -match "MOBILE TRANSPOSED GRID & TRAIN TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $mobTransposedGridPass = ($jsContent.Contains("renderMobileTransposedSchedule")) -and ($cssContent.Contains("is-mobile-transposed"))
+    }
+}
+Assert-Test "6.69 Mobile Portrait Transposed Read-Only Grid & Train Tail Extension Integrity" $mobTransposedGridPass "Dedicated test verifying Mobile transposed grid (names=cols, dates=rows, no sections, no shrink/expand, view-only, >=115px width) and welcome train tail extension under letter A"
+
 
 
 

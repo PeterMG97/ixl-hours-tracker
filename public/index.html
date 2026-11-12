@@ -109,11 +109,11 @@
       overflow: visible;
     }
     .welcome-train-wrap {
-      width: clamp(290px, 33vw, 491px);
+      width: clamp(280px, 32vw, 480px);
       margin-top: clamp(24px, 3vh, 36px);
       position: relative;
       overflow: visible;
-      transform: translateX(7px); /* Head stays in exact position while tail reaches under letter A */
+      transform: none; /* Extended from tail side to align exactly under letter A */
     }
     .welcome-train-svg {
       width: 100%;
@@ -350,11 +350,11 @@
         margin-bottom: 0 !important;
       }
       .welcome-mobile-train-wrap {
-        width: clamp(218px, 70.6vw, 301px) !important;
+        width: clamp(210px, 68vw, 290px) !important;
         margin-top: clamp(18px, 2.8vh, 28px) !important;
         position: relative !important;
         overflow: visible !important;
-        transform: translateX(6px) !important; /* Head stays in exact position while tail reaches under letter A */
+        transform: none !important; /* Extended from tail side to align exactly under letter A */
       }
       .welcome-mobile-footer {
         position: absolute !important;
@@ -483,29 +483,29 @@
             </defs>
 
             <!-- Base Faint Blueprint Rail Track (Extended on tail side to reach under letter A) -->
-            <line x1="4" y1="24" x2="510" y2="24" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="0" y1="24" x2="510" y2="24" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
 
             <!-- Trailing Speed Streaks (Extended to reach under letter A) -->
             <g class="train-speed-streaks">
-              <line class="train-speed-streak s1 train-streak" x1="12" y1="12" x2="220" y2="12" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
-              <line class="train-speed-streak s2 train-streak" x1="42" y1="16" x2="250" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
-              <line class="train-speed-streak s3 train-streak" x1="82" y1="20" x2="280" y2="20" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
+              <line class="train-speed-streak s1 train-streak" x1="-30" y1="12" x2="160" y2="12" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+              <line class="train-speed-streak s2 train-streak" x1="-15" y1="16" x2="200" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+              <line class="train-speed-streak s3 train-streak" x1="10" y1="20" x2="250" y2="20" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
             </g>
 
-            <!-- Base Faint Wireframe Train Body from Reference Photo (Extended from tail side with exact same shape & thickness) -->
+            <!-- Base Faint Wireframe Train Body from Reference Photo (Extended from tail side to reach under letter A) -->
             <g stroke="rgba(56, 189, 248, 0.28)" fill="none">
-              <path d="M135 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H135" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M8 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H8 Z" stroke-width="1.2" stroke-linecap="round"/>
               <path d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke-width="1" fill="rgba(56, 189, 248, 0.08)"/>
-              <line x1="150" y1="16" x2="445" y2="16" stroke-width="1.1" stroke-dasharray="24 6"/>
+              <line x1="16" y1="16" x2="445" y2="16" stroke-width="1.1" stroke-dasharray="24 6"/>
               <rect x="430" y="13.5" width="10" height="10" rx="1" stroke-width="1"/>
-              <path d="M175 24 C175 22.5 183 22.5 183 24 M200 24 C200 22.5 208 22.5 208 24 M230 24 C230 22.5 238 22.5 238 24 M255 24 C255 22.5 263 22.5 263 24 M360 24 C360 22.5 368 22.5 368 24 M385 24 C385 22.5 393 22.5 393 24" stroke-width="1.2"/>
+              <path d="M45 24 C45 22.5 53 22.5 53 24 M70 24 C70 22.5 78 22.5 78 24 M110 24 C110 22.5 118 22.5 118 24 M135 24 C135 22.5 143 22.5 143 24 M175 24 C175 22.5 183 22.5 183 24 M200 24 C200 22.5 208 22.5 208 24 M230 24 C230 22.5 238 22.5 238 24 M255 24 C255 22.5 263 22.5 263 24 M360 24 C360 22.5 368 22.5 368 24 M385 24 C385 22.5 393 22.5 393 24" stroke-width="1.2"/>
             </g>
 
             <!-- Sleek Low-Profile Dynamic High-Speed Animated Energy Stroke -->
-            <path class="train-stroke-animated" d="M135 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H135" stroke="url(#trainNeonGrad)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <path class="train-stroke-animated" d="M8 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H8 Z" stroke="url(#trainNeonGrad)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
             <path class="train-stroke-animated" d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke="#38bdf8" stroke-width="1.2" fill="rgba(56, 189, 248, 0.3)"/>
-            <line class="train-stroke-animated" x1="150" y1="16" x2="445" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 6"/>
-            <line class="train-stroke-animated" x1="4" y1="24" x2="510" y2="24" stroke="url(#trainNeonGrad)" stroke-width="1.6" stroke-linecap="round"/>
+            <line class="train-stroke-animated" x1="16" y1="16" x2="445" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 6"/>
+            <line class="train-stroke-animated" x1="0" y1="24" x2="510" y2="24" stroke="url(#trainNeonGrad)" stroke-width="1.6" stroke-linecap="round"/>
             <circle class="train-headlight" cx="506" cy="23" r="1.6" fill="#FFFFFF"/>
           </svg>
         </div>
@@ -550,29 +550,29 @@
             </defs>
 
             <!-- Base Faint Blueprint Rail Track (Extended on tail side to reach under letter A) -->
-            <line x1="4" y1="24" x2="510" y2="24" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="0" y1="24" x2="510" y2="24" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-linecap="round"/>
 
             <!-- Trailing Speed Streaks (Extended to reach under letter A) -->
             <g class="train-speed-streaks">
-              <line class="train-speed-streak s1 train-streak" x1="12" y1="12" x2="220" y2="12" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
-              <line class="train-speed-streak s2 train-streak" x1="42" y1="16" x2="250" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
-              <line class="train-speed-streak s3 train-streak" x1="82" y1="20" x2="280" y2="20" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
+              <line class="train-speed-streak s1 train-streak" x1="-30" y1="12" x2="160" y2="12" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+              <line class="train-speed-streak s2 train-streak" x1="-15" y1="16" x2="200" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+              <line class="train-speed-streak s3 train-streak" x1="10" y1="20" x2="250" y2="20" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
             </g>
 
             <!-- Base Faint Wireframe Train Body from Reference Photo (Extended from tail side with exact same shape & thickness) -->
             <g stroke="rgba(56, 189, 248, 0.28)" fill="none">
-              <path d="M135 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H135" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M8 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H8 Z" stroke-width="1.2" stroke-linecap="round"/>
               <path d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke-width="1" fill="rgba(56, 189, 248, 0.08)"/>
-              <line x1="150" y1="16" x2="445" y2="16" stroke-width="1.1" stroke-dasharray="24 6"/>
+              <line x1="16" y1="16" x2="445" y2="16" stroke-width="1.1" stroke-dasharray="24 6"/>
               <rect x="430" y="13.5" width="10" height="10" rx="1" stroke-width="1"/>
-              <path d="M175 24 C175 22.5 183 22.5 183 24 M200 24 C200 22.5 208 22.5 208 24 M230 24 C230 22.5 238 22.5 238 24 M255 24 C255 22.5 263 22.5 263 24 M360 24 C360 22.5 368 22.5 368 24 M385 24 C385 22.5 393 22.5 393 24" stroke-width="1.2"/>
+              <path d="M45 24 C45 22.5 53 22.5 53 24 M70 24 C70 22.5 78 22.5 78 24 M110 24 C110 22.5 118 22.5 118 24 M135 24 C135 22.5 143 22.5 143 24 M175 24 C175 22.5 183 22.5 183 24 M200 24 C200 22.5 208 22.5 208 24 M230 24 C230 22.5 238 22.5 238 24 M255 24 C255 22.5 263 22.5 263 24 M360 24 C360 22.5 368 22.5 368 24 M385 24 C385 22.5 393 22.5 393 24" stroke-width="1.2"/>
             </g>
 
             <!-- Sleek Low-Profile Dynamic High-Speed Animated Energy Stroke -->
-            <path class="train-stroke-animated" d="M135 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H135" stroke="url(#trainNeonGradMob)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <path class="train-stroke-animated" d="M8 12 H395 C430 12 465 14.5 488 19 C498 21 504 22.5 508 23.5 L485 24 H8 Z" stroke="url(#trainNeonGradMob)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
             <path class="train-stroke-animated" d="M462 14.5 C474 16 484 18 492 20 L484 21.2 H456 Z" stroke="#38bdf8" stroke-width="1.2" fill="rgba(56, 189, 248, 0.3)"/>
-            <line class="train-stroke-animated" x1="150" y1="16" x2="445" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 6"/>
-            <line class="train-stroke-animated" x1="4" y1="24" x2="510" y2="24" stroke="url(#trainNeonGradMob)" stroke-width="1.6" stroke-linecap="round"/>
+            <line class="train-stroke-animated" x1="16" y1="16" x2="445" y2="16" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="24 6"/>
+            <line class="train-stroke-animated" x1="0" y1="24" x2="510" y2="24" stroke="url(#trainNeonGradMob)" stroke-width="1.6" stroke-linecap="round"/>
             <circle class="train-headlight" cx="506" cy="23" r="1.6" fill="#FFFFFF"/>
           </svg>
         </div>
