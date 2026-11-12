@@ -13,6 +13,7 @@
   <script>
     (function() {
       try {
+        localStorage.removeItem('ixl_theme_mode');
         var m = localStorage.getItem('ixl_theme_mode') || 'auto';
         var eff = m;
         if (m === 'auto') {
@@ -666,7 +667,7 @@
 
         <!-- Month Navigation -->
         <div class="period-navigator" id="mainPeriodNavigator">
-          <button class="nav-arrow-btn" id="prevMonthBtn" title="Previous Month">‹</button>
+          <button class="nav-arrow-btn" id="prevMonthBtn" title="Previous Week">‹</button>
           <button type="button" class="main-calendar-trigger-btn" id="mainCalendarTriggerBtn" title="Click to choose day, month, year" aria-haspopup="dialog" aria-expanded="false">
             <svg class="main-cal-trigger-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -851,7 +852,7 @@
             <option value="2040-11">11/2040 - November 2040</option>
             <option value="2040-12">12/2040 - December 2040</option>
           </select>
-          <button class="nav-arrow-btn" id="nextMonthBtn" title="Next Month">›</button>
+          <button class="nav-arrow-btn" id="nextMonthBtn" title="Next Week">›</button>
           <button class="today-shortcut-btn" id="jumpTodayBtn">Today</button>
         </div>
 

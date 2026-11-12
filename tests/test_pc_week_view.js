@@ -206,6 +206,21 @@ const minW = mockStepWeek('2026-11-01', -1);
 assert.strictEqual(minW, '2026-11-01', 'Decrementing at Nov 1, 2026 clamps at Nov 1, 2026');
 pass('3.4 Stepping next/prev increments and decrements by exactly 7 days and clamps at start boundary');
 
+// 3.5 Default view mode on PC open/refresh is Week View
+assert(appJs.includes("scheduleViewMode: 'week'"), "Default state.scheduleViewMode must be 'week'");
+assert(appJs.includes("if (!isMobileInterface()) {\n      state.scheduleViewMode = 'week';") || appJs.includes("if (!isMobileInterface()) {\r\n      state.scheduleViewMode = 'week';"), "initScheduleViewToggle and loadData must enforce week view on desktop boot");
+assert(indexHtml.includes('id="viewPillWeek" class="view-key-pill active"') || indexHtml.includes('class="view-key-pill active" id="viewPillWeek"'), "viewPillWeek must have active class by default");
+assert(indexHtml.includes('id="prevMonthBtn" title="Previous Week"'), "prevMonthBtn must default to Previous Week title on PC");
+assert(indexHtml.includes('id="nextMonthBtn" title="Next Week"'), "nextMonthBtn must default to Next Week title on PC");
+pass('3.5 Opening or refreshing app on PC interface strictly defaults to Week View');
+
+// 3.6 Default theme on open/refresh is Auto theme
+assert(indexHtml.includes("localStorage.removeItem('ixl_theme_mode')"), "index.html inline script must clear theme override to ensure Auto on refresh/open");
+assert(appJs.includes("removeStoredItem('ixl_theme_mode')"), "initTheme must reset theme override to ensure Auto theme on load");
+assert(indexHtml.includes('data-theme="auto"'), "index.html root data-theme must be auto");
+assert(indexHtml.includes('<option value="auto" selected>'), "themeSelect option auto must be selected");
+pass('3.6 Opening or refreshing app strictly defaults to Auto theme across all interfaces');
+
 // -----------------------------------------------------------------------------
 // MODULE 4: Zero Emojis Contract
 // -----------------------------------------------------------------------------

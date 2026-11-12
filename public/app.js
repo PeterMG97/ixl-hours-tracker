@@ -850,6 +850,12 @@
     updateAdminUI();
     updateUserDisplay();
     populateMasterMonthSelect();
+    if (!isMobileInterface()) {
+      state.scheduleViewMode = 'week';
+      if (!state.currentWeekStart) {
+        state.currentWeekStart = getSundayOfWeek(state.todayStr);
+      }
+    }
     renderSchedule();
     populateSectionDropdowns();
 
@@ -6710,6 +6716,12 @@
   }
 
   function initScheduleViewToggle() {
+    if (!isMobileInterface()) {
+      state.scheduleViewMode = 'week';
+      if (!state.currentWeekStart) {
+        state.currentWeekStart = getSundayOfWeek(state.todayStr);
+      }
+    }
     const btn = document.getElementById('viewModeToggleBtn');
     const pillWeek = document.getElementById('viewPillWeek');
     const pillMonth = document.getElementById('viewPillMonth');
@@ -6735,6 +6747,9 @@
         setScheduleViewMode(nextMode);
       });
     }
+
+    updateScheduleViewToggleUI();
+    updateMainCalendarTriggerDisplay();
   }
 
   let mainCalViewYear = 2026;
@@ -7494,6 +7509,7 @@
   // Theme Manager: Light, Dark, Auto (according to daytime)
   // -------------------------------------------------------------
   function initTheme() {
+    removeStoredItem('ixl_theme_mode');
     const savedTheme = getStoredItem('ixl_theme_mode') || 'auto';
     if (el.themeSelect) {
       el.themeSelect.value = savedTheme;
