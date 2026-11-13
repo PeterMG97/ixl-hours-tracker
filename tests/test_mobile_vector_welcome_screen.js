@@ -143,9 +143,9 @@ test('2.5 Mobile Welcome signature styling: upright Semi-Bold IXL Team with brea
   assert(verCss.includes('color: #475569 !important;'), 'Mobile version must have dimmed darker gray');
 });
 
-test('2.6 Mobile Welcome loading train moved horizontally right by 5mm without changing shape or color', () => {
-  assert(html.includes('transform: translateX(5mm) !important;'), 'Mobile critical CSS train wrapper must have translateX(5mm)');
-  assert(css.includes('transform: translateX(5mm) !important;'), 'styles.css mobile train wrapper must have translateX(5mm)');
+test('2.6 Mobile Welcome loading train moved horizontally right by 4mm without changing shape or color', () => {
+  assert(html.includes('transform: translateX(4mm) !important;'), 'Mobile critical CSS train wrapper must have translateX(4mm)');
+  assert(css.includes('transform: translateX(4mm) !important;'), 'styles.css mobile train wrapper must have translateX(4mm)');
   // Verify shape and color elements are strictly preserved
   const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');
   const mobStageEnd = html.indexOf('id="mobileWelcomeLogo"', mobStageStart);
