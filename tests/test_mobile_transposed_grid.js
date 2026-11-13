@@ -129,14 +129,16 @@ check('3.4 Requirement 4: Strictly view-only cells without editable button trigg
 // >>> MODULE 4: Welcome Screen Train Tail Length Extension
 console.log('\n>>> MODULE 4: Welcome Screen Train Tail Length Extension');
 
-check('4.1 PC Welcome Screen train wrapper matches ALSTOM brand width and transform is none', () => {
+check('4.1 PC Welcome Screen train wrapper matches ALSTOM brand width and shifted horizontally right by 3mm', () => {
   assert(stylesCss.includes('width: clamp(280px, 32vw, 480px);'), 'PC train wrapper width must match ALSTOM brand clamp');
   assert(indexHtml.includes('width: clamp(280px, 32vw, 480px);'), 'PC critical CSS train wrapper must match brand');
-  assert(indexHtml.includes('transform: none; /* Extended from tail side to align exactly under letter A */'), 'PC train wrap transform must be none');
+  assert(indexHtml.includes('transform: translateX(3mm);'), 'PC train wrap must be shifted horizontally to the right by 3mm');
+  assert(stylesCss.includes('transform: translateX(3mm);'), 'styles.css PC train wrap must be shifted horizontally to the right by 3mm');
 });
 
 check('4.2 Mobile Welcome Screen train wrapper matches mobile brand width and transform is none', () => {
   assert(indexHtml.includes('width: clamp(210px, 68vw, 290px) !important;'), 'Mobile train wrapper width must match mobile brand');
+  assert(indexHtml.includes('transform: none !important;'), 'Mobile train wrap transform must remain none');
 });
 
 check('4.3 PC Train SVG body extends from tail side (x=8) to reach under letter A', () => {

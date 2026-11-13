@@ -6459,7 +6459,10 @@ body.mobile-readonly-grid .emp-no-proj-badge,
   margin-top: clamp(24px, 3vh, 36px);
   position: relative;
   overflow: visible;
-  transform: none; /* Extended from tail side to align exactly under letter A */
+  transform: translateX(3mm); /* Shifted horizontally to the right by 3mm for PC welcome screen */
+}
+.pc-only-welcome .welcome-train-wrap {
+  transform: translateX(3mm);
 }
 
 .welcome-train-svg {
