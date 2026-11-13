@@ -61,30 +61,18 @@ test('1.2 Cache buster bumped to v=10.0 in index.html', () => {
   assert(html.includes('app.js?v=10.0'), 'app.js v=10.0 not found in index.html');
 });
 
-test('1.3 Archival backup of image-based approach exists in backup_welcome_screen_image_approach.html', () => {
-  assert(fs.existsSync(resolvePath('backup_welcome_screen_image_approach.html')), 'backup_welcome_screen_image_approach.html missing');
-  const backupHtml = fs.readFileSync(resolvePath('backup_welcome_screen_image_approach.html'), 'utf8');
-  assert(backupHtml.includes('alstom-welcome-pc.jpg?v=10.0'), 'Backup missing PC welcome image reference');
-  assert(backupHtml.includes('alstom-welcome-mobile.jpg?v=10.0'), 'Backup missing mobile welcome image reference');
-  assert(backupHtml.includes('splash-spinner-circle'), 'Backup missing splash spinner');
+test('1.3 Clean architectural separation: obsolete image approach files and folders permanently removed', () => {
+  assert(!fs.existsSync(path.join(__dirname, '../backups/backup_welcome_screen_image_approach.html')), 'backup_welcome_screen_image_approach.html should be removed');
+  assert(!fs.existsSync(path.join(__dirname, '../backups/welcome_pic')), 'welcome_pic folder should be removed');
+  assert(!fs.existsSync(path.join(__dirname, '../backups/welcome_pic_mob')), 'welcome_pic_mob folder should be removed');
+  assert(!fs.existsSync(path.join(__dirname, '../public/alstom-welcome-pc.jpg')), 'alstom-welcome-pc.jpg should be removed');
+  assert(!fs.existsSync(path.join(__dirname, '../public/alstom-welcome-mobile.jpg')), 'alstom-welcome-mobile.jpg should be removed');
 });
 
-test('1.4 Original PC and Mobile image assets preserved intact on disk', () => {
-  const origBuf = fs.readFileSync(resolvePath('welcome_pic/1.jpg'));
-  const pcBuf = fs.readFileSync(resolvePath('alstom-welcome-pc.jpg'));
-  assert.strictEqual(origBuf.length, 268506, 'Original image file size must be exactly 268,506 bytes');
-  assert.strictEqual(pcBuf.length, 268506, 'PC welcome image must be exactly 268,506 bytes');
-  
-  const origHash = crypto.createHash('sha256').update(origBuf).digest('hex');
-  const pcHash = crypto.createHash('sha256').update(pcBuf).digest('hex');
-  assert.strictEqual(pcHash, origHash, 'PC welcome image SHA256 must match welcome_pic/1.jpg byte-for-byte');
-
-  const origMobBuf = fs.readFileSync(resolvePath('welcome_pic_mob/2026-11-10 17.06.jpg'));
-  const mobBuf = fs.readFileSync(resolvePath('alstom-welcome-mobile.jpg'));
-  assert.strictEqual(mobBuf.length, 320123, 'Mobile welcome image must be exactly 320,123 bytes');
-  const origMobHash = crypto.createHash('sha256').update(origMobBuf).digest('hex');
-  const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');
-  assert.strictEqual(mobHash, origMobHash, 'Mobile welcome image SHA256 must match welcome_pic_mob exactly');
+test('1.4 Saved PC welcome preset pc_welcome_1 exists with preview, manifest, and restoration script', () => {
+  assert(fs.existsSync(path.join(__dirname, '../backups/pc_welcome_1/preview.html')), 'pc_welcome_1 preview.html must exist');
+  assert(fs.existsSync(path.join(__dirname, '../backups/pc_welcome_1/pc_welcome_1.manifest.json')), 'pc_welcome_1.manifest.json must exist');
+  assert(fs.existsSync(path.join(__dirname, '../backups/pc_welcome_1/restore_pc_welcome_1.ps1')), 'pc_welcome_1 restoration script must exist');
 });
 
 // ========================================================

@@ -59,13 +59,9 @@ test('1.2 Cache buster bumped to v=10.0 in index.html', () => {
   assert(html.includes('app.js?v=10.0'), 'app.js v=10.0 not found in index.html');
 });
 
-test('1.3 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic_mob/2026-11-10 17.06.jpg', () => {
-  const origMobBuf = fs.readFileSync(resolvePath('welcome_pic_mob/2026-11-10 17.06.jpg'));
-  const mobBuf = fs.readFileSync(resolvePath('alstom-welcome-mobile.jpg'));
-  assert.strictEqual(mobBuf.length, 320123, 'Mobile welcome image must be exactly 320,123 bytes');
-  const origHash = crypto.createHash('sha256').update(origMobBuf).digest('hex');
-  const mobHash = crypto.createHash('sha256').update(mobBuf).digest('hex');
-  assert.strictEqual(mobHash, origHash, 'Mobile welcome image SHA256 must match welcome_pic_mob exactly');
+test('1.3 Clean architectural separation: obsolete mobile image files removed', () => {
+  assert(!fs.existsSync(path.join(__dirname, '../backups/welcome_pic_mob')), 'welcome_pic_mob folder should be removed');
+  assert(!fs.existsSync(path.join(__dirname, '../public/alstom-welcome-mobile.jpg')), 'alstom-welcome-mobile.jpg should be removed');
 });
 
 // ========================================================
@@ -73,8 +69,9 @@ test('1.3 alstom-welcome-mobile.jpg is byte-for-byte identical to welcome_pic_mo
 // ========================================================
 console.log('\n>>> MODULE 2: Mobile Welcome Screen Layout & Responsive Placement');
 
-test('2.1 index.html references responsive mobile artwork source tag with natural dimensions (1408x3040)', () => {
-  assert(html.includes('<source media="(max-width: 768px)" srcset="alstom-welcome-mobile.jpg?v=10.0" width="1408" height="3040">'), 'Mobile source tag missing or misconfigured in index.html');
+test('2.1 Mobile welcome stage enforces 100% vector SVG and touch stage', () => {
+  assert(html.includes('welcome-mobile-vector-stage'), 'welcome-mobile-vector-stage missing in index.html');
+  assert(html.includes('mobileTouchWelcomeStage'), 'mobileTouchWelcomeStage missing in index.html');
 });
 
 test('2.2 Mobile-responsive positioning places circle above "by" and centers horizontally', () => {

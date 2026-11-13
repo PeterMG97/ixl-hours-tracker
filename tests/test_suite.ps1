@@ -419,7 +419,7 @@ if (Test-Path $pcWelcomeTestScript) {
         $nodePcWelcomeOutput = & $nodePath $pcWelcomeTestScript 2>&1
         $pcWelcomePass = ($LASTEXITCODE -eq 0) -and ($nodePcWelcomeOutput -match "PC WELCOME SCREEN TEST COMPLETE: \d+ PASSED, 0 FAILED")
     } else {
-        $pcWelcomePass = ($jsContent.Contains("initMobileWelcomeScreen")) -and ($html.Contains("alstom-welcome-pc.jpg"))
+        $pcWelcomePass = ($jsContent.Contains("initMobileWelcomeScreen")) -and ($htmlContent.Contains("pcVectorWelcomeStage"))
     }
 }
 Assert-Test "6.63 PC Interface Welcome Screen Bypass & Grid Opening Integrity" $pcWelcomePass "Dedicated test verifying desktop app never gets stuck at welcome page, timer/click/key skip works, and PC grid opens cleanly"
@@ -431,7 +431,7 @@ if (Test-Path $mobWelcomeTestScript) {
         $nodeMobWelcomeOutput = & $nodePath $mobWelcomeTestScript 2>&1
         $mobWelcomePass = ($LASTEXITCODE -eq 0) -and ($nodeMobWelcomeOutput -match "MOBILE WELCOME SCREEN TEST COMPLETE: \d+ PASSED, 0 FAILED")
     } else {
-        $mobWelcomePass = ($jsContent.Contains("initMobileWelcomeScreen")) -and ($html.Contains("alstom-welcome-mobile.jpg"))
+        $mobWelcomePass = ($jsContent.Contains("initMobileWelcomeScreen")) -and ($htmlContent.Contains("mobileTouchWelcomeStage"))
     }
 }
 Assert-Test "6.64 Mobile Interface Welcome Screen Bypass & Editor Opening Integrity" $mobWelcomePass "Dedicated test verifying mobile app never gets stuck at welcome page, touch tap/click/timeout skip works, and mobile editor opens cleanly"
