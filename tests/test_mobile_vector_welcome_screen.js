@@ -66,6 +66,12 @@ test('1.2 Active mobile welcome stage contains 0% bitmap images (no img/picture 
   assert(!mobStageHtml.includes('.png'), 'Active mobile stage must contain 0 .png references');
 });
 
+test('1.3 Saved Mobile welcome preset mobile_welcome_1 exists with preview, manifest, and restoration script', () => {
+  assert(fs.existsSync(path.join(__dirname, '../backups/mobile_welcome_1/preview.html')), 'mobile_welcome_1 preview.html must exist');
+  assert(fs.existsSync(path.join(__dirname, '../backups/mobile_welcome_1/mobile_welcome_1.manifest.json')), 'mobile_welcome_1.manifest.json must exist');
+  assert(fs.existsSync(path.join(__dirname, '../backups/mobile_welcome_1/restore_mobile_welcome_1.ps1')), 'mobile_welcome_1 restoration script must exist');
+});
+
 // ========================================================
 // MODULE 2: Vector Graphics & Mobile Portrait Typography
 // ========================================================

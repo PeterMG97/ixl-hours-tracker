@@ -27,6 +27,7 @@ git checkout pc_welcome_1 -- public/index.html public/styles.css
 * Max width: 520px.
 
 ### 2. Aerodynamic Bullet Train Loader
+* Shifted horizontally to the right by **5 mm** (`transform: translateX(5mm);`).
 * Extended tail begins at `x = 8` (1.09% under letter **A**, meeting the red dot from user reference).
 * Train head tip terminates at `x = 508` (98.7% under letter **M**).
 * Active glowing headlight at `cx = 506`, `cy = 23`.

@@ -4,15 +4,16 @@
   "createdAt": "2026-11-13T19:50:00+02:00",
   "gitCommit": "5784966",
   "gitTag": "pc_welcome_1",
-  "description": "Standard official vector welcome screen for PC interface with extended train tail under letter A, 5s animation, upright Semi-Bold soft white IXL Team, and dimmed by/1.0.0 text.",
+  "description": "Standard official vector welcome screen for PC interface with 5mm right train offset, 5s animation, upright Semi-Bold soft white IXL Team, and dimmed by/1.0.0 text.",
   "parameters": {
     "timerSeconds": 5,
     "lockoutEnforced": true,
     "train": {
+      "translateX": "5mm",
       "tailStartX": 8,
       "headTipX": 508,
       "headlightX": 506,
-      "alignment": "Tail starts at x=8 (1.09% under letter A), Head ends at x=508 (98.7% under letter M)",
+      "alignment": "Tail starts at x=8 (1.09% under letter A), Head ends at x=508 (98.7% under letter M), shifted horizontally right by 5mm",
       "animationDuration": "5s",
       "bezierCurve": "cubic-bezier(0.2, 0.85, 0.25, 1)",
       "gradient": "linear-gradient(#38bdf8 to #ffffff)"
