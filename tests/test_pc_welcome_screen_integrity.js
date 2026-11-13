@@ -142,6 +142,8 @@ test('2.6 PC Welcome signature styling: upright Semi-Bold IXL Team with breathin
   assert(teamCss.includes('font-style: normal'), 'IXL Team must be non-italic (upright)');
   assert(teamCss.includes('font-weight: 600') || teamCss.includes('font-weight: 500'), 'IXL Team must be semi-bold or medium weight');
   assert(teamCss.includes('margin-bottom: 10px') || teamCss.includes('margin-bottom: 8px') || teamCss.includes('margin-bottom: 12px'), 'IXL Team must have increased vertical spacing');
+  assert(teamCss.includes('17px') || teamCss.includes('18px') || teamCss.includes('22px'), 'IXL Team font size must be decreased');
+  assert(teamCss.includes('#e2e8f0') || teamCss.includes('rgba') || teamCss.includes('opacity:'), 'IXL Team must be soft less bright white');
 
   // Check by element has breathing room and dimmed darker gray
   const byBlockMatch = css.match(/\.welcome-footer-by\s*\{([^}]+)\}/);
