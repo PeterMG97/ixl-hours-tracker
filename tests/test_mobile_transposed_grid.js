@@ -136,9 +136,11 @@ check('4.1 PC Welcome Screen train wrapper matches ALSTOM brand width and shifte
   assert(stylesCss.includes('transform: translateX(5mm);'), 'styles.css PC train wrap must be shifted horizontally to the right by 5mm');
 });
 
-check('4.2 Mobile Welcome Screen train wrapper matches mobile brand width and transform is none', () => {
+check('4.2 Mobile Welcome Screen train wrapper matches mobile brand width and shifted horizontally right by 5mm', () => {
   assert(indexHtml.includes('width: clamp(210px, 68vw, 290px) !important;'), 'Mobile train wrapper width must match mobile brand');
-  assert(indexHtml.includes('transform: none !important;'), 'Mobile train wrap transform must remain none');
+  assert(stylesCss.includes('width: clamp(210px, 68vw, 290px) !important;'), 'styles.css mobile train wrapper width must match mobile brand');
+  assert(indexHtml.includes('transform: translateX(5mm) !important;'), 'Mobile train wrap transform must be shifted horizontally to the right by 5mm');
+  assert(stylesCss.includes('transform: translateX(5mm) !important;'), 'styles.css Mobile train wrap transform must be shifted horizontally to the right by 5mm');
 });
 
 check('4.3 PC Train SVG body extends from tail side (x=8) to reach under letter A', () => {

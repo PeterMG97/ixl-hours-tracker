@@ -56,8 +56,8 @@ test('1.1 Zero unicode emojis across index.html, app.js, and styles.css', () => 
 test('1.2 Active mobile welcome stage contains 0% bitmap images (no img/picture inside active stage)', () => {
   const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');
   assert(mobStageStart !== -1, 'id="mobileTouchWelcomeStage" missing in index.html');
-  const mobStageEnd = html.indexOf('class="backup-image-approach-archive"', mobStageStart);
-  assert(mobStageEnd !== -1, 'backup-image-approach-archive missing after mobile stage');
+  const mobStageEnd = html.indexOf('id="mobileWelcomeLogo"', mobStageStart);
+  assert(mobStageEnd !== -1, 'id="mobileWelcomeLogo" missing after mobile stage');
   const mobStageHtml = html.substring(mobStageStart, mobStageEnd);
 
   assert(!mobStageHtml.includes('<img'), 'Active mobile stage must contain 0 <img> tags');
@@ -73,7 +73,7 @@ console.log('\n>>> MODULE 2: Vector Graphics & Mobile Portrait Typography');
 
 test('2.1 Scalable official ALSTOM wordmark exists in mobile stage with red swirl aperture O', () => {
   const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');
-  const mobStageEnd = html.indexOf('class="backup-image-approach-archive"', mobStageStart);
+  const mobStageEnd = html.indexOf('id="mobileWelcomeLogo"', mobStageStart);
   const mobStageHtml = html.substring(mobStageStart, mobStageEnd);
 
   assert(mobStageHtml.includes('welcome-mobile-brand'), 'welcome-mobile-brand missing');
@@ -84,7 +84,7 @@ test('2.1 Scalable official ALSTOM wordmark exists in mobile stage with red swir
 
 test('2.2 High-speed bullet train loading line exists in mobile stage with fluid stroke and headlight', () => {
   const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');
-  const mobStageEnd = html.indexOf('class="backup-image-approach-archive"', mobStageStart);
+  const mobStageEnd = html.indexOf('id="mobileWelcomeLogo"', mobStageStart);
   const mobStageHtml = html.substring(mobStageStart, mobStageEnd);
 
   assert(mobStageHtml.includes('welcome-mobile-train-svg'), 'welcome-mobile-train-svg missing');
@@ -96,7 +96,7 @@ test('2.2 High-speed bullet train loading line exists in mobile stage with fluid
 
 test('2.3 Mobile 3-tier bottom signature with by, IXL Team, and dynamic app version', () => {
   const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');
-  const mobStageEnd = html.indexOf('class="backup-image-approach-archive"', mobStageStart);
+  const mobStageEnd = html.indexOf('id="mobileWelcomeLogo"', mobStageStart);
   const mobStageHtml = html.substring(mobStageStart, mobStageEnd);
 
   assert(mobStageHtml.includes('class="welcome-footer-by"'), 'welcome-footer-by missing');
@@ -111,6 +111,48 @@ test('2.4 Mobile portrait layout styling in critical CSS and styles.css', () => 
   assert(css.includes('.welcome-mobile-vector-stage'), 'welcome-mobile-vector-stage missing in styles.css');
   assert(css.includes('.welcome-mobile-center'), 'welcome-mobile-center missing in styles.css');
   assert(css.includes('.welcome-mobile-brand'), 'welcome-mobile-brand missing in styles.css');
+});
+
+test('2.5 Mobile Welcome signature styling: upright Semi-Bold IXL Team with breathing room and dimmed by/version', () => {
+  assert(html.includes('.welcome-mobile-footer .welcome-footer-team'), 'Mobile team rule missing in index.html');
+  assert(css.includes('.welcome-mobile-footer .welcome-footer-team'), 'Mobile team rule missing in styles.css');
+  assert(css.includes('.welcome-mobile-footer .welcome-footer-by'), 'Mobile by rule missing in styles.css');
+  assert(css.includes('.welcome-mobile-footer .welcome-footer-version'), 'Mobile version rule missing in styles.css');
+  
+  // Verify upright Semi-Bold IXL Team
+  const teamMatch = css.match(/\.welcome-mobile-footer\s+\.welcome-footer-team\s*\{([^}]+)\}/);
+  assert(teamMatch, 'Mobile team rule block missing');
+  const teamCss = teamMatch[1];
+  assert(teamCss.includes('font-style: normal !important;'), 'Mobile IXL Team must be non-italic (upright)');
+  assert(teamCss.includes('font-weight: 600 !important;'), 'Mobile IXL Team must be semi-bold (600)');
+  assert(teamCss.includes('margin-bottom: 10px !important;'), 'Mobile IXL Team must have breathing room margin');
+  assert(teamCss.includes('#e2e8f0 !important;'), 'Mobile IXL Team must be soft white #e2e8f0');
+
+  // Verify by element
+  const byMatch = css.match(/\.welcome-mobile-footer\s+\.welcome-footer-by\s*\{([^}]+)\}/);
+  assert(byMatch, 'Mobile by rule block missing');
+  const byCss = byMatch[1];
+  assert(byCss.includes('font-style: normal !important;'), 'Mobile by must be upright');
+  assert(byCss.includes('margin-bottom: 8px !important;'), 'Mobile by must have breathing room margin');
+  assert(byCss.includes('color: #64748b !important;'), 'Mobile by must have dimmed darker gray');
+
+  // Verify version element
+  const verMatch = css.match(/\.welcome-mobile-footer\s+\.welcome-footer-version\s*\{([^}]+)\}/);
+  assert(verMatch, 'Mobile version rule block missing');
+  const verCss = verMatch[1];
+  assert(verCss.includes('color: #475569 !important;'), 'Mobile version must have dimmed darker gray');
+});
+
+test('2.6 Mobile Welcome loading train moved horizontally right by 5mm without changing shape or color', () => {
+  assert(html.includes('transform: translateX(5mm) !important;'), 'Mobile critical CSS train wrapper must have translateX(5mm)');
+  assert(css.includes('transform: translateX(5mm) !important;'), 'styles.css mobile train wrapper must have translateX(5mm)');
+  // Verify shape and color elements are strictly preserved
+  const mobStageStart = html.indexOf('id="mobileTouchWelcomeStage"');
+  const mobStageEnd = html.indexOf('id="mobileWelcomeLogo"', mobStageStart);
+  const mobStageHtml = html.substring(mobStageStart, mobStageEnd);
+  assert(mobStageHtml.includes('viewBox="0 0 520 28"'), 'Mobile train viewBox must remain 0 0 520 28');
+  assert(mobStageHtml.includes('id="trainNeonGradMob"'), 'Mobile trainNeonGradMob must be preserved');
+  assert(mobStageHtml.includes('cx="506" cy="23" r="1.6" fill="#FFFFFF"'), 'Mobile train headlight must remain untouched at cx=506');
 });
 
 // ========================================================
