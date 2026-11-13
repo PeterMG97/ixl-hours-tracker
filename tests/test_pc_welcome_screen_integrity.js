@@ -134,6 +134,30 @@ test('2.5 Responsive toggle between PC vector welcome and mobile touch stage', (
   assert(css.includes('.mobile-only-welcome'), 'mobile-only-welcome class missing in styles.css');
 });
 
+test('2.6 PC Welcome signature styling: upright Semi-Bold IXL Team with breathing room and dimmed by/version', () => {
+  // Check index.html critical CSS and styles.css for upright sans-serif semi-bold IXL Team
+  const teamBlockMatch = css.match(/\.welcome-footer-team\s*\{([^}]+)\}/);
+  assert(teamBlockMatch, '.welcome-footer-team rule must exist in styles.css');
+  const teamCss = teamBlockMatch[1];
+  assert(teamCss.includes('font-style: normal'), 'IXL Team must be non-italic (upright)');
+  assert(teamCss.includes('font-weight: 600') || teamCss.includes('font-weight: 500'), 'IXL Team must be semi-bold or medium weight');
+  assert(teamCss.includes('margin-bottom: 10px') || teamCss.includes('margin-bottom: 8px') || teamCss.includes('margin-bottom: 12px'), 'IXL Team must have increased vertical spacing');
+
+  // Check by element has breathing room and dimmed darker gray
+  const byBlockMatch = css.match(/\.welcome-footer-by\s*\{([^}]+)\}/);
+  assert(byBlockMatch, '.welcome-footer-by rule must exist in styles.css');
+  const byCss = byBlockMatch[1];
+  assert(byCss.includes('font-style: normal'), '"by" must be upright');
+  assert(byCss.includes('margin-bottom: 8px') || byCss.includes('margin-bottom: 6px') || byCss.includes('margin-bottom: 10px'), '"by" must have increased vertical spacing');
+  assert(byCss.includes('opacity:') || byCss.includes('#64748b') || byCss.includes('#475569'), '"by" must have dimmed darker gray');
+
+  // Check version element has dimmed darker gray
+  const verBlockMatch = css.match(/\.welcome-footer-version\s*\{([^}]+)\}/);
+  assert(verBlockMatch, '.welcome-footer-version rule must exist in styles.css');
+  const verCss = verBlockMatch[1];
+  assert(verCss.includes('color: #475569') || verCss.includes('opacity:'), 'Version must have dimmed darker gray');
+});
+
 // ========================================================
 // MODULE 3: Strict 5-Second Lockout & Fullscreen Display
 // ========================================================
