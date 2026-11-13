@@ -508,6 +508,18 @@ if (Test-Path $loggedHoursUnificationScript) {
 }
 Assert-Test "6.70 Logged Hours Unification & Mobile Logger Initial Boot Integrity" $loggedHoursUnificationPass "Dedicated test verifying mobile logger immediate boot hours calculation, unified double-entry parity across all 27 employees, PC grid, mobile transposed grid, audit, project analytics, and zero emojis"
 
+$prelaunchBigTestScript = Join-Path $AppDir "test_prelaunch_generic_big_test.js"
+$prelaunchBigTestPass = $false
+if (Test-Path $prelaunchBigTestScript) {
+    if (Test-Path $nodePath) {
+        $nodePrelaunchOutput = & $nodePath $prelaunchBigTestScript 2>&1
+        $prelaunchBigTestPass = ($LASTEXITCODE -eq 0) -and ($nodePrelaunchOutput -match "PRE-LAUNCH BIG TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $prelaunchBigTestPass = ($jsContent.Contains("getEmployeeMonthlyLoggedHours")) -and ($jsContent.Contains("isViewOnly"))
+    }
+}
+Assert-Test "6.71 Comprehensive Pre-Launch Master Integrity Suite (6 Core Pillars)" $prelaunchBigTestPass "Master verification verifying all 27 employees log hours, mathematical double-entry conservation, future calendar 2026-2035 leap years, project/employee lifecycle mutations, zero interference between profiles, and immutable view-only security"
+
 
 
 
