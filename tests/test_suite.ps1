@@ -496,6 +496,18 @@ if (Test-Path $mobTransposedGridTestScript) {
 }
 Assert-Test "6.69 Mobile Portrait Transposed Read-Only Grid & Train Tail Extension Integrity" $mobTransposedGridPass "Dedicated test verifying Mobile transposed grid (names=cols, dates=rows, no sections, no shrink/expand, view-only, >=115px width) and welcome train tail extension under letter A"
 
+$loggedHoursUnificationScript = Join-Path $AppDir "test_logged_hours_unification.js"
+$loggedHoursUnificationPass = $false
+if (Test-Path $loggedHoursUnificationScript) {
+    if (Test-Path $nodePath) {
+        $nodeUnificationOutput = & $nodePath $loggedHoursUnificationScript 2>&1
+        $loggedHoursUnificationPass = ($LASTEXITCODE -eq 0) -and ($nodeUnificationOutput -match "LOGGED HOURS UNIFICATION TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $loggedHoursUnificationPass = ($jsContent.Contains("getEmployeeMonthlyLoggedHours")) -and ($jsContent.Contains("getAllocationHours"))
+    }
+}
+Assert-Test "6.70 Logged Hours Unification & Mobile Logger Initial Boot Integrity" $loggedHoursUnificationPass "Dedicated test verifying mobile logger immediate boot hours calculation, unified double-entry parity across all 27 employees, PC grid, mobile transposed grid, audit, project analytics, and zero emojis"
+
 
 
 

@@ -879,6 +879,10 @@
     renderSchedule();
     populateSectionDropdowns();
 
+    if (isMobileInterface()) {
+      renderMobileView();
+    }
+
     if (!state.isViewOnly && !state.currentUserId) {
       setTimeout(() => openUserSelectModal(), 500);
     } else if (!state.isViewOnly && state.currentUserId && state.currentUserId !== 'view-all') {
@@ -1088,6 +1092,9 @@
       }
     }
     refreshAllStarredUIs();
+    if (isMobileInterface()) {
+      renderMobileView();
+    }
   }
 
   function getInitials(name) {
@@ -1168,6 +1175,9 @@
         updateUserDisplay();
         closeModal(el.userSelectModal);
         renderSchedule();
+        if (isMobileInterface()) {
+          renderMobileView();
+        }
         if (emp) showToast(`Logged in as ${emp.name}`);
         scrollToActiveUserRow();
       });
@@ -1247,6 +1257,37 @@
     }
     // Cairo: Friday (5) and Saturday (6)
     return (dow === 5 || dow === 6);
+  }
+
+  // Centralized Single Source of Truth for allocation hours
+  function getAllocationHours(alloc, emp) {
+    if (!alloc) return 0;
+    if (alloc.hours !== undefined && alloc.hours !== null) {
+      return Number(alloc.hours);
+    }
+    if (emp && emp.defaultHoursPerDay !== undefined && emp.defaultHoursPerDay !== null) {
+      return Number(emp.defaultHoursPerDay);
+    }
+    return 8;
+  }
+
+  // Centralized calculation of an employee's total logged hours for any given month
+  function getEmployeeMonthlyLoggedHours(empId, monthYm) {
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return 0;
+    const days = getDaysInMonth(monthYm);
+    let total = 0;
+    days.forEach(d => {
+      const key = `${empId}_${d.dateStr}`;
+      const alloc = state.allocations[key];
+      if (alloc && alloc.project && alloc.project.trim() !== '') {
+        const p = alloc.project.trim();
+        if (p !== 'Day OFF' && p !== 'NO PROJECT' && p !== 'NO STATUS') {
+          total += getAllocationHours(alloc, emp);
+        }
+      }
+    });
+    return total;
   }
 
   function isPeriodWithWeekendForRange(fromStr, toStr, location) {
@@ -1345,18 +1386,7 @@
           secName: sec.name
         });
 
-        let totalH = 0;
-        const empDefHours = emp.defaultHoursPerDay || 8;
-        days.forEach(d => {
-          const key = `${emp.id}_${d.dateStr}`;
-          const alloc = state.allocations[key];
-          const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
-          const projectName = hasVal ? alloc.project.trim() : '';
-          const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empDefHours) : 0;
-          if (hasVal && projectName !== 'Day OFF' && projectName !== 'NO PROJECT' && projectName !== 'NO STATUS') {
-            totalH += Number(hours);
-          }
-        });
+        const totalH = getEmployeeMonthlyLoggedHours(emp.id, state.currentMonth);
         empMonthHoursMap.set(emp.id, totalH);
       });
     });
@@ -1396,7 +1426,7 @@
         const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
         const projectName = hasVal ? alloc.project.trim() : '';
         const empDefHours = emp.defaultHoursPerDay || 8;
-        const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empDefHours) : 0;
+        const hours = hasVal ? getAllocationHours(alloc, emp) : 0;
         const isWk = isWeekendForLocation(d.dow, item.secLocation);
         const badgeClass = getProjectBadgeClass(projectName);
         const shortLabel = getCompactLabel(projectName);
@@ -1453,9 +1483,13 @@
     const currentEmp = state.employees.find(e => e.id === state.currentUserId);
     if (currentEmp) {
       const userMonthHours = empMonthHoursMap.get(currentEmp.id) || 0;
-      if (el.statCurrentMonthHours) el.statCurrentMonthHours.textContent = `${userMonthHours}h`;
-      if (el.statCurrentMonthHours) el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
+      if (el.statCurrentMonthHours) {
+        el.statCurrentMonthHours.textContent = (userMonthHours % 1 === 0) ? `${userMonthHours}h` : `${userMonthHours.toFixed(1)}h`;
+        el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
+        el.statCurrentMonthHours.setAttribute('data-hours', userMonthHours);
+      }
     }
+    renderMobileSummary();
   }
 
   // -------------------------------------------------------------
@@ -1564,7 +1598,7 @@
           const alloc = state.allocations[key];
           const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
           const projectName = hasVal ? alloc.project.trim() : '';
-          const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empHours) : 0;
+          const hours = hasVal ? getAllocationHours(alloc, emp) : 0;
 
           // Requirement 2: "Different Team Support" IS COUNTED in total hours
           if (hasVal && projectName !== 'Day OFF' && projectName !== 'NO PROJECT' && projectName !== 'NO STATUS') {
@@ -1687,35 +1721,30 @@
     // Calculate Hours and Unfilled specifically for the identified user in the current month
     const currentEmp = state.employees.find(e => e.id === state.currentUserId);
     if (currentEmp) {
-      if (!userFound) {
-        // Fallback calculation in case user's section was not rendered or active
-        const userSec = state.sections.find(s => s.id === currentEmp.sectionId);
-        const userLoc = userSec ? userSec.location : 'Cairo';
-        const empHours = currentEmp.defaultHoursPerDay || 8;
-        userMonthHours = 0;
-        userUnfilledDays = 0;
-        days.forEach(d => {
-          const key = `${currentEmp.id}_${d.dateStr}`;
-          const alloc = state.allocations[key];
-          const hasVal = alloc && alloc.project && alloc.project.trim() !== '';
-          const projectName = hasVal ? alloc.project.trim() : '';
-          const hours = hasVal ? (alloc.hours !== undefined ? alloc.hours : empHours) : 0;
+      const calcMonthHours = getEmployeeMonthlyLoggedHours(currentEmp.id, state.currentMonth);
+      const fullMonthDays = getDaysInMonth(state.currentMonth);
+      const userSec = state.sections.find(s => s.id === currentEmp.sectionId);
+      const userLoc = userSec ? userSec.location : 'Cairo';
+      let calcMonthUnfilled = 0;
+      fullMonthDays.forEach(d => {
+        const key = `${currentEmp.id}_${d.dateStr}`;
+        const alloc = state.allocations[key];
+        const hasVal = Boolean(alloc && alloc.project && alloc.project.trim() !== '');
+        const isWk = isWeekendForLocation(d.dow, userLoc);
+        if (!isWk && !hasVal) {
+          calcMonthUnfilled++;
+        }
+      });
 
-          if (hasVal && projectName !== 'Day OFF' && projectName !== 'NO PROJECT' && projectName !== 'NO STATUS') {
-            userMonthHours += Number(hours);
-          }
-
-          const isWk = isWeekendForLocation(d.dow, userLoc);
-          if (!isWk && !hasVal) {
-            userUnfilledDays++;
-          }
-        });
+      if (el.statCurrentMonthHours) {
+        el.statCurrentMonthHours.textContent = (calcMonthHours % 1 === 0) ? `${calcMonthHours}h` : `${calcMonthHours.toFixed(1)}h`;
+        el.statCurrentMonthHours.title = `${currentEmp.name}: ${calcMonthHours}h in ${mName}`;
+        el.statCurrentMonthHours.setAttribute('data-hours', calcMonthHours);
       }
-
-      if (el.statCurrentMonthHours) el.statCurrentMonthHours.textContent = `${userMonthHours}h`;
-      if (el.statUnfilledDays) el.statUnfilledDays.textContent = `${userUnfilledDays} days`;
-      if (el.statCurrentMonthHours) el.statCurrentMonthHours.title = `${currentEmp.name}: ${userMonthHours}h in ${mName}`;
-      if (el.statUnfilledDays) el.statUnfilledDays.title = `${currentEmp.name}: ${userUnfilledDays} unfilled workdays in ${mName}`;
+      if (el.statUnfilledDays) {
+        el.statUnfilledDays.textContent = `${calcMonthUnfilled} days`;
+        el.statUnfilledDays.title = `${currentEmp.name}: ${calcMonthUnfilled} unfilled workdays in ${mName}`;
+      }
     } else {
       if (el.statCurrentMonthHours) el.statCurrentMonthHours.textContent = '-';
       if (el.statUnfilledDays) el.statUnfilledDays.textContent = '-';
@@ -4607,7 +4636,10 @@
     Object.keys(state.allocations).forEach(k => {
       const item = state.allocations[k];
       if (item && item.project === projectName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
-        hrs += Number(item.hours) || 8;
+        const lastUnder = k.lastIndexOf('_');
+        const empId = k.substring(0, lastUnder);
+        const emp = state.employees.find(e => e.id === empId);
+        hrs += getAllocationHours(item, emp);
       }
     });
     return hrs;
@@ -4622,8 +4654,10 @@
       if (item && item.project === projectName && item.project !== 'Day OFF' && item.project !== 'NO PROJECT' && item.project !== 'NO STATUS') {
         const lastUnder = k.lastIndexOf('_');
         const dt = k.substring(lastUnder + 1);
+        const empId = k.substring(0, lastUnder);
+        const emp = state.employees.find(e => e.id === empId);
         const ym = dt.substring(0, 7);
-        const hrs = Number(item.hours) || 8;
+        const hrs = getAllocationHours(item, emp);
         if (!months[ym]) months[ym] = { hours: 0, days: 0 };
         months[ym].hours += hrs;
         months[ym].days += 1;
@@ -5403,7 +5437,9 @@
         if (!projMap[pName].months[ym]) {
           projMap[pName].months[ym] = { days: 0, hours: 0 };
         }
-        const hrs = Number(item.hours) || 8;
+        const empId = k.substring(0, lastUnder);
+        const emp = state.employees.find(e => e.id === empId);
+        const hrs = getAllocationHours(item, emp);
         projMap[pName].days += 1;
         projMap[pName].hours += hrs;
         projMap[pName].months[ym].days += 1;
@@ -5558,12 +5594,13 @@
 
       let loggedHours = 0;
       if (empId) {
+        const emp = state.employees.find(e => e.id === empId);
         const prefix = `${empId}_${ym}-`;
         Object.keys(state.allocations).forEach(k => {
           if (k.startsWith(prefix)) {
             const alloc = state.allocations[k];
             if (alloc && alloc.project && alloc.project !== 'Day OFF' && alloc.project !== 'NO PROJECT' && alloc.project !== 'NO STATUS') {
-              const hrs = alloc.hours !== undefined ? Number(alloc.hours) : 8;
+              const hrs = getAllocationHours(alloc, emp);
               loggedHours += hrs;
             }
           }
@@ -5665,7 +5702,7 @@
       const alloc = state.allocations[key];
       const hasVal = Boolean(alloc && alloc.project);
       const projectName = hasVal ? alloc.project : '';
-      const hours = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : defaultHours) : 0;
+      const hours = hasVal ? getAllocationHours(alloc, emp) : 0;
 
       let isRecordedWork = false;
       let dayTypeLabel = isWk ? `${sec.location} Weekend` : 'Workday';
@@ -5835,7 +5872,7 @@
         const alloc = state.allocations[key];
         const hasVal = Boolean(alloc && alloc.project);
         const projectName = hasVal ? alloc.project : '';
-        const hours = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : defaultHours) : 0;
+        const hours = hasVal ? getAllocationHours(alloc, emp) : 0;
 
         let isRecordedWork = false;
         let dayTypeLabel = isWk ? `${sec.location} Weekend` : 'Workday';
@@ -6207,11 +6244,10 @@
           if (dt < startDt || dt > endDt) return;
         }
 
-        const hrs = Number(item.hours) || 8;
+        const emp = state.employees.find(e => e.id === empId);
+        const hrs = getAllocationHours(item, emp);
         totalHours += hrs;
         totalDays += 1;
-
-        const emp = state.employees.find(e => e.id === empId);
         const empName = emp ? emp.name : empId;
         const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
         const secLabel = sec.name ? `${sec.name} (${sec.location})` : 'Engineering Team';
@@ -6445,9 +6481,8 @@
         const empId = k.substring(0, lastUnder);
         const dt = k.substring(lastUnder + 1);
         const ym = dt.substring(0, 7);
-        const hrs = Number(item.hours) || 8;
-
         const emp = state.employees.find(e => e.id === empId);
+        const hrs = getAllocationHours(item, emp);
         const empName = emp ? emp.name : empId;
         const sec = emp ? (state.sections.find(s => s.id === emp.sectionId) || {}) : {};
         const secLabel = sec.name ? `${sec.name} (${sec.location})` : 'Engineering Team';
@@ -7355,6 +7390,9 @@
     }
     state.currentMonth = el.monthSelect.value;
     renderSchedule();
+    if (isMobileInterface()) {
+      renderMobileView();
+    }
   });
 
   el.prevMonthBtn.addEventListener('click', () => {
@@ -7368,6 +7406,9 @@
           el.monthSelect.selectedIndex = idx - 1;
           state.currentMonth = el.monthSelect.value;
           renderSchedule();
+          if (isMobileInterface()) {
+            renderMobileView();
+          }
         }
       }
     }
@@ -7382,6 +7423,9 @@
         el.monthSelect.selectedIndex = idx + 1;
         state.currentMonth = el.monthSelect.value;
         renderSchedule();
+        if (isMobileInterface()) {
+          renderMobileView();
+        }
       } else {
         const lastVal = el.monthSelect.options[el.monthSelect.options.length - 1].value;
         const [lastY] = lastVal.split('-').map(Number);
@@ -7389,6 +7433,9 @@
         el.monthSelect.selectedIndex = idx + 1;
         state.currentMonth = el.monthSelect.value;
         renderSchedule();
+        if (isMobileInterface()) {
+          renderMobileView();
+        }
       }
     }
   });
@@ -7413,6 +7460,9 @@
       state.currentMonth = targetYm;
       el.monthSelect.value = state.currentMonth;
       renderSchedule();
+      if (isMobileInterface()) {
+        renderMobileView();
+      }
       setTimeout(() => {
         const todayEl = document.querySelector('.col-slot.is-today');
         if (todayEl) todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -8055,7 +8105,7 @@
     activeEmployees.forEach(emp => {
       const sec = state.sections.find(s => s.id === emp.sectionId) || {};
       const loc = sec.location || 'Cairo';
-      let totalLoggedHours = 0;
+      const totalLoggedHours = getEmployeeMonthlyLoggedHours(emp.id, monthYm);
       let totalWorkdays = 0;
       const unfilledDates = [];
 
@@ -8070,11 +8120,8 @@
           totalWorkdays++;
           const key = `${emp.id}_${dateStr}`;
           const alloc = state.allocations[key];
-          if (alloc && alloc.project && alloc.project.trim() !== '') {
-            if (alloc.project !== 'Day OFF' && alloc.project !== 'NO PROJECT' && alloc.project !== 'NO STATUS') {
-              totalLoggedHours += Number(alloc.hours !== undefined ? alloc.hours : (emp.defaultHoursPerDay || 8));
-            }
-          } else {
+          const hasVal = Boolean(alloc && alloc.project && alloc.project.trim() !== '');
+          if (!hasVal) {
             unfilledDates.push(dateStr);
           }
         }
@@ -10097,7 +10144,7 @@
       const alloc = state.allocations[key];
       const hasVal = !!alloc && !!alloc.project && alloc.project.trim() !== '';
       const pName = hasVal ? alloc.project.trim() : '';
-      const h = hasVal ? (alloc.hours !== undefined ? Number(alloc.hours) : (emp.defaultHoursPerDay || 8)) : 0;
+      const h = hasVal ? getAllocationHours(alloc, emp) : 0;
       const isWk = isWeekendForLocation(d.dow, sec.location);
 
       if (hasVal && pName !== 'Day OFF' && pName !== 'NO PROJECT' && pName !== 'NO STATUS') {
@@ -10128,7 +10175,8 @@
     });
 
     if (el.mobileTotalHoursNum) {
-      el.mobileTotalHoursNum.textContent = `${totalHours.toFixed(1)}h`;
+      el.mobileTotalHoursNum.textContent = (totalHours % 1 === 0) ? `${totalHours}h` : `${totalHours.toFixed(1)}h`;
+      el.mobileTotalHoursNum.setAttribute('data-hours', totalHours);
     }
     if (el.mobileUnfilledDaysNum) {
       el.mobileUnfilledDaysNum.textContent = unfilledDays;
