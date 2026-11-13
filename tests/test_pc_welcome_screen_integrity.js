@@ -148,9 +148,9 @@ test('2.6 PC Welcome signature styling: upright Semi-Bold IXL Team with breathin
   assert(verCss.includes('color: #475569') || verCss.includes('opacity:'), 'Version must have dimmed darker gray');
 });
 
-test('2.7 PC Welcome Screen loading train moved horizontally right by 3mm without changing shape or color', () => {
-  assert(html.includes('transform: translateX(3mm);'), 'PC critical CSS train wrapper must have transform: translateX(3mm)');
-  assert(css.includes('transform: translateX(3mm);'), 'styles.css PC train wrapper must have transform: translateX(3mm)');
+test('2.7 PC Welcome Screen loading train moved horizontally right by 5mm without changing shape or color', () => {
+  assert(html.includes('transform: translateX(5mm);'), 'PC critical CSS train wrapper must have transform: translateX(5mm)');
+  assert(css.includes('transform: translateX(5mm);'), 'styles.css PC train wrapper must have transform: translateX(5mm)');
   // Verify shape and color elements are strictly preserved
   assert(html.includes('viewBox="0 0 520 28"'), 'Train viewBox must remain 0 0 520 28');
   assert(html.includes('id="trainNeonGrad"'), 'trainNeonGrad must be preserved');
