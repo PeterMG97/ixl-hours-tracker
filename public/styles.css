@@ -6637,7 +6637,7 @@ body.mobile-readonly-grid .emp-no-proj-badge,
     margin-top: clamp(18px, 2.8vh, 28px) !important;
     position: relative !important;
     overflow: visible !important;
-    transform: translateX(4mm) !important; /* Shifted horizontally to the right by 4mm (1mm left from 5mm) */
+    transform: translateX(3mm) !important; /* Shifted horizontally to the right by 3mm */
   }
   .welcome-mobile-footer {
     position: absolute !important;
