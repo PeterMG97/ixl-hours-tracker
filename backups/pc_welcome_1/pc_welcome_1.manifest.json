@@ -1,0 +1,54 @@
+{
+  "presetId": "pc_welcome_1",
+  "displayName": "PC Welcome Screen Preset 1",
+  "createdAt": "2026-11-13T19:50:00+02:00",
+  "gitCommit": "5784966",
+  "gitTag": "pc_welcome_1",
+  "description": "Standard official vector welcome screen for PC interface with extended train tail under letter A, 5s animation, upright Semi-Bold soft white IXL Team, and dimmed by/1.0.0 text.",
+  "parameters": {
+    "timerSeconds": 5,
+    "lockoutEnforced": true,
+    "train": {
+      "tailStartX": 8,
+      "headTipX": 508,
+      "headlightX": 506,
+      "alignment": "Tail starts at x=8 (1.09% under letter A), Head ends at x=508 (98.7% under letter M)",
+      "animationDuration": "5s",
+      "bezierCurve": "cubic-bezier(0.2, 0.85, 0.25, 1)",
+      "gradient": "linear-gradient(#38bdf8 to #ffffff)"
+    },
+    "typography": {
+      "by": {
+        "text": "by",
+        "fontStyle": "normal",
+        "fontWeight": 400,
+        "fontSize": "clamp(14px, 1.2vw, 17px)",
+        "color": "#64748b",
+        "opacity": 0.65,
+        "letterSpacing": "0.05em",
+        "marginBottom": "8px"
+      },
+      "team": {
+        "text": "IXL Team",
+        "fontStyle": "normal",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        "fontWeight": 600,
+        "fontSize": "clamp(17px, 1.4vw, 22px)",
+        "color": "#e2e8f0",
+        "opacity": 0.9,
+        "letterSpacing": "0.02em",
+        "textShadow": "0 1px 6px rgba(0, 0, 0, 0.35)",
+        "marginBottom": "10px"
+      },
+      "version": {
+        "text": "1.0.0",
+        "fontStyle": "normal",
+        "fontWeight": 400,
+        "fontSize": "clamp(12px, 0.95vw, 14px)",
+        "color": "#475569",
+        "opacity": 0.65,
+        "letterSpacing": "0.08em"
+      }
+    }
+  }
+}
