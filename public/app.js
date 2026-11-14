@@ -196,9 +196,6 @@
     mobileAvatarCircle: document.getElementById('mobileAvatarCircle'),
     mobileUserNameDisplay: document.getElementById('mobileUserNameDisplay'),
     mobileRoleCaption: document.getElementById('mobileRoleCaption'),
-    mobileSwitchUserBtn: document.getElementById('mobileSwitchUserBtn'),
-    mobileOpenGridFromLoggerBtn: document.getElementById('mobileOpenGridFromLoggerBtn'),
-    mobileSummaryGridShortcutBtn: document.getElementById('mobileSummaryGridShortcutBtn'),
     mobileGridNoticeBanner: document.getElementById('mobileGridNoticeBanner'),
     mobileGridScopeToggle: document.getElementById('mobileGridScopeToggle'),
     btnScopePersonal: document.getElementById('btnScopePersonal'),
@@ -10555,12 +10552,6 @@
       });
     }
 
-    if (el.mobileSwitchUserBtn) {
-      el.mobileSwitchUserBtn.addEventListener('click', () => {
-        openUserSelectModal();
-      });
-    }
-
     if (el.mobileEmployeeSelect) {
       el.mobileEmployeeSelect.addEventListener('change', (e) => {
         state.mobileTargetEmpId = e.target.value;
@@ -10765,24 +10756,6 @@
         state.mobileViewMode = 'form';
         updateDeviceViewMode();
         showToast('Returned to Mobile Schedule Logger.');
-      });
-    }
-
-    // Direct 1-tap shortcut to open Mobile Grid from Logger Profile Bar
-    if (el.mobileOpenGridFromLoggerBtn) {
-      el.mobileOpenGridFromLoggerBtn.addEventListener('click', () => {
-        state.mobileViewMode = 'grid';
-        updateDeviceViewMode();
-        showToast('Viewing Schedule Grid (Personal Mode).');
-      });
-    }
-
-    // Direct shortcut from Month Summary Card header
-    if (el.mobileSummaryGridShortcutBtn) {
-      el.mobileSummaryGridShortcutBtn.addEventListener('click', () => {
-        state.mobileViewMode = 'grid';
-        updateDeviceViewMode();
-        showToast('Viewing Schedule Grid (Personal Mode).');
       });
     }
 
