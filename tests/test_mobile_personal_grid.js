@@ -126,6 +126,13 @@ check('2.6 Bottom safe-area spacer row and scroll area height prevent kick-up an
   assert(stylesCss.includes('max-height: calc(100vh - 170px) !important;'), 'styles.css must constrain mobile transposed scroll area');
 });
 
+check('2.7 Header Actions Stack and Calendar Frame Alignment (Audit expansion and 48px month frame fit)', () => {
+  assert(stylesCss.includes('.header-actions-stack'), 'styles.css must define .header-actions-stack');
+  assert(stylesCss.includes('width: 124px !important;'), 'styles.css must define matching width for action stack');
+  assert(stylesCss.includes('flex: 1 !important;'), 'styles.css must expand Audit button to match scope toggle start');
+  assert(stylesCss.includes('height: 48px !important;'), 'styles.css must fit calendar trigger flush within 56px frame');
+});
+
 // >>> MODULE 3: Single Column vs Full Team Rendering Simulation (Requirements 1 & 4)
 console.log('\n>>> MODULE 3: Single Column vs Full Team Rendering Simulation (Requirements 1 & 4)');
 

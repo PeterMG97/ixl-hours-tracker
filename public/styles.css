@@ -5062,35 +5062,57 @@ body.view-only .task-chip {
     height: 56px !important;
     min-height: 56px !important;
     max-height: 56px !important;
-    padding: 3px 5px !important;
+    padding: 4px 4px !important;
+    border-radius: 8px !important;
     box-sizing: border-box !important;
   }
 
   .main-calendar-trigger-btn {
-    padding: 3px 6px !important;
-    font-size: 11px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
+    padding: 0 8px !important;
+    font-size: 11.5px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
     flex: 1 !important;
     min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    gap: 5px !important;
+    border-radius: 6px !important;
+    background: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f1f5f9 !important;
     white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  [data-theme="light"] .main-calendar-trigger-btn {
+    background: #ffffff !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-main, #0f172a) !important;
   }
 
   .main-calendar-trigger-btn strong {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
   }
 
   .nav-arrow-btn {
     padding: 0 !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     width: 22px !important;
     min-width: 22px !important;
-    height: 38px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex-shrink: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .period-select {
@@ -5099,15 +5121,23 @@ body.view-only .task-chip {
     flex: 1 !important;
     min-width: 0 !important;
     max-width: 105px !important;
-    height: 38px !important;
+    height: 48px !important;
     text-overflow: ellipsis !important;
   }
 
   .today-shortcut-btn {
-    padding: 0 6px !important;
-    font-size: 10px !important;
-    height: 38px !important;
+    padding: 0 8px !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex-shrink: 0 !important;
+    box-sizing: border-box !important;
   }
 
   /* Right column: 2-tier stack matching month frame height */
@@ -5118,6 +5148,9 @@ body.view-only .task-chip {
     height: 56px !important;
     min-height: 56px !important;
     max-height: 56px !important;
+    width: 124px !important;
+    min-width: 124px !important;
+    max-width: 124px !important;
     flex-shrink: 0 !important;
     box-sizing: border-box !important;
   }
@@ -5132,20 +5165,23 @@ body.view-only .task-chip {
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
-    justify-content: flex-end !important;
+    width: 100% !important;
     height: 26px !important;
     min-height: 26px !important;
     box-sizing: border-box !important;
   }
 
   .header-actions-top-row .btn-header-action {
+    flex: 1 !important;
+    width: auto !important;
     height: 26px !important;
     min-height: 26px !important;
-    padding: 0 8px !important;
+    padding: 0 6px !important;
     font-size: 10.5px !important;
     border-radius: 6px !important;
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 3px !important;
     box-sizing: border-box !important;
   }
@@ -5155,6 +5191,8 @@ body.view-only .task-chip {
     min-height: 26px !important;
     width: 28px !important;
     min-width: 28px !important;
+    max-width: 28px !important;
+    flex-shrink: 0 !important;
     border-radius: 6px !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -5166,7 +5204,6 @@ body.view-only .task-chip {
   .header-mobile-scope-row {
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-end !important;
     height: 26px !important;
     min-height: 26px !important;
     width: 100% !important;
@@ -5181,6 +5218,7 @@ body.view-only .task-chip {
   }
 
   .header-mobile-scope-row .mobile-grid-scope-toggle {
+    width: 100% !important;
     height: 26px !important;
     min-height: 26px !important;
     padding: 2px !important;
@@ -5192,9 +5230,10 @@ body.view-only .task-chip {
   }
 
   .header-mobile-scope-row .btn-grid-scope {
+    flex: 1 !important;
     height: 22px !important;
     min-height: 22px !important;
-    padding: 0 8px !important;
+    padding: 0 4px !important;
     font-size: 10.5px !important;
     font-weight: 700 !important;
     border-radius: 4px !important;
