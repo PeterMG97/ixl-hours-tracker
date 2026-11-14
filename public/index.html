@@ -678,13 +678,13 @@
               <line x1="8" y1="2" x2="8" y2="6"></line>
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
-            <strong id="mainCalendarMonthDisplay">11/2026 - November 2026 (Start)</strong>
+            <strong id="mainCalendarMonthDisplay">11/2026 - November 2026</strong>
             <svg class="main-cal-trigger-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
           <select id="monthSelect" class="period-select sr-only" aria-label="Month Selector">
-            <option value="2026-11" selected>11/2026 - November 2026 (Start)</option>
+            <option value="2026-11" selected>11/2026 - November 2026</option>
             <option value="2026-12">12/2026 - December 2026</option>
             <option value="2027-01">01/2027 - January 2027</option>
             <option value="2027-02">02/2027 - February 2027</option>
@@ -859,32 +859,37 @@
           <button class="today-shortcut-btn" id="jumpTodayBtn">Today</button>
         </div>
 
-        <!-- Month-End Completeness Audit Trigger -->
-        <button class="btn-header-action" id="openAuditBtn" title="Month-End Completeness Audit" aria-label="Month-End Completeness Audit">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
-          </svg>
-          <span>Audit</span>
-        </button>
+        <!-- Mobile Header Actions Stack (Audit/Settings on top, Scope toggle on bottom) -->
+        <div class="header-actions-stack" id="headerActionsStack">
+          <div class="header-actions-top-row" id="headerActionsTopRow">
+            <!-- Month-End Completeness Audit Trigger -->
+            <button class="btn-header-action" id="openAuditBtn" title="Month-End Completeness Audit" aria-label="Month-End Completeness Audit">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+              </svg>
+              <span>Audit</span>
+            </button>
 
-        <!-- Settings & Tools Trigger (3 horizontal lines) -->
-        <button class="btn-settings-toggle" id="toggleSettingsSidebarBtn" title="Settings &amp; Tools" aria-label="Settings and Tools">
-          <svg class="hamburger-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="2" y1="4" x2="16" y2="4"></line>
-            <line x1="2" y1="9" x2="16" y2="9"></line>
-            <line x1="2" y1="14" x2="16" y2="14"></line>
-          </svg>
-        </button>
-      </div>
+            <!-- Settings & Tools Trigger (3 horizontal lines) -->
+            <button class="btn-settings-toggle" id="toggleSettingsSidebarBtn" title="Settings &amp; Tools" aria-label="Settings and Tools">
+              <svg class="hamburger-icon" width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="2" y1="4" x2="16" y2="4"></line>
+                <line x1="2" y1="9" x2="16" y2="9"></line>
+                <line x1="2" y1="14" x2="16" y2="14"></line>
+              </svg>
+            </button>
+          </div>
 
-      <!-- Mobile Grid Scope Toggle Row (in Header beneath action keys) -->
-      <div class="header-mobile-scope-row hidden" id="headerMobileScopeRow">
-        <div class="mobile-grid-scope-toggle" id="mobileGridScopeToggle" role="group" aria-label="Grid Scope View">
-          <button type="button" class="btn-grid-scope active" id="btnScopePersonal" data-scope="personal" title="Personal View: Shows your schedule only">Personal</button>
-          <button type="button" class="btn-grid-scope" id="btnScopeTeam" data-scope="team" title="Team View: Shows all team members">Team</button>
+          <!-- Scope toggle beneath Audit/Settings in the actions column (Green frame area) -->
+          <div class="header-mobile-scope-row hidden" id="headerMobileScopeRow">
+            <div class="mobile-grid-scope-toggle" id="mobileGridScopeToggle" role="group" aria-label="Grid Scope View">
+              <button type="button" class="btn-grid-scope active" id="btnScopePersonal" data-scope="personal" title="Personal View: Shows your schedule only">Personal</button>
+              <button type="button" class="btn-grid-scope" id="btnScopeTeam" data-scope="team" title="Team View: Shows all team members">Team</button>
+            </div>
+            <span class="mobile-grid-notice-text sr-only" id="mobileGridNoticeText">Personal Grid (Read-Only)</span>
+          </div>
         </div>
-        <span class="mobile-grid-notice-text sr-only" id="mobileGridNoticeText">Personal Grid (Read-Only)</span>
       </div>
     </header>
 

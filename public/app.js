@@ -9612,13 +9612,12 @@
     const mm = String(m).padStart(2, '0');
     const fullNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const shortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const isStart = (ym === APP_START_MONTH);
     if (isMobile) {
       const name = shortNames[m - 1] || '';
-      return isStart ? `${mm}/${y} - ${name} (Start)` : `${mm}/${y} - ${name}`;
+      return `${mm}/${y} - ${name}`;
     }
     const name = fullNames[m - 1] || '';
-    return isStart ? `${mm}/${y} - ${name} ${y} (Start)` : `${mm}/${y} - ${name} ${y}`;
+    return `${mm}/${y} - ${name} ${y}`;
   }
 
   function appendYearToMonthSelect(year) {
