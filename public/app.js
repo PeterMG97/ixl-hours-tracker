@@ -97,6 +97,7 @@
   // Application State
   const state = {
     mobileViewMode: 'form', // 'form' (default) or 'grid' (read-only visualization)
+    mobileGridScope: 'personal', // 'personal' (default) or 'team'
     forceDesktopViewOnMobile: false,
     scheduleViewMode: 'week', // 'week' (default for desktop) or 'month'
     currentWeekStart: '2026-11-01', // Sunday of the active week (Sunday to Saturday)
@@ -197,6 +198,10 @@
     mobileRoleCaption: document.getElementById('mobileRoleCaption'),
     mobileSwitchUserBtn: document.getElementById('mobileSwitchUserBtn'),
     mobileGridNoticeBanner: document.getElementById('mobileGridNoticeBanner'),
+    mobileGridScopeToggle: document.getElementById('mobileGridScopeToggle'),
+    btnScopePersonal: document.getElementById('btnScopePersonal'),
+    btnScopeTeam: document.getElementById('btnScopeTeam'),
+    mobileGridNoticeText: document.getElementById('mobileGridNoticeText'),
     mobileReturnToLoggerBtn: document.getElementById('mobileReturnToLoggerBtn'),
     mobileSummaryCard: document.getElementById('mobileSummaryCard'),
     mobileSummaryCardTitle: document.getElementById('mobileSummaryCardTitle'),
@@ -1353,18 +1358,26 @@
     updateMainCalendarTriggerDisplay();
     updateScheduleViewToggleUI();
 
+    const isPersonal = (state.mobileGridScope === 'personal') && !state.isViewOnly;
+
     const tableScrollArea = el.tableScrollArea || document.querySelector('.table-scroll-area');
     const scheduleTable = el.scheduleTable || document.getElementById('scheduleTable');
     if (tableScrollArea) {
       tableScrollArea.classList.add('is-mobile-transposed');
+      tableScrollArea.classList.toggle('is-personal-mode', isPersonal);
+      tableScrollArea.classList.toggle('is-team-mode', !isPersonal);
       tableScrollArea.classList.remove('is-week-view');
       tableScrollArea.classList.add('is-month-view');
     }
     if (scheduleTable) {
       scheduleTable.classList.add('is-mobile-transposed');
+      scheduleTable.classList.toggle('is-personal-mode', isPersonal);
+      scheduleTable.classList.toggle('is-team-mode', !isPersonal);
       scheduleTable.classList.remove('is-week-view');
       scheduleTable.classList.add('is-month-view');
     }
+
+    updateMobileGridScopeUI();
 
     el.monthSelect.value = state.currentMonth;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1373,7 +1386,7 @@
     const days = getDaysInMonth(state.currentMonth);
 
     // 1. Gather all active employees across all sections without section header rows
-    const activeEmps = [];
+    let activeEmps = [];
     const empMonthHoursMap = new Map();
 
     state.sections.forEach(sec => {
@@ -1391,6 +1404,19 @@
       });
     });
 
+    const totalActiveCount = activeEmps.length;
+
+    // In Personal Mode: filter down strictly to the current profile (Requirements 1, 4)
+    if (isPersonal) {
+      const targetEmpId = getEffectiveProfileId();
+      const matched = activeEmps.find(item => item.emp.id === targetEmpId);
+      if (matched) {
+        activeEmps = [matched];
+      } else if (activeEmps.length > 0) {
+        activeEmps = [activeEmps[0]];
+      }
+    }
+
     // 2. Render Sticky <thead> with Date Corner & Employee Column Headers
     let headHtml = `
       <tr>
@@ -1400,7 +1426,7 @@
         ${activeEmps.map(item => {
           const emp = item.emp;
           const hours = empMonthHoursMap.get(emp.id) || 0;
-          const isChosen = (state.currentUserId === emp.id);
+          const isChosen = (state.currentUserId === emp.id) || isPersonal;
           return `
             <th class="col-transposed-emp-header" scope="col" data-emp-id="${emp.id}" title="${escapeHtml(emp.name)} (${escapeHtml(item.secName)}): ${hours}h">
               <div class="transposed-emp-header-cell">
@@ -1433,12 +1459,20 @@
         const hasComment = Boolean(alloc && alloc.comment && alloc.comment.trim());
         const commentText = hasComment ? alloc.comment.trim() : '';
 
+        // In Personal Mode: cell is wide, so show clean legible label (Requirement 2)
+        const displayLabel = isPersonal
+          ? (projectName === 'Day OFF' ? 'Day OFF' :
+             projectName === 'Different Team Support' ? 'Different Team Support' :
+             projectName === 'NO PROJECT' ? 'NO PROJECT' :
+             projectName.replace(/^Project - /, ''))
+          : shortLabel;
+
         let chipHtml = '';
         if (hasVal) {
           chipHtml = `
             <div class="task-chip transposed-task-chip ${badgeClass} ${hasComment ? 'has-comment' : ''}"
                  title="${escapeHtml(emp.name)} | ${formatDateDMY(d.dateStr)}: ${escapeHtml(projectName)} (${hours}h)${hasComment ? ` | Comment: ${escapeHtml(commentText)}` : ''}">
-              <span class="transposed-chip-label">${escapeHtml(shortLabel)} (${hours}h)</span>
+              <span class="transposed-chip-label">${escapeHtml(displayLabel)} (${hours}h)</span>
               ${hasComment ? `<span class="chip-comment-dot" aria-hidden="true" title="Comment: ${escapeHtml(commentText)}"></span>` : ''}
             </div>
           `;
@@ -1474,11 +1508,11 @@
 
     el.scheduleBody.innerHTML = bodyHtml;
 
-    if (el.statActiveEmployees) el.statActiveEmployees.textContent = activeEmps.length;
+    if (el.statActiveEmployees) el.statActiveEmployees.textContent = totalActiveCount;
     const teamModalCount = document.getElementById('teamModalActiveMembersCount');
-    if (teamModalCount) teamModalCount.textContent = activeEmps.length;
+    if (teamModalCount) teamModalCount.textContent = totalActiveCount;
     const settingsActiveCount = document.getElementById('settingsTeamActiveCount');
-    if (settingsActiveCount) settingsActiveCount.textContent = activeEmps.length;
+    if (settingsActiveCount) settingsActiveCount.textContent = totalActiveCount;
 
     const currentEmp = state.employees.find(e => e.id === state.currentUserId);
     if (currentEmp) {
@@ -9668,6 +9702,73 @@
     }
   }
 
+  // -------------------------------------------------------------
+  // Mobile Grid View Scope Controls (Personal / Team)
+  // -------------------------------------------------------------
+
+  function updateMobileGridScopeUI() {
+    if (!el.mobileGridScopeToggle) {
+      el.mobileGridScopeToggle = document.getElementById('mobileGridScopeToggle');
+    }
+    if (!el.btnScopePersonal) {
+      el.btnScopePersonal = document.getElementById('btnScopePersonal');
+    }
+    if (!el.btnScopeTeam) {
+      el.btnScopeTeam = document.getElementById('btnScopeTeam');
+    }
+    if (!el.mobileGridNoticeText) {
+      el.mobileGridNoticeText = document.getElementById('mobileGridNoticeText');
+    }
+
+    if (state.isViewOnly) {
+      if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.add('hidden');
+      if (el.mobileGridNoticeText) el.mobileGridNoticeText.textContent = 'Viewing Full Grid (Read-Only on Mobile)';
+      return;
+    }
+
+    if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.remove('hidden');
+
+    const isPersonal = (state.mobileGridScope === 'personal');
+    if (el.btnScopePersonal) {
+      el.btnScopePersonal.classList.toggle('active', isPersonal);
+      el.btnScopePersonal.setAttribute('aria-pressed', isPersonal ? 'true' : 'false');
+    }
+    if (el.btnScopeTeam) {
+      el.btnScopeTeam.classList.toggle('active', !isPersonal);
+      el.btnScopeTeam.setAttribute('aria-pressed', !isPersonal ? 'true' : 'false');
+    }
+    if (el.mobileGridNoticeText) {
+      el.mobileGridNoticeText.textContent = isPersonal
+        ? 'Personal Grid (Read-Only)'
+        : 'Team Grid (Read-Only)';
+    }
+  }
+
+  function setMobileGridScope(scope) {
+    if (state.isViewOnly) return; // Requirement 5: Never applies to read-only link
+    state.mobileGridScope = (scope === 'team') ? 'team' : 'personal';
+    updateMobileGridScopeUI();
+    renderSchedule();
+  }
+
+  function initMobileGridScopeToggle() {
+    updateMobileGridScopeUI();
+
+    if (el.btnScopePersonal) {
+      el.btnScopePersonal.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setMobileGridScope('personal');
+      });
+    }
+
+    if (el.btnScopeTeam) {
+      el.btnScopeTeam.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setMobileGridScope('team');
+      });
+    }
+  }
+
   function updateDeviceViewMode() {
     const isMobile = isMobileInterface();
     const container = el.mobileAppContainer;
@@ -9685,9 +9786,11 @@
       if (container) container.classList.add('hidden');
       if (gridCard) gridCard.classList.remove('hidden');
       if (el.mobileReturnToLoggerBtn) el.mobileReturnToLoggerBtn.classList.add('hidden');
+      if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.add('hidden');
       if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
       if (el.topbarBulkFillBtn) el.topbarBulkFillBtn.classList.add('hidden');
       document.body.classList.add('mobile-readonly-grid');
+      updateMobileGridScopeUI();
       if (isMobile) {
         document.body.classList.add('is-mobile-device');
         document.body.classList.remove('is-desktop-device');
@@ -9726,13 +9829,14 @@
     if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.remove('hidden');
     // Mobile interface:
     if (state.mobileViewMode === 'grid') {
-      // Viewing full desktop grid on mobile (strictly read-only)
+      // Viewing desktop transposed grid on mobile (strictly read-only)
       if (container) container.classList.add('hidden');
       if (gridCard) gridCard.classList.remove('hidden');
       if (notice) notice.classList.remove('hidden');
       document.body.classList.add('mobile-readonly-grid');
       if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Mobile Editor';
       if (el.toggleMobileDesktopGridSub) el.toggleMobileDesktopGridSub.textContent = 'Mobile Editor mode';
+      updateMobileGridScopeUI();
       renderSchedule();
     } else {
       // Default mobile interface: show mobile app container, hide grid
@@ -10649,6 +10753,8 @@
         showToast('Returned to Mobile Schedule Logger.');
       });
     }
+
+    initMobileGridScopeToggle();
 
     // Window resize listener (debounced against virtual keyboard height changes)
     let _lastInnerWidth = window.innerWidth;

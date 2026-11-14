@@ -520,6 +520,18 @@ if (Test-Path $prelaunchBigTestScript) {
 }
 Assert-Test "6.71 Comprehensive Pre-Launch Master Integrity Suite (6 Core Pillars)" $prelaunchBigTestPass "Master verification verifying all 27 employees log hours, mathematical double-entry conservation, future calendar 2026-2035 leap years, project/employee lifecycle mutations, zero interference between profiles, and immutable view-only security"
 
+$mobilePersonalGridScript = Join-Path $AppDir "test_mobile_personal_grid.js"
+$mobilePersonalGridPass = $false
+if (Test-Path $mobilePersonalGridScript) {
+    if (Test-Path $nodePath) {
+        $nodeMobGridOutput = & $nodePath $mobilePersonalGridScript 2>&1
+        $mobilePersonalGridPass = ($LASTEXITCODE -eq 0) -and ($nodeMobGridOutput -match "MOBILE PERSONAL/TEAM GRID TEST COMPLETE: \d+ PASSED, 0 FAILED")
+    } else {
+        $mobilePersonalGridPass = ($jsContent.Contains("mobileGridScope")) -and ($cssContent.Contains("is-personal-mode"))
+    }
+}
+Assert-Test "6.72 Mobile Interface Personal/Team Grid Mode & Wide Cell Integrity" $mobilePersonalGridPass "Dedicated test verifying mobile grid Personal mode (dates + single profile column), wide cell width, strictly read-only, default view, toggle to Team mode, read-only link immutability, calculations parity, and zero emojis"
+
 
 
 

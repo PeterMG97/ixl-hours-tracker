@@ -891,9 +891,15 @@
 
     <!-- Main Schedule Canvas -->
     <main class="schedule-canvas">
-      <!-- Read-Only Notice when viewing full grid on mobile -->
+      <!-- Read-Only Notice & Scope Switcher when viewing grid on mobile -->
       <div id="mobileGridNoticeBanner" class="mobile-grid-notice hidden">
-        <span>Viewing Full Grid (Read-Only on Mobile)</span>
+        <div class="mobile-grid-notice-left">
+          <div class="mobile-grid-scope-toggle" id="mobileGridScopeToggle" role="group" aria-label="Grid Scope View">
+            <button type="button" class="btn-grid-scope active" id="btnScopePersonal" data-scope="personal" title="Personal View: Shows your schedule only">Personal</button>
+            <button type="button" class="btn-grid-scope" id="btnScopeTeam" data-scope="team" title="Team View: Shows all team members">Team</button>
+          </div>
+          <span class="mobile-grid-notice-text" id="mobileGridNoticeText">Personal Grid (Read-Only)</span>
+        </div>
         <button type="button" class="btn btn-sm btn-primary" id="mobileReturnToLoggerBtn">Return to Mobile Logger</button>
       </div>
 
