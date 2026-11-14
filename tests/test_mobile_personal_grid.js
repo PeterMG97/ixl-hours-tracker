@@ -118,6 +118,14 @@ check('2.5 Scope toggle styled for Light and Dark themes', () => {
   assert(stylesCss.includes('[data-theme="dark"] .btn-grid-scope.active'), 'Dark mode active toggle must be styled');
 });
 
+check('2.6 Bottom safe-area spacer row and scroll area height prevent kick-up and keep last dates fully visible', () => {
+  assert(appJs.includes('transposed-bottom-spacer-row'), 'app.js must render transposed-bottom-spacer-row');
+  assert(appJs.includes('col-transposed-bottom-spacer'), 'app.js must render col-transposed-bottom-spacer');
+  assert(stylesCss.includes('.transposed-bottom-spacer-row'), 'styles.css must style .transposed-bottom-spacer-row');
+  assert(stylesCss.includes('.col-transposed-bottom-spacer'), 'styles.css must style .col-transposed-bottom-spacer');
+  assert(stylesCss.includes('max-height: calc(100vh - 170px) !important;'), 'styles.css must constrain mobile transposed scroll area');
+});
+
 // >>> MODULE 3: Single Column vs Full Team Rendering Simulation (Requirements 1 & 4)
 console.log('\n>>> MODULE 3: Single Column vs Full Team Rendering Simulation (Requirements 1 & 4)');
 

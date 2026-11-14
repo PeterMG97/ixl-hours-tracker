@@ -1508,6 +1508,14 @@
       `;
     });
 
+    // Dedicated bottom safe-area spacer row ensuring last dates (28, 29, 30, 31) rest naturally in full view without kick-up
+    const totalCols = activeEmps.length + 1;
+    bodyHtml += `
+      <tr class="transposed-bottom-spacer-row" aria-hidden="true">
+        <td colspan="${totalCols}" class="col-transposed-bottom-spacer"></td>
+      </tr>
+    `;
+
     el.scheduleBody.innerHTML = bodyHtml;
 
     if (el.statActiveEmployees) el.statActiveEmployees.textContent = totalActiveCount;

@@ -4846,6 +4846,36 @@ body.view-only .task-chip {
   text-overflow: ellipsis !important;
 }
 
+/* Bottom safe-area spacer row in transposed view: prevents kicking up / snapping */
+.transposed-bottom-spacer-row {
+  height: 90px !important;
+  min-height: 90px !important;
+  max-height: 90px !important;
+  border: none !important;
+  background: transparent !important;
+  pointer-events: none !important;
+}
+
+.col-transposed-bottom-spacer {
+  height: 90px !important;
+  min-height: 90px !important;
+  max-height: 90px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Transposed scroll area fits viewport and prevents bottom clipping */
+.table-scroll-area.is-mobile-transposed {
+  max-height: calc(100vh - 170px) !important;
+  max-height: calc(100dvh - 170px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+  box-sizing: border-box !important;
+}
+
 /* Dark Mode Overrides for Transposed Grid */
 [data-theme="dark"] .schedule-table.is-mobile-transposed th.col-transposed-date-header {
   background: #1e293b !important;
@@ -5067,6 +5097,12 @@ body.view-only .task-chip {
     overscroll-behavior-x: contain !important;
     touch-action: pan-x pan-y !important;
     max-height: calc(100vh - 110px) !important;
+  }
+
+  .table-scroll-area.is-mobile-transposed {
+    max-height: calc(100vh - 170px) !important;
+    max-height: calc(100dvh - 170px) !important;
+    box-sizing: border-box !important;
   }
 
   .schedule-table {
