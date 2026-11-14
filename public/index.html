@@ -877,6 +877,15 @@
           </svg>
         </button>
       </div>
+
+      <!-- Mobile Grid Scope Toggle Row (in Header beneath action keys) -->
+      <div class="header-mobile-scope-row hidden" id="headerMobileScopeRow">
+        <div class="mobile-grid-scope-toggle" id="mobileGridScopeToggle" role="group" aria-label="Grid Scope View">
+          <button type="button" class="btn-grid-scope active" id="btnScopePersonal" data-scope="personal" title="Personal View: Shows your schedule only">Personal</button>
+          <button type="button" class="btn-grid-scope" id="btnScopeTeam" data-scope="team" title="Team View: Shows all team members">Team</button>
+        </div>
+        <span class="mobile-grid-notice-text sr-only" id="mobileGridNoticeText">Personal Grid (Read-Only)</span>
+      </div>
     </header>
 
     <!-- View-Only Alert Banner -->
@@ -891,17 +900,8 @@
 
     <!-- Main Schedule Canvas -->
     <main class="schedule-canvas">
-      <!-- Read-Only Notice & Scope Switcher when viewing grid on mobile -->
-      <div id="mobileGridNoticeBanner" class="mobile-grid-notice hidden">
-        <div class="mobile-grid-notice-left">
-          <div class="mobile-grid-scope-toggle" id="mobileGridScopeToggle" role="group" aria-label="Grid Scope View">
-            <button type="button" class="btn-grid-scope active" id="btnScopePersonal" data-scope="personal" title="Personal View: Shows your schedule only">Personal</button>
-            <button type="button" class="btn-grid-scope" id="btnScopeTeam" data-scope="team" title="Team View: Shows all team members">Team</button>
-          </div>
-          <span class="mobile-grid-notice-text" id="mobileGridNoticeText">Personal Grid (Read-Only)</span>
-        </div>
-        <button type="button" class="btn btn-sm btn-primary" id="mobileReturnToLoggerBtn">Log Hours Form</button>
-      </div>
+      <!-- Hidden compatibility hooks -->
+      <div id="mobileGridNoticeBanner" class="hidden" style="display:none !important;"><button type="button" id="mobileReturnToLoggerBtn" class="hidden" style="display:none !important;"></button></div>
 
       <!-- Mobile Dedicated View (Phone / Small Screens) -->
       <div id="mobileAppContainer" class="mobile-app-container hidden">

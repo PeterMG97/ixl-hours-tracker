@@ -196,12 +196,11 @@
     mobileAvatarCircle: document.getElementById('mobileAvatarCircle'),
     mobileUserNameDisplay: document.getElementById('mobileUserNameDisplay'),
     mobileRoleCaption: document.getElementById('mobileRoleCaption'),
-    mobileGridNoticeBanner: document.getElementById('mobileGridNoticeBanner'),
+    headerMobileScopeRow: document.getElementById('headerMobileScopeRow'),
     mobileGridScopeToggle: document.getElementById('mobileGridScopeToggle'),
     btnScopePersonal: document.getElementById('btnScopePersonal'),
     btnScopeTeam: document.getElementById('btnScopeTeam'),
     mobileGridNoticeText: document.getElementById('mobileGridNoticeText'),
-    mobileReturnToLoggerBtn: document.getElementById('mobileReturnToLoggerBtn'),
     mobileSummaryCard: document.getElementById('mobileSummaryCard'),
     mobileSummaryCardTitle: document.getElementById('mobileSummaryCardTitle'),
     mobileMonthLabel: document.getElementById('mobileMonthLabel'),
@@ -633,7 +632,6 @@
     if (el.openBulkFillBtn) el.openBulkFillBtn.classList.add('hidden');
     if (el.bulkFillModal) el.bulkFillModal.classList.add('hidden');
     if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
-    if (el.mobileReturnToLoggerBtn) el.mobileReturnToLoggerBtn.classList.add('hidden');
     if (el.mobileAppContainer) el.mobileAppContainer.classList.add('hidden');
     document.getElementById('userIdentityCard').style.display = 'none';
   }
@@ -9718,6 +9716,9 @@
   // -------------------------------------------------------------
 
   function updateMobileGridScopeUI() {
+    if (!el.headerMobileScopeRow) {
+      el.headerMobileScopeRow = document.getElementById('headerMobileScopeRow');
+    }
     if (!el.mobileGridScopeToggle) {
       el.mobileGridScopeToggle = document.getElementById('mobileGridScopeToggle');
     }
@@ -9732,12 +9733,20 @@
     }
 
     if (state.isViewOnly) {
+      if (el.headerMobileScopeRow) el.headerMobileScopeRow.classList.add('hidden');
       if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.add('hidden');
       if (el.mobileGridNoticeText) el.mobileGridNoticeText.textContent = 'Viewing Full Grid (Read-Only on Mobile)';
       return;
     }
 
-    if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.remove('hidden');
+    const isMobile = isMobileInterface();
+    if (!isMobile || state.mobileViewMode !== 'grid') {
+      if (el.headerMobileScopeRow) el.headerMobileScopeRow.classList.add('hidden');
+      if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.add('hidden');
+    } else {
+      if (el.headerMobileScopeRow) el.headerMobileScopeRow.classList.remove('hidden');
+      if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.remove('hidden');
+    }
 
     const isPersonal = (state.mobileGridScope === 'personal');
     if (el.btnScopePersonal) {
@@ -9784,7 +9793,7 @@
     const isMobile = isMobileInterface();
     const container = el.mobileAppContainer;
     const gridCard = el.scheduleCard || document.querySelector('.schedule-card');
-    const notice = el.mobileGridNoticeBanner;
+    const notice = el.headerMobileScopeRow || document.getElementById('headerMobileScopeRow');
 
     dockMobileConnectionBadge(isMobile);
     updateMonthSelectLabels(isMobile);
@@ -9796,6 +9805,7 @@
       state.mobileTargetEmpId = null;
       if (container) container.classList.add('hidden');
       if (gridCard) gridCard.classList.remove('hidden');
+      if (notice) notice.classList.add('hidden');
       if (el.mobileReturnToLoggerBtn) el.mobileReturnToLoggerBtn.classList.add('hidden');
       if (el.mobileGridScopeToggle) el.mobileGridScopeToggle.classList.add('hidden');
       if (el.toggleMobileDesktopGridViewBtn) el.toggleMobileDesktopGridViewBtn.classList.add('hidden');
@@ -9805,12 +9815,10 @@
       if (isMobile) {
         document.body.classList.add('is-mobile-device');
         document.body.classList.remove('is-desktop-device');
-        if (notice) notice.classList.remove('hidden');
         renderSchedule();
       } else {
         document.body.classList.add('is-desktop-device');
         document.body.classList.remove('is-mobile-device');
-        if (notice) notice.classList.add('hidden');
       }
       return;
     }
@@ -9845,8 +9853,8 @@
       if (gridCard) gridCard.classList.remove('hidden');
       if (notice) notice.classList.remove('hidden');
       document.body.classList.add('mobile-readonly-grid');
-      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Mobile Editor';
-      if (el.toggleMobileDesktopGridSub) el.toggleMobileDesktopGridSub.textContent = 'Mobile Editor mode';
+      if (el.toggleMobileDesktopGridLabel) el.toggleMobileDesktopGridLabel.textContent = 'Mobile Logger';
+      if (el.toggleMobileDesktopGridSub) el.toggleMobileDesktopGridSub.textContent = 'Log hours form';
       updateMobileGridScopeUI();
       renderSchedule();
     } else {
@@ -10741,21 +10749,8 @@
         if (state.mobileViewMode === 'grid') {
           showToast('Switched to Grid View (Read-Only for visualization).');
         } else {
-          showToast('Switched to Mobile Editor.');
+          showToast('Switched to Mobile Logger.');
         }
-      });
-    }
-
-    // Return to Mobile Logger button
-    if (el.mobileReturnToLoggerBtn) {
-      el.mobileReturnToLoggerBtn.addEventListener('click', () => {
-        if (state.isViewOnly) {
-          showToast('View-only link: Only Grid View (Read-Only) is enabled.', 'warning');
-          return;
-        }
-        state.mobileViewMode = 'form';
-        updateDeviceViewMode();
-        showToast('Returned to Mobile Schedule Logger.');
       });
     }
 

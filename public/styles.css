@@ -5099,6 +5099,21 @@ body.view-only .task-chip {
     max-height: calc(100vh - 110px) !important;
   }
 
+  .header-mobile-scope-row {
+    order: 4;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 4px;
+    margin-top: 2px;
+    box-sizing: border-box;
+  }
+
+  .header-mobile-scope-row.hidden {
+    display: none !important;
+  }
+
   .table-scroll-area.is-mobile-transposed {
     max-height: calc(100vh - 170px) !important;
     max-height: calc(100dvh - 170px) !important;
@@ -5544,103 +5559,70 @@ body.view-only .task-chip {
   display: block;
 }
 
-.mobile-grid-notice {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.mobile-grid-notice-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
+/* Header Mobile Grid Scope Toggle Row: Positioned in grey header beneath action keys */
+.header-mobile-scope-row {
+  display: none;
 }
 
 .mobile-grid-scope-toggle {
   display: inline-flex;
   align-items: center;
-  background: rgba(146, 64, 14, 0.12);
-  border: 1px solid rgba(146, 64, 14, 0.2);
-  border-radius: 6px;
+  background: #f1f5f9;
+  border: 1px solid var(--border-light, #cbd5e1);
+  border-radius: 8px;
   padding: 2px;
   gap: 2px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .btn-grid-scope {
   border: none;
   background: transparent;
-  color: #78350f;
+  color: var(--text-secondary, #64748b);
   font-size: 11.5px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 3px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  line-height: 1.3;
+  transition: all 0.2s ease;
+  line-height: 1.2;
   user-select: none;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-grid-scope:hover {
-  color: #451a03;
+  color: var(--text-main, #0f172a);
 }
 
 .btn-grid-scope.active {
-  background: #ffffff;
-  color: #0284c7;
-  font-weight: 800;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-.mobile-grid-notice-text {
-  font-size: 11px;
+  background: var(--primary, #0284c7) !important;
+  color: #ffffff !important;
   font-weight: 700;
-  color: #92400e;
-}
-
-[data-theme="dark"] .mobile-grid-notice {
-  background: #78350f;
-  color: #fef3c7;
-  border-color: #92400e;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 [data-theme="dark"] .mobile-grid-scope-toggle {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: rgba(254, 243, 199, 0.2);
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .btn-grid-scope {
-  color: #fde68a;
+  color: #94a3b8;
 }
 
 [data-theme="dark"] .btn-grid-scope:hover {
-  color: #ffffff;
+  color: #f1f5f9;
 }
 
 [data-theme="dark"] .btn-grid-scope.active {
-  background: #0f172a;
-  color: #38bdf8;
+  background: #0284c7 !important;
+  color: #ffffff !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .mobile-grid-notice-text {
-  color: #fde68a;
 }
 
 .mobile-card {
@@ -5858,9 +5840,9 @@ body.view-only .task-chip {
   margin-top: 4px;
 }
 
-/* On Desktop (> 768px): Hide Mobile App Container Always */
+/* On Desktop (> 768px): Hide Mobile App Container and Mobile Scope Row Always */
 body.is-desktop-device .mobile-app-container,
-body.is-desktop-device .mobile-grid-notice {
+body.is-desktop-device .header-mobile-scope-row {
   display: none !important;
 }
 
@@ -5872,7 +5854,7 @@ body.view-only .mobile-app-container {
 
 @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
   body:not(.is-mobile-device) .mobile-app-container,
-  body:not(.is-mobile-device) .mobile-grid-notice {
+  body:not(.is-mobile-device) .header-mobile-scope-row {
     display: none !important;
   }
 }
@@ -5881,7 +5863,7 @@ body.view-only .mobile-app-container {
   .mobile-app-container {
     display: none !important;
   }
-  .mobile-grid-notice {
+  .header-mobile-scope-row {
     display: none !important;
   }
 }
