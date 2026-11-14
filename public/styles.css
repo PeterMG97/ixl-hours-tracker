@@ -5100,14 +5100,14 @@ body.view-only .task-chip {
   }
 
   .header-mobile-scope-row {
-    order: 4;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-top: 4px;
-    margin-top: 2px;
-    box-sizing: border-box;
+    order: 4 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 0 2px 0 !important;
+    margin-top: 4px !important;
+    box-sizing: border-box !important;
   }
 
   .header-mobile-scope-row.hidden {
@@ -5559,9 +5559,11 @@ body.view-only .task-chip {
   display: block;
 }
 
-/* Header Mobile Grid Scope Toggle Row: Positioned in grey header beneath action keys */
-.header-mobile-scope-row {
-  display: none;
+/* Header Mobile Grid Scope Toggle Row: Positioned in grey header beneath action keys (Desktop default: hidden) */
+@media (min-width: 769px) {
+  .header-mobile-scope-row {
+    display: none !important;
+  }
 }
 
 .mobile-grid-scope-toggle {
@@ -5570,25 +5572,25 @@ body.view-only .task-chip {
   background: #f1f5f9;
   border: 1px solid var(--border-light, #cbd5e1);
   border-radius: 8px;
-  padding: 2px;
-  gap: 2px;
+  padding: 3px;
+  gap: 3px;
   box-sizing: border-box;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .btn-grid-scope {
   border: none;
   background: transparent;
   color: var(--text-secondary, #64748b);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 3px 14px;
+  padding: 5px 18px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   line-height: 1.2;
   user-select: none;
-  height: 24px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5601,8 +5603,8 @@ body.view-only .task-chip {
 .btn-grid-scope.active {
   background: var(--primary, #0284c7) !important;
   color: #ffffff !important;
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  font-weight: 800;
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.4);
 }
 
 [data-theme="dark"] .mobile-grid-scope-toggle {
@@ -5622,7 +5624,7 @@ body.view-only .task-chip {
 [data-theme="dark"] .btn-grid-scope.active {
   background: #0284c7 !important;
   color: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.5);
 }
 
 .mobile-card {
