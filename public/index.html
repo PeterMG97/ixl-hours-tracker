@@ -900,7 +900,7 @@
           </div>
           <span class="mobile-grid-notice-text" id="mobileGridNoticeText">Personal Grid (Read-Only)</span>
         </div>
-        <button type="button" class="btn btn-sm btn-primary" id="mobileReturnToLoggerBtn">Return to Mobile Logger</button>
+        <button type="button" class="btn btn-sm btn-primary" id="mobileReturnToLoggerBtn">Log Hours Form</button>
       </div>
 
       <!-- Mobile Dedicated View (Phone / Small Screens) -->
@@ -915,14 +915,20 @@
               <span class="mobile-role-caption" id="mobileRoleCaption">Team Member</span>
             </div>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm" id="mobileSwitchUserBtn" title="Switch Team Member">Switch</button>
+          <div class="mobile-profile-actions">
+            <button type="button" class="btn btn-secondary btn-sm" id="mobileSwitchUserBtn" title="Switch Team Member">Switch</button>
+            <button type="button" class="btn btn-primary btn-sm" id="mobileOpenGridFromLoggerBtn" title="View Schedule Grid (Personal / Team)">View Grid</button>
+          </div>
         </div>
 
         <!-- Component 1: My Monthly Summary Card -->
         <div class="mobile-card mobile-summary-card" id="mobileSummaryCard">
           <div class="mobile-card-header">
             <h4 id="mobileSummaryCardTitle">My Month Summary</h4>
-            <span class="badge badge-primary" id="mobileMonthLabel">November 2026</span>
+            <div class="mobile-card-header-actions">
+              <span class="badge badge-primary" id="mobileMonthLabel">November 2026</span>
+              <button type="button" class="btn-text-action" id="mobileSummaryGridShortcutBtn" title="Open Schedule Grid">View Grid &rsaquo;</button>
+            </div>
           </div>
           
           <div class="mobile-kpi-grid">

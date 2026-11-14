@@ -197,6 +197,8 @@
     mobileUserNameDisplay: document.getElementById('mobileUserNameDisplay'),
     mobileRoleCaption: document.getElementById('mobileRoleCaption'),
     mobileSwitchUserBtn: document.getElementById('mobileSwitchUserBtn'),
+    mobileOpenGridFromLoggerBtn: document.getElementById('mobileOpenGridFromLoggerBtn'),
+    mobileSummaryGridShortcutBtn: document.getElementById('mobileSummaryGridShortcutBtn'),
     mobileGridNoticeBanner: document.getElementById('mobileGridNoticeBanner'),
     mobileGridScopeToggle: document.getElementById('mobileGridScopeToggle'),
     btnScopePersonal: document.getElementById('btnScopePersonal'),
@@ -9560,6 +9562,10 @@
 
   function isMobileInterface() {
     if (state.forceDesktopViewOnMobile) return false;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('device') === 'mobile' || urlParams.get('interface') === 'mobile' || urlParams.get('mobile') === '1' || urlParams.get('mobile') === 'true') {
+      return true;
+    }
     const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
     const cannotHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
     const isMobileUA = /Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -10751,6 +10757,24 @@
         state.mobileViewMode = 'form';
         updateDeviceViewMode();
         showToast('Returned to Mobile Schedule Logger.');
+      });
+    }
+
+    // Direct 1-tap shortcut to open Mobile Grid from Logger Profile Bar
+    if (el.mobileOpenGridFromLoggerBtn) {
+      el.mobileOpenGridFromLoggerBtn.addEventListener('click', () => {
+        state.mobileViewMode = 'grid';
+        updateDeviceViewMode();
+        showToast('Viewing Schedule Grid (Personal Mode).');
+      });
+    }
+
+    // Direct shortcut from Month Summary Card header
+    if (el.mobileSummaryGridShortcutBtn) {
+      el.mobileSummaryGridShortcutBtn.addEventListener('click', () => {
+        state.mobileViewMode = 'grid';
+        updateDeviceViewMode();
+        showToast('Viewing Schedule Grid (Personal Mode).');
       });
     }
 
